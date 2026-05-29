@@ -1,0 +1,32 @@
+{
+  "Nav": {
+    "tools": "Tools",
+    "pricing": "Pricing",
+    "privacy": "Privacy",
+    "login": "Log in",
+    "signup": "Get started"
+  },
+  "Footer": {
+    "tagline": "Edit PDFs without uploading them.",
+    "tools": "Tools",
+    "company": "Company",
+    "legal": "Legal",
+    "about": "About",
+    "blog": "Blog",
+    "terms": "Terms",
+    "privacyPolicy": "Privacy Policy",
+    "copyright": "© {year} PlinyPDF",
+    "homage": "Named after Pliny the Elder, who organized human knowledge."
+  },
+  "Home": {
+    "headline": "Edit PDFs without uploading them.",
+    "subhead": "A privacy-first PDF toolkit. Files stay in your browser unless you choose otherwise.",
+    "cta": "Open tools"
+  },
+  "PrivacyBadge": {
+    "local": "Local",
+    "cloud": "Cloud",
+    "localTooltip": "Your files never leave your browser.",
+    "cloudTooltip": "Processed securely on our servers, then deleted."
+  }
+}

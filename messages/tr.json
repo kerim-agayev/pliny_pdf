@@ -1,0 +1,32 @@
+{
+  "Nav": {
+    "tools": "Araçlar",
+    "pricing": "Fiyatlandırma",
+    "privacy": "Gizlilik",
+    "login": "Giriş yap",
+    "signup": "Başla"
+  },
+  "Footer": {
+    "tagline": "PDF'leri yüklemeden düzenleyin.",
+    "tools": "Araçlar",
+    "company": "Şirket",
+    "legal": "Yasal",
+    "about": "Hakkında",
+    "blog": "Blog",
+    "terms": "Kullanım Şartları",
+    "privacyPolicy": "Gizlilik Politikası",
+    "copyright": "© {year} PlinyPDF",
+    "homage": "Bilgiyi düzenleyen Yaşlı Pliny'nin adını taşır."
+  },
+  "Home": {
+    "headline": "PDF'leri yüklemeden düzenleyin.",
+    "subhead": "Gizlilik odaklı bir PDF araç seti. Siz aksini seçmedikçe dosyalar tarayıcınızda kalır.",
+    "cta": "Araçları aç"
+  },
+  "PrivacyBadge": {
+    "local": "Yerel",
+    "cloud": "Bulut",
+    "localTooltip": "Dosyalarınız tarayıcınızdan asla ayrılmaz.",
+    "cloudTooltip": "Sunucularımızda güvenle işlenir, ardından silinir."
+  }
+}
