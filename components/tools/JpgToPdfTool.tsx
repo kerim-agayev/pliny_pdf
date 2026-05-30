@@ -6,18 +6,20 @@ import { FileDropzone } from "./FileDropzone";
 import { SuccessPanel, ErrorBanner } from "./ResultPanels";
 import { Spinner } from "./Spinner";
 import { IconArrow, IconX, IconImage } from "@/components/shared/icons";
-import { jpgToPdf } from "@/lib/pdf/jpgToPdf";
+import { jpgToPdf, jpgToPdfSeparate } from "@/lib/pdf/jpgToPdf";
 import { isImage } from "@/lib/pdf/common";
 import { downloadBlob, formatBytes } from "@/lib/format";
 
 type Status = "idle" | "processing" | "done" | "error";
+type Mode = "combine" | "separate";
 
 export function JpgToPdfTool() {
   const t = useTranslations("ToolUI");
   const tp = useTranslations("ToolPages.jpgToPdf");
   const [files, setFiles] = useState<File[]>([]);
+  const [mode, setMode] = useState<Mode>("combine");
   const [status, setStatus] = useState<Status>("idle");
-  const [result, setResult] = useState<Blob | null>(null);
+  const [result, setResult] = useState<{ blob: Blob; filename: string; meta: string } | null>(null);
   const [errorMsg, setErrorMsg] = useState<string>();
 
   function addFiles(incoming: File[]) {
@@ -31,7 +33,13 @@ export function JpgToPdfTool() {
     if (!files.length) return;
     setStatus("processing");
     try {
-      setResult(await jpgToPdf(files));
+      if (mode === "separate") {
+        const res = await jpgToPdfSeparate(files);
+        setResult({ blob: res.blob, filename: res.filename, meta: `${res.filename} · ${tp("zipNote")}` });
+      } else {
+        const blob = await jpgToPdf(files);
+        setResult({ blob, filename: "combined.pdf", meta: `combined.pdf · ${formatBytes(blob.size)}` });
+      }
       setStatus("done");
     } catch {
       setStatus("error");
@@ -49,8 +57,8 @@ export function JpgToPdfTool() {
     return (
       <SuccessPanel
         title={tp("successTitle")}
-        meta={`combined.pdf · ${formatBytes(result.size)}`}
-        onDownload={() => downloadBlob(result, "combined.pdf")}
+        meta={result.meta}
+        onDownload={() => downloadBlob(result.blob, result.filename)}
         onReset={reset}
       />
     );
@@ -63,6 +71,29 @@ export function JpgToPdfTool() {
 
       {files.length > 0 && (
         <>
+          <div className="grid grid-cols-2 gap-1 rounded-[10px] p-1 sm:max-w-md" style={{ background: "var(--bg-2)", border: "1px solid var(--line)" }}>
+            {([
+              { k: "combine", label: tp("combineOne") },
+              { k: "separate", label: tp("separateEach") },
+            ] as const).map(({ k, label }) => {
+              const active = mode === k;
+              return (
+                <button
+                  key={k}
+                  type="button"
+                  onClick={() => setMode(k)}
+                  className="rounded-[7px] px-3 py-2 text-[12.5px] font-medium"
+                  style={{
+                    background: active ? "rgba(107,92,231,0.18)" : "transparent",
+                    color: active ? "#BFB5FF" : "var(--text-2)",
+                    border: active ? "1px solid rgba(107,92,231,0.3)" : "1px solid transparent",
+                  }}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
           <div className="grid grid-cols-3 gap-3 sm:grid-cols-4">
             {files.map((f, i) => (
               <div key={i} className="group relative aspect-[3/4] overflow-hidden rounded-lg" style={{ border: "1px solid var(--line)", background: "var(--bg-2)" }}>
