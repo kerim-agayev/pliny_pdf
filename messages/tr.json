@@ -3,30 +3,336 @@
     "tools": "Araçlar",
     "pricing": "Fiyatlandırma",
     "privacy": "Gizlilik",
+    "blog": "Blog",
     "login": "Giriş yap",
-    "signup": "Başla"
+    "signup": "Ücretsiz Başla"
   },
   "Footer": {
-    "tagline": "PDF'leri yüklemeden düzenleyin.",
+    "tagline": "PDF'leri yüklemeden düzenleyin. Bilgiyi düzenleyen Yaşlı Pliny'nin adını taşır.",
+    "product": "Ürün",
     "tools": "Araçlar",
     "company": "Şirket",
-    "legal": "Yasal",
+    "languages": "Diller",
+    "allTools": "Tüm araçlar",
+    "pricing": "Fiyatlandırma",
+    "roadmap": "Yol haritası",
+    "changelog": "Değişiklikler",
     "about": "Hakkında",
     "blog": "Blog",
-    "terms": "Kullanım Şartları",
-    "privacyPolicy": "Gizlilik Politikası",
-    "copyright": "© {year} PlinyPDF",
-    "homage": "Bilgiyi düzenleyen Yaşlı Pliny'nin adını taşır."
-  },
-  "Home": {
-    "headline": "PDF'leri yüklemeden düzenleyin.",
-    "subhead": "Gizlilik odaklı bir PDF araç seti. Siz aksini seçmedikçe dosyalar tarayıcınızda kalır.",
-    "cta": "Araçları aç"
+    "privacyPolicy": "Gizlilik",
+    "terms": "Şartlar",
+    "rights": "© {year} PlinyPDF · İzleme yok · Takip yok",
+    "madeWith": "Gizlilik için",
+    "forPrivacy": "ile yapıldı"
   },
   "PrivacyBadge": {
     "local": "Yerel",
     "cloud": "Bulut",
     "localTooltip": "Dosyalarınız tarayıcınızdan asla ayrılmaz.",
-    "cloudTooltip": "Sunucularımızda güvenle işlenir, ardından silinir."
+    "cloudTooltip": "Sunucularımızda güvenle işlenir, ardından silinir.",
+    "localBig": "Yerel işleme — dosyalarınız tarayıcınızdan asla ayrılmaz",
+    "cloudBig": "Bulut — güvenle işlenir, dosyalar 1 saat sonra silinir"
+  },
+  "Tools": {
+    "soon": "Yakında",
+    "tag": {
+      "watermark": "Canlı önizleme",
+      "summarize": "Yapay zekâ"
+    },
+    "merge": { "name": "PDF Birleştir", "desc": "PDF'leri istediğiniz sırada tek tıkla birleştirin." },
+    "split": { "name": "PDF Böl", "desc": "Sayfaları ayıklayın veya PDF'yi parçalara bölün." },
+    "compress": { "name": "PDF Sıkıştır", "desc": "Kaliteyi koruyarak dosya boyutunu küçültün." },
+    "rotate": { "name": "PDF Döndür", "desc": "Sayfaları tek tek veya toplu döndürün." },
+    "pdf-to-jpg": { "name": "PDF'den JPG'ye", "desc": "Her sayfayı bir JPG görüntüsüne dönüştürün." },
+    "jpg-to-pdf": { "name": "JPG'den PDF'ye", "desc": "Görselleri tek bir PDF'ye dönüştürün." },
+    "watermark": { "name": "Filigran Ekle", "desc": "Canlı önizleme ile metin filigranı ekleyin." },
+    "protect": { "name": "Parola Koy", "desc": "PDF'yi bir parola ile şifreleyin." },
+    "unlock": { "name": "Parolayı Kaldır", "desc": "Sahibiyseniz parolayı kaldırın." },
+    "edit": { "name": "PDF Düzenleyici", "desc": "Açıklama ekleyin, vurgulayın, çizin." },
+    "pdf-to-word": { "name": "PDF'den Word'e", "desc": "Yüksek doğrulukta DOCX dönüşümü." },
+    "word-to-pdf": { "name": "Word'den PDF'ye", "desc": "DOCX girin, kusursuz PDF alın." },
+    "summarize": { "name": "Yapay Zekâ Özeti", "desc": "Saniyeler içinde özet veya taslak." }
+  },
+  "Home": {
+    "heroBadge": "Yapay zekâ özetleri artık kullanılabilir",
+    "heroBadgeLink": "Daha fazla",
+    "headlineStart": "PDF'leri yüklemeden",
+    "headlineAccent": "düzenleyin.",
+    "subhead": "Tüm işlemler tarayıcınızda gerçekleşir. Dosyalarınız sunucularımıza, analizlerimize veya veritabanımıza asla dokunmaz.",
+    "ctaPrimary": "Ücretsiz Başla — Kayıt yok",
+    "ctaSecondary": "Tüm araçları gör",
+    "trustNoUploads": "Yükleme yok",
+    "trustNoLimits": "Sınır yok",
+    "trustNoWatermark": "Filigran yok",
+    "previewProcessed": "Tarayıcınızda işlendi",
+    "previewDownload": "İndir",
+    "popularKicker": "Popüler araçlar",
+    "popularTitle": "Altı araç işin %90'ını çözer.",
+    "seeAllTools": "Tüm araçları gör",
+    "whyKicker": "Neden PlinyPDF",
+    "whyTitle": "Size saygı duyan PDF aracı.",
+    "whyPrivacyTitle": "Önce gizlilik",
+    "whyPrivacyBody": "Çoğu araç WebAssembly ile tamamen tarayıcınızda çalışır. Sunucu araçları dosyaları bir saat içinde siler. Sıfır analiz toplarız.",
+    "whyPrivacySub": "Yükleme yok · İzleme yok · Çerez yok",
+    "whyAiTitle": "Yapay zekâ destekli özetler",
+    "whyAiBody": "200 sayfalık bir raporu bırakın, saniyeler içinde özünü alın. Taslak, yönetici özeti veya bölüm bölüm.",
+    "whyAiSub": "Ayda 2 ücretsiz · Pro'da sınırsız",
+    "whyLangTitle": "Çok dilli arayüz",
+    "whyLangBody": "İngilizce, Türkçe ve Rusça tam arayüz — yerelleştirilmiş hata mesajları ve tarih biçimleriyle.",
+    "whyLangSub": "EN · TR · RU",
+    "pricingKicker": "Fiyatlandırma",
+    "pricingTitle": "Ücretsiz cömerttir. Pro ucuzdur.",
+    "pricingSeeAll": "Tüm karşılaştırmayı gör",
+    "ctaTitle1": "PDF'leriniz.",
+    "ctaTitle2": "Sizin makineniz. Her zaman.",
+    "ctaBody": "Her aracı kayıt olmadan deneyin. Pro, sunucu dönüşümünü ve sınırsız yapay zekâyı açar.",
+    "ctaStart": "Ücretsiz Başla",
+    "ctaPricing": "Fiyatları gör"
+  },
+  "ToolsPage": {
+    "kicker": "Araçlar",
+    "title": "Tüm PDF araçları.",
+    "subtitle": "Varsayılan olarak önce yerel. Bulut yalnızca sonucu belirgin biçimde iyileştirdiğinde — ve mümkün olan en kısa saklama süresiyle.",
+    "legendLocal": "Yerel — tarayıcıda çalışır",
+    "legendCloud": "Bulut — sunucu destekli",
+    "missingTitle": "Eksik bir araç mı var?",
+    "missingBody": "En çok neyi kullanacağınızı söyleyin, bir sonraki sprintte ekleyelim.",
+    "missingCta": "Araç iste",
+    "category": {
+      "All": "Tümü",
+      "Organize": "Düzenle",
+      "Convert": "Dönüştür",
+      "Edit": "Düzelt",
+      "Secure": "Güvenlik",
+      "AI": "Yapay Zekâ"
+    }
+  },
+  "ToolUI": {
+    "home": "Ana Sayfa",
+    "tools": "Araçlar",
+    "dropTitle": "PDF dosyalarını buraya bırakın",
+    "dropSingleTitle": "Bir PDF bırakın",
+    "dropImageTitle": "Görselleri buraya bırakın",
+    "dropActive": "Eklemek için bırakın",
+    "or": "veya",
+    "browse": "cihazınızdan seçin",
+    "multiple": "birden fazla dosya desteklenir",
+    "howItWorks": "Nasıl çalışır",
+    "relatedTools": "İlgili araçlar",
+    "verifiablePrivacy": "Doğrulanabilir gizlilik",
+    "verifyBody": "Geliştirici Araçları → Ağ'ı açın. Bu aracı çalıştırdığınızda hiçbir yükleme trafiği göremezsiniz.",
+    "howWeVerify": "Nasıl doğruluyoruz →",
+    "processing": "Yerel olarak işleniyor…",
+    "localNote": "Tarayıcınızda çalışır · sıfır ağ isteği",
+    "successTitle": "Hazır! Dosyanız indirilebilir.",
+    "download": "İndir",
+    "processAnother": "Başka dosya işle",
+    "tryAgain": "Tekrar dene",
+    "errorTitle": "Dosyanız işlenirken bir şeyler ters gitti.",
+    "neverUploaded": "Dosyanız asla yüklenmedi — hiçbir şey saklanmadı.",
+    "wrongTypePdf": "Yalnızca PDF dosyaları desteklenir.",
+    "wrongTypeImage": "Yalnızca görsel (JPG veya PNG) dosyaları desteklenir.",
+    "suggestConvert": "Bunun yerine Word'ü PDF'ye dönüştür →",
+    "tooLarge": "Dosya çok büyük. Dosya başına en fazla 100 MB.",
+    "clear": "Temizle",
+    "addMore": "Daha ekle",
+    "step1Title": "Dosyalarınızı bırakın",
+    "step1Body": "PDF'nizi ekleyin — sürükleyip bırakın veya cihazınızdan seçin.",
+    "step2Title": "Yerel çalışır",
+    "step2Body": "Her şey WebAssembly ile tarayıcınızda olur. Yükleme yok.",
+    "step3Title": "İndirin",
+    "step3Body": "Sonucu kaydedin veya doğrudan başka bir araca gönderin.",
+    "filesCount": "{count, plural, one {# dosya} other {# dosya}}",
+    "pagesCount": "{count, plural, one {# sayfa} other {# sayfa}}"
+  },
+  "ToolPages": {
+    "merge": {
+      "subtitle": "Birden fazla PDF'yi tek dosyada birleştirin. Sıralamak için sürükleyin.",
+      "filesToMerge": "Birleştirilecek dosyalar",
+      "action": "{count} dosyayı birleştir",
+      "successTitle": "Başarıyla birleştirildi."
+    },
+    "split": {
+      "subtitle": "Bir sayfa aralığı çıkarın veya her sayfayı ayrı dosyaya bölün.",
+      "modeRange": "Sayfa aralığı",
+      "modeEach": "Her sayfa ayrı",
+      "from": "Başlangıç",
+      "to": "Bitiş",
+      "action": "PDF'yi böl",
+      "successTitle": "Bölme tamamlandı."
+    },
+    "compress": {
+      "subtitle": "PDF'nizi küçültün. Bir ön ayar seçip daha küçük bir dosya indirin.",
+      "presetScreen": "Ekran",
+      "presetScreenDesc": "Dijital görüntüleme için · en küçük",
+      "presetBalanced": "Dengeli",
+      "presetBalancedDesc": "İyi kalite · önerilen",
+      "presetMaximum": "En yüksek kalite",
+      "presetMaximumDesc": "Hafif sıkıştırma · en iyi kalite",
+      "rasterNote": "Sıkıştırma sayfaları görüntüye çevirir — metin görüntünün parçası olur ve artık seçilemez.",
+      "action": "PDF'yi sıkıştır",
+      "savedBadge": "%{percent} tasarruf",
+      "successTitle": "Başarıyla sıkıştırıldı."
+    },
+    "rotate": {
+      "subtitle": "Tüm sayfaları veya yalnızca seçtiklerinizi döndürün.",
+      "scopeAll": "Tüm sayfalar",
+      "rotateLeft": "Sola 90° döndür",
+      "rotateRight": "Sağa 90° döndür",
+      "flip": "180° çevir",
+      "action": "PDF'yi döndür",
+      "successTitle": "Başarıyla döndürüldü."
+    },
+    "pdfToJpg": {
+      "subtitle": "Her sayfayı yüksek çözünürlüklü bir JPG görüntüsüne dönüştürün.",
+      "quality": "Kalite",
+      "action": "JPG'ye dönüştür",
+      "successTitle": "Görüntülere dönüştürüldü.",
+      "zipNote": "Sayfalar tek bir .zip içinde toplanır."
+    },
+    "jpgToPdf": {
+      "subtitle": "JPG veya PNG görsellerini tek bir PDF'de, sayfa başına bir görsel olarak birleştirin.",
+      "action": "PDF oluştur",
+      "successTitle": "PDF oluşturuldu."
+    },
+    "watermark": {
+      "subtitle": "Yazarken canlı önizleme ile PDF'nize metin filigranı ekleyin.",
+      "text": "Filigran metni",
+      "fontSize": "Yazı boyutu",
+      "opacity": "Saydamlık",
+      "rotation": "Döndürme",
+      "color": "Renk",
+      "position": "Konum",
+      "posCenter": "Orta",
+      "posTile": "Döşeli",
+      "posDiagonal": "Çapraz",
+      "preview": "Canlı önizleme",
+      "action": "Filigran ekle",
+      "successTitle": "Filigran uygulandı."
+    },
+    "protect": {
+      "subtitle": "PDF'nizi bir parola ile şifreleyin. Tamamen tarayıcınızda uygulanır.",
+      "password": "Parola",
+      "confirm": "Parolayı onayla",
+      "mismatch": "Parolalar eşleşmiyor.",
+      "action": "PDF'yi koru",
+      "successTitle": "Parola korumalı."
+    },
+    "unlock": {
+      "subtitle": "Sahip olduğunuz bir PDF'den parolayı kaldırın. Mevcut parolayı bilmelisiniz.",
+      "password": "Mevcut parola",
+      "wrongPassword": "Yanlış parola — dosyanın kilidi açılamadı.",
+      "action": "Parolayı kaldır",
+      "successTitle": "Parola kaldırıldı."
+    },
+    "editor": {
+      "subtitle": "PDF'lerinize açıklama ekleyin, vurgulayın, çizin ve işaretleyin.",
+      "badge": "Yerel — açıklamalar tarayıcınızdan asla ayrılmaz",
+      "emptyTitle": "Açıklama eklemeye başlamak için bir PDF bırakın",
+      "browse": "veya dosyalara göz atın",
+      "emptyNote": "Tüm açıklamalar yerel olarak işlenir",
+      "save": "PDF'yi kaydet",
+      "clearAll": "Tümünü temizle",
+      "tools": {
+        "select": "Seç",
+        "text": "Metin kutusu",
+        "sticky": "Yapışkan not",
+        "highlight": "Vurgula",
+        "strike": "Üstü çizili",
+        "underline": "Altı çizili",
+        "pen": "Kalem",
+        "rect": "Dikdörtgen",
+        "circle": "Daire",
+        "arrow": "Ok",
+        "line": "Çizgi",
+        "eraser": "Silgi",
+        "undo": "Geri al",
+        "redo": "Yinele"
+      }
+    }
+  },
+  "Pricing": {
+    "kicker": "Fiyatlandırma",
+    "title1": "Dürüst fiyatlandırma.",
+    "title2": "Daha fazlasına ihtiyacınız olduğunda tek katman.",
+    "subtitle": "Ücretsiz çoğu kişi için yeterli. Pro, PDF'lerin içinde yaşayanlar için.",
+    "monthly": "Aylık",
+    "yearly": "Yıllık",
+    "saveYearly": "Yıllıkta %35 tasarruf",
+    "save35": "%35 tasarruf",
+    "mostPopular": "En popüler",
+    "freeName": "Ücretsiz",
+    "proName": "Pro",
+    "freeTagline": "Çoğu kişi için, neredeyse her şey için.",
+    "proTagline": "Sunucu araçlarına ihtiyaç duyan sık kullanıcılar için.",
+    "forever": "sonsuza dek",
+    "perMonth": "/ay",
+    "perYear": "/yıl",
+    "freeCta": "Ücretsiz Başla — kayıt gerekmez",
+    "proCta": "Pro'ya yükselt",
+    "freeFeatures": [
+      "Tüm yerel araçlar — sınırsız",
+      "Sunucu araçları · günde 10",
+      "Yapay zekâ özeti · ayda 2",
+      "Filigran yok, reklam yok",
+      "Kayıt gerekmez",
+      "Tam EN / TR / RU arayüz"
+    ],
+    "proFeatures": [
+      "Ücretsiz'deki her şey",
+      "Sınırsız sunucu araçları (Word, OCR)",
+      "Sınırsız yapay zekâ özetleri",
+      "30 günlük dosya geçmişi",
+      "Öncelikli işleme kuyruğu",
+      "E-posta desteği, 24 saatte yanıt",
+      "Yeni araçlara erken erişim"
+    ],
+    "guarantees": [
+      "İstediğiniz zaman iptal · Soru sorulmaz",
+      "Paddle ile · KDV uyumlu faturalar",
+      "14 gün para iadesi"
+    ],
+    "faqKicker": "SSS",
+    "faqTitle": "Herkesin sorduğu sorular.",
+    "faq": [
+      {
+        "q": "İşleme gerçekten nasıl yerel olabilir?",
+        "a": "Olgun açık kaynak kütüphaneleri (pdf.js, pdf-lib) WebAssembly'ye derliyoruz. Tarayıcı sekmenizin içinde çalışırlar, bu yüzden PDF'nizin baytları asla ağ üzerinden gitmez. Bunu tarayıcınızın DevTools → Ağ panelinde doğrulayabilirsiniz."
+      },
+      {
+        "q": "Neden bazı araçlar \"Bulut\"?",
+        "a": "OCR ile PDF → Word, gerçekçi olarak birkaç GB model ağırlığı ve gerçek bir GPU gerektirir. Bunu sunucu tarafında yaparız, dosyayı bir saat içinde sileriz ve belgelerinizle asla eğitim yapmayız."
+      },
+      {
+        "q": "İstediğim zaman iptal edebilir miyim?",
+        "a": "Evet — panoda tek tıkla. Paddle üzerinden faturalandırırız. Yeniden etkinleştirme e-postaları, geri kazanma açılır pencereleri yok."
+      },
+      {
+        "q": "Ekip planları sunuyor musunuz?",
+        "a": "Henüz değil. Önce bireysel ürünü mükemmelleştirmek istiyoruz. Şirketiniz için fatura gerekiyorsa Pro planı KDV uyumlu makbuzları destekler."
+      },
+      {
+        "q": "Hangi ödeme yöntemleri destekleniyor?",
+        "a": "Paddle üzerinden tüm büyük kartlar, Apple Pay, Google Pay, SEPA ve iDEAL. Türk lirası ve Rus rublesi yerel fiyatlandırmayla mevcuttur."
+      }
+    ]
+  },
+  "Dashboard": {
+    "greeting": "Tekrar hoş geldiniz",
+    "quickTools": "Hızlı araçlar",
+    "recentActivity": "Son etkinlik",
+    "usage": "Kullanımınız",
+    "serverTools": "Sunucu araçları",
+    "aiSummaries": "Yapay zekâ özetleri",
+    "perDay": "Bugün {used} / {total}",
+    "perMonth": "Bu ay {used} / {total}",
+    "upgradeTitle": "Sınırsızı açın",
+    "upgradeBody": "Pro, sunucu araçları ve yapay zekâdaki günlük sınırları kaldırır.",
+    "upgradeCta": "Pro'ya yükselt",
+    "proUnlimited": "Pro — sınırsız",
+    "planFree": "ÜCRETSİZ",
+    "planPro": "PRO",
+    "emptyActivity": "Henüz bir şey yok. Geçmişinizde görmek için bir araç çalıştırın.",
+    "openTool": "Aç"
   }
 }

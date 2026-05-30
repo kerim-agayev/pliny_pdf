@@ -1,67 +1,123 @@
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
+import { routing } from "@/i18n/routing";
+import { PlinyMark, IconHeart } from "./icons";
+
+const LOCALE_LABELS: Record<string, string> = {
+  en: "English",
+  tr: "Türkçe",
+  ru: "Русский",
+};
 
 export function Footer() {
   const t = useTranslations("Footer");
-  const year = new Date().getFullYear();
+  const year = 2026;
+
+  const columns: { title: string; links: { label: string; href: string }[] }[] = [
+    {
+      title: t("product"),
+      links: [
+        { label: t("allTools"), href: "/tools" },
+        { label: t("pricing"), href: "/pricing" },
+        { label: t("roadmap"), href: "/tools" },
+        { label: t("changelog"), href: "/tools" },
+      ],
+    },
+    {
+      title: t("tools"),
+      links: [
+        { label: "Merge PDF", href: "/merge-pdf" },
+        { label: "Compress PDF", href: "/compress-pdf" },
+        { label: "Add Watermark", href: "/add-watermark" },
+        { label: "PDF Editor", href: "/edit-pdf" },
+      ],
+    },
+    {
+      title: t("company"),
+      links: [
+        { label: t("about"), href: "/about" },
+        { label: t("blog"), href: "/blog" },
+        { label: t("privacyPolicy"), href: "/privacy" },
+        { label: t("terms"), href: "/terms" },
+      ],
+    },
+  ];
 
   return (
-    <footer className="border-t border-border/60 bg-background">
-      <div className="mx-auto max-w-6xl px-6 py-12">
-        <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
-          <div className="col-span-2 sm:col-span-1">
-            <p className="font-heading text-lg font-bold tracking-tight">
-              PlinyPDF
-            </p>
-            <p className="mt-2 max-w-xs text-sm text-muted-foreground">
+    <footer style={{ borderTop: "1px solid var(--line)", background: "var(--bg)" }}>
+      <div className="mx-auto max-w-[1240px] px-5 pt-14 pb-8 sm:px-10">
+        <div className="grid grid-cols-2 gap-10 md:grid-cols-[1.4fr_1fr_1fr_1fr_1fr]">
+          <div className="col-span-2 md:col-span-1">
+            <div className="mb-3.5 flex items-center gap-2.5">
+              <PlinyMark size={26} color="var(--text)" />
+              <span className="font-[family-name:var(--font-display)] text-base font-bold">
+                PlinyPDF
+              </span>
+            </div>
+            <p className="max-w-[260px] text-[13px] leading-relaxed" style={{ color: "var(--text-2)" }}>
               {t("tagline")}
             </p>
           </div>
-          <FooterColumn title={t("tools")}>
-            <Link href="/tools" className="text-muted-foreground hover:text-foreground">
-              {t("tools")}
-            </Link>
-          </FooterColumn>
-          <FooterColumn title={t("company")}>
-            <Link href="/about" className="text-muted-foreground hover:text-foreground">
-              {t("about")}
-            </Link>
-            <Link href="/blog" className="text-muted-foreground hover:text-foreground">
-              {t("blog")}
-            </Link>
-          </FooterColumn>
-          <FooterColumn title={t("legal")}>
-            <Link
-              href="/privacy"
-              className="text-muted-foreground hover:text-foreground"
+
+          {columns.map((col) => (
+            <div key={col.title}>
+              <div
+                className="mb-3.5 text-[11px] font-semibold uppercase tracking-[0.1em]"
+                style={{ color: "var(--text-3)" }}
+              >
+                {col.title}
+              </div>
+              <ul className="flex flex-col gap-2.5">
+                {col.links.map((l) => (
+                  <li key={l.label}>
+                    <Link
+                      href={l.href}
+                      className="text-[13.5px] transition-colors hover:text-[var(--text)]"
+                      style={{ color: "var(--text-2)" }}
+                    >
+                      {l.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+
+          <div>
+            <div
+              className="mb-3.5 text-[11px] font-semibold uppercase tracking-[0.1em]"
+              style={{ color: "var(--text-3)" }}
             >
-              {t("privacyPolicy")}
-            </Link>
-            <Link href="/terms" className="text-muted-foreground hover:text-foreground">
-              {t("terms")}
-            </Link>
-          </FooterColumn>
+              {t("languages")}
+            </div>
+            <ul className="flex flex-col gap-2.5">
+              {routing.locales.map((loc) => (
+                <li key={loc}>
+                  <Link
+                    href="/"
+                    locale={loc}
+                    className="text-[13.5px] transition-colors hover:text-[var(--text)]"
+                    style={{ color: "var(--text-2)" }}
+                  >
+                    {LOCALE_LABELS[loc]}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
-        <div className="mt-10 flex flex-col gap-2 border-t border-border/60 pt-6 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
-          <span>{t("copyright", { year })}</span>
-          <span className="font-mono">{t("homage")}</span>
+
+        <hr className="pp-hr my-0" />
+        <div
+          className="flex flex-col items-start justify-between gap-2 pt-6 text-[12.5px] sm:flex-row sm:items-center"
+          style={{ color: "var(--text-3)" }}
+        >
+          <span>{t("rights", { year })}</span>
+          <span className="inline-flex items-center gap-1.5">
+            {t("madeWith")} <IconHeart size={12} color="#F472B6" sw={2} /> {t("forPrivacy")}
+          </span>
         </div>
       </div>
     </footer>
-  );
-}
-
-function FooterColumn({
-  title,
-  children,
-}: {
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div>
-      <p className="mb-3 text-sm font-semibold">{title}</p>
-      <div className="flex flex-col gap-2 text-sm">{children}</div>
-    </div>
   );
 }

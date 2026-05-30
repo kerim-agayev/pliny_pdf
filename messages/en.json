@@ -3,30 +3,336 @@
     "tools": "Tools",
     "pricing": "Pricing",
     "privacy": "Privacy",
-    "login": "Log in",
-    "signup": "Get started"
+    "blog": "Blog",
+    "login": "Sign in",
+    "signup": "Start Free"
   },
   "Footer": {
-    "tagline": "Edit PDFs without uploading them.",
+    "tagline": "Edit PDFs without uploading them. Named after Pliny the Elder, who organized human knowledge.",
+    "product": "Product",
     "tools": "Tools",
     "company": "Company",
-    "legal": "Legal",
+    "languages": "Languages",
+    "allTools": "All tools",
+    "pricing": "Pricing",
+    "roadmap": "Roadmap",
+    "changelog": "Changelog",
     "about": "About",
     "blog": "Blog",
+    "privacyPolicy": "Privacy",
     "terms": "Terms",
-    "privacyPolicy": "Privacy Policy",
-    "copyright": "© {year} PlinyPDF",
-    "homage": "Named after Pliny the Elder, who organized human knowledge."
-  },
-  "Home": {
-    "headline": "Edit PDFs without uploading them.",
-    "subhead": "A privacy-first PDF toolkit. Files stay in your browser unless you choose otherwise.",
-    "cta": "Open tools"
+    "rights": "© {year} PlinyPDF · No telemetry · No trackers",
+    "madeWith": "Made with",
+    "forPrivacy": "for privacy"
   },
   "PrivacyBadge": {
     "local": "Local",
     "cloud": "Cloud",
     "localTooltip": "Your files never leave your browser.",
-    "cloudTooltip": "Processed securely on our servers, then deleted."
+    "cloudTooltip": "Processed securely on our servers, then deleted.",
+    "localBig": "Local processing — your files never leave your browser",
+    "cloudBig": "Cloud — processed securely, files deleted after 1 hour"
+  },
+  "Tools": {
+    "soon": "Soon",
+    "tag": {
+      "watermark": "Live preview",
+      "summarize": "AI-powered"
+    },
+    "merge": { "name": "Merge PDF", "desc": "Combine PDFs in any order, in one click." },
+    "split": { "name": "Split PDF", "desc": "Extract pages or split a PDF into parts." },
+    "compress": { "name": "Compress PDF", "desc": "Reduce file size while keeping quality." },
+    "rotate": { "name": "Rotate PDF", "desc": "Rotate pages — single or all at once." },
+    "pdf-to-jpg": { "name": "PDF to JPG", "desc": "Convert each page to a JPG image." },
+    "jpg-to-pdf": { "name": "JPG to PDF", "desc": "Turn images into a single PDF." },
+    "watermark": { "name": "Add Watermark", "desc": "Stamp text with a live preview." },
+    "protect": { "name": "Password Protect", "desc": "Encrypt a PDF with a password." },
+    "unlock": { "name": "Remove Password", "desc": "Strip the password if you own the file." },
+    "edit": { "name": "PDF Editor", "desc": "Annotate, highlight, draw, and mark up." },
+    "pdf-to-word": { "name": "PDF to Word", "desc": "High-fidelity DOCX conversion." },
+    "word-to-pdf": { "name": "Word to PDF", "desc": "DOCX in, perfectly formatted PDF out." },
+    "summarize": { "name": "AI Summary", "desc": "Outline or executive summary in seconds." }
+  },
+  "Home": {
+    "heroBadge": "AI summaries are now available",
+    "heroBadgeLink": "Read more",
+    "headlineStart": "Edit PDFs without",
+    "headlineAccent": "uploading them.",
+    "subhead": "All processing happens in your browser. Your files never touch our servers, our analytics, or our database.",
+    "ctaPrimary": "Start Free — No signup",
+    "ctaSecondary": "See all tools",
+    "trustNoUploads": "No uploads",
+    "trustNoLimits": "No limits",
+    "trustNoWatermark": "No watermark",
+    "previewProcessed": "Processed in your browser",
+    "previewDownload": "Download",
+    "popularKicker": "Popular tools",
+    "popularTitle": "Six tools cover the 90%.",
+    "seeAllTools": "See all tools",
+    "whyKicker": "Why PlinyPDF",
+    "whyTitle": "The PDF tool that respects you.",
+    "whyPrivacyTitle": "Privacy first",
+    "whyPrivacyBody": "Most tools run entirely in your browser via WebAssembly. The server tools delete files within an hour. We collect zero analytics.",
+    "whyPrivacySub": "No uploads · No tracking · No cookies",
+    "whyAiTitle": "AI-powered summaries",
+    "whyAiBody": "Drop a 200-page report and get the gist in seconds. Outline mode, executive summary, or per-section.",
+    "whyAiSub": "2 free per month · Unlimited on Pro",
+    "whyLangTitle": "Multilingual UI",
+    "whyLangBody": "Full interface in English, Türkçe, and Русский — with localized error messages and date formats baked in.",
+    "whyLangSub": "EN · TR · RU",
+    "pricingKicker": "Pricing",
+    "pricingTitle": "Free is generous. Pro is cheap.",
+    "pricingSeeAll": "See full comparison",
+    "ctaTitle1": "Your PDFs.",
+    "ctaTitle2": "Your machine. Always.",
+    "ctaBody": "Try every tool, no signup required. Pro unlocks server-side conversion and unlimited AI.",
+    "ctaStart": "Start Free",
+    "ctaPricing": "View pricing"
+  },
+  "ToolsPage": {
+    "kicker": "Tools",
+    "title": "All PDF tools.",
+    "subtitle": "Local-first by default. Cloud only where it materially improves the result — and then with the shortest retention we can offer.",
+    "legendLocal": "Local — runs in browser",
+    "legendCloud": "Cloud — server-assisted",
+    "missingTitle": "Missing a tool?",
+    "missingBody": "Tell us what you'd use most and we'll ship it next sprint.",
+    "missingCta": "Request a tool",
+    "category": {
+      "All": "All",
+      "Organize": "Organize",
+      "Convert": "Convert",
+      "Edit": "Edit",
+      "Secure": "Secure",
+      "AI": "AI"
+    }
+  },
+  "ToolUI": {
+    "home": "Home",
+    "tools": "Tools",
+    "dropTitle": "Drop PDF files here",
+    "dropSingleTitle": "Drop a PDF here",
+    "dropImageTitle": "Drop images here",
+    "dropActive": "Drop to add",
+    "or": "or",
+    "browse": "browse from your device",
+    "multiple": "multiple files supported",
+    "howItWorks": "How it works",
+    "relatedTools": "Related tools",
+    "verifiablePrivacy": "Verifiable privacy",
+    "verifyBody": "Open DevTools → Network. You'll see no upload traffic when you run this tool.",
+    "howWeVerify": "How we verify →",
+    "processing": "Processing locally…",
+    "localNote": "Runs in your browser · zero network requests",
+    "successTitle": "Done! Your file is ready.",
+    "download": "Download",
+    "processAnother": "Process another file",
+    "tryAgain": "Try again",
+    "errorTitle": "Something went wrong processing your file.",
+    "neverUploaded": "Your file was never uploaded — nothing was stored.",
+    "wrongTypePdf": "Only PDF files are supported.",
+    "wrongTypeImage": "Only image files (JPG or PNG) are supported.",
+    "suggestConvert": "Convert Word to PDF instead →",
+    "tooLarge": "File is too large. Maximum is 100 MB per file.",
+    "clear": "Clear",
+    "addMore": "Add more",
+    "step1Title": "Drop your files",
+    "step1Body": "Add your PDF — drag and drop or browse from your device.",
+    "step2Title": "Runs locally",
+    "step2Body": "Everything happens in your browser via WebAssembly. No upload.",
+    "step3Title": "Download",
+    "step3Body": "Save the result or send it straight to another tool.",
+    "filesCount": "{count, plural, one {# file} other {# files}}",
+    "pagesCount": "{count, plural, one {# page} other {# pages}}"
+  },
+  "ToolPages": {
+    "merge": {
+      "subtitle": "Combine multiple PDFs into a single file. Drag to reorder.",
+      "filesToMerge": "Files to merge",
+      "action": "Merge {count} files",
+      "successTitle": "Merged successfully."
+    },
+    "split": {
+      "subtitle": "Extract a page range or split every page into its own file.",
+      "modeRange": "Page range",
+      "modeEach": "Every page separately",
+      "from": "From",
+      "to": "To",
+      "action": "Split PDF",
+      "successTitle": "Split complete."
+    },
+    "compress": {
+      "subtitle": "Shrink your PDF. Choose a preset and download a smaller file.",
+      "presetScreen": "Screen",
+      "presetScreenDesc": "Optimized for digital viewing · smallest",
+      "presetBalanced": "Balanced",
+      "presetBalancedDesc": "Good quality · recommended",
+      "presetMaximum": "Maximum quality",
+      "presetMaximumDesc": "Light compression · best quality",
+      "rasterNote": "Compression rasterizes pages — text becomes part of the image and is no longer selectable.",
+      "action": "Compress PDF",
+      "savedBadge": "Saved {percent}%",
+      "successTitle": "Compressed successfully."
+    },
+    "rotate": {
+      "subtitle": "Rotate every page or just the ones you pick.",
+      "scopeAll": "All pages",
+      "rotateLeft": "Rotate left 90°",
+      "rotateRight": "Rotate right 90°",
+      "flip": "Flip 180°",
+      "action": "Rotate PDF",
+      "successTitle": "Rotated successfully."
+    },
+    "pdfToJpg": {
+      "subtitle": "Render each page to a high-resolution JPG image.",
+      "quality": "Quality",
+      "action": "Convert to JPG",
+      "successTitle": "Converted to images.",
+      "zipNote": "Pages are bundled into a single .zip."
+    },
+    "jpgToPdf": {
+      "subtitle": "Combine JPG or PNG images into a single PDF, one image per page.",
+      "action": "Create PDF",
+      "successTitle": "PDF created."
+    },
+    "watermark": {
+      "subtitle": "Stamp text across your PDF, with a live preview as you type.",
+      "text": "Watermark text",
+      "fontSize": "Font size",
+      "opacity": "Opacity",
+      "rotation": "Rotation",
+      "color": "Color",
+      "position": "Position",
+      "posCenter": "Center",
+      "posTile": "Tiled",
+      "posDiagonal": "Diagonal",
+      "preview": "Live preview",
+      "action": "Add watermark",
+      "successTitle": "Watermark applied."
+    },
+    "protect": {
+      "subtitle": "Encrypt your PDF with a password. It is applied entirely in your browser.",
+      "password": "Password",
+      "confirm": "Confirm password",
+      "mismatch": "Passwords do not match.",
+      "action": "Protect PDF",
+      "successTitle": "Password protected."
+    },
+    "unlock": {
+      "subtitle": "Remove a password from a PDF you own. You must know the current password.",
+      "password": "Current password",
+      "wrongPassword": "Incorrect password — could not unlock the file.",
+      "action": "Remove password",
+      "successTitle": "Password removed."
+    },
+    "editor": {
+      "subtitle": "Annotate, highlight, draw, and mark up your PDFs.",
+      "badge": "Local — annotations never leave your browser",
+      "emptyTitle": "Drop a PDF to start annotating",
+      "browse": "or browse files",
+      "emptyNote": "All annotations processed locally",
+      "save": "Save PDF",
+      "clearAll": "Clear all",
+      "tools": {
+        "select": "Select",
+        "text": "Text box",
+        "sticky": "Sticky note",
+        "highlight": "Highlight",
+        "strike": "Strikethrough",
+        "underline": "Underline",
+        "pen": "Pen",
+        "rect": "Rectangle",
+        "circle": "Circle",
+        "arrow": "Arrow",
+        "line": "Line",
+        "eraser": "Eraser",
+        "undo": "Undo",
+        "redo": "Redo"
+      }
+    }
+  },
+  "Pricing": {
+    "kicker": "Pricing",
+    "title1": "Honest pricing.",
+    "title2": "One tier when you need more.",
+    "subtitle": "Free is enough for most people. Pro is for when you live in PDFs.",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "saveYearly": "Save 35% on yearly",
+    "save35": "Save 35%",
+    "mostPopular": "Most popular",
+    "freeName": "Free",
+    "proName": "Pro",
+    "freeTagline": "For most people, for almost everything.",
+    "proTagline": "For frequent users who need server tools.",
+    "forever": "forever",
+    "perMonth": "/month",
+    "perYear": "/year",
+    "freeCta": "Start Free — no signup needed",
+    "proCta": "Upgrade to Pro",
+    "freeFeatures": [
+      "All local tools — unlimited",
+      "Server tools · 10 per day",
+      "AI summary · 2 per month",
+      "No watermark, no ads",
+      "No signup required",
+      "Full EN / TR / RU UI"
+    ],
+    "proFeatures": [
+      "Everything in Free",
+      "Unlimited server tools (Word, OCR)",
+      "Unlimited AI summaries",
+      "30-day file history",
+      "Priority processing queue",
+      "Email support, 24h response",
+      "Early access to new tools"
+    ],
+    "guarantees": [
+      "Cancel anytime · No questions asked",
+      "Powered by Paddle · VAT-compliant invoices",
+      "14-day money back"
+    ],
+    "faqKicker": "FAQ",
+    "faqTitle": "The questions everyone asks.",
+    "faq": [
+      {
+        "q": "How can processing really be local?",
+        "a": "We compile mature open-source libraries (pdf.js, pdf-lib) to WebAssembly. They run inside your browser tab, so the bytes of your PDF never travel over a network. You can verify this in your browser's DevTools → Network panel."
+      },
+      {
+        "q": "Why are some tools \"Cloud\"?",
+        "a": "PDF → Word with OCR realistically needs a few GB of model weights and a real GPU. We do that server-side, delete the file within an hour, and never train on your documents."
+      },
+      {
+        "q": "Can I cancel any time?",
+        "a": "Yes — one click in the dashboard. We bill through Paddle. No reactivation emails, no win-back popups."
+      },
+      {
+        "q": "Do you offer team plans?",
+        "a": "Not yet. We want to nail the individual product first. If you need invoices for your company, the Pro plan supports VAT-compliant receipts."
+      },
+      {
+        "q": "What payment methods are supported?",
+        "a": "All major cards, Apple Pay, Google Pay, SEPA, and iDEAL through Paddle. Turkish lira and Russian ruble are available with local pricing."
+      }
+    ]
+  },
+  "Dashboard": {
+    "greeting": "Welcome back",
+    "quickTools": "Quick tools",
+    "recentActivity": "Recent activity",
+    "usage": "Your usage",
+    "serverTools": "Server tools",
+    "aiSummaries": "AI summaries",
+    "perDay": "{used} / {total} today",
+    "perMonth": "{used} / {total} this month",
+    "upgradeTitle": "Unlock unlimited",
+    "upgradeBody": "Pro removes daily limits on server tools and AI.",
+    "upgradeCta": "Upgrade to Pro",
+    "proUnlimited": "Pro — unlimited",
+    "planFree": "FREE",
+    "planPro": "PRO",
+    "emptyActivity": "Nothing here yet. Run a tool to see it in your history.",
+    "openTool": "Open"
   }
 }

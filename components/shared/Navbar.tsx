@@ -1,38 +1,42 @@
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import { Button } from "@/components/ui/button";
+import { PlinyMark, IconArrow } from "./icons";
+import { ThemeToggle } from "./ThemeToggle";
 import { LocaleSwitcher } from "./LocaleSwitcher";
 
 export function Navbar() {
   const t = useTranslations("Nav");
   return (
-    <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur">
-      <nav className="mx-auto flex h-14 max-w-6xl items-center justify-between px-6">
-        <Link
-          href="/"
-          className="font-heading text-lg font-bold tracking-tight"
-        >
-          PlinyPDF
-        </Link>
-        <div className="hidden items-center gap-6 text-sm text-muted-foreground sm:flex">
-          <Link href="/tools" className="hover:text-foreground">
-            {t("tools")}
+    <header
+      className="sticky top-0 z-40 backdrop-blur"
+      style={{
+        borderBottom: "1px solid var(--line)",
+        background: "color-mix(in srgb, var(--bg) 78%, transparent)",
+      }}
+    >
+      <nav className="mx-auto flex h-16 max-w-[1240px] items-center justify-between px-5 sm:px-10">
+        <div className="flex items-center gap-9">
+          <Link href="/" className="flex items-center gap-2.5">
+            <PlinyMark size={28} color="var(--text)" />
+            <span className="font-[family-name:var(--font-display)] text-[17.5px] font-bold tracking-tight">
+              PlinyPDF
+            </span>
           </Link>
-          <Link href="/pricing" className="hover:text-foreground">
-            {t("pricing")}
-          </Link>
-          <Link href="/privacy" className="hover:text-foreground">
-            {t("privacy")}
-          </Link>
+          <div className="hidden items-center gap-1 md:flex">
+            <Link href="/tools" className="pp-nav-link">{t("tools")}</Link>
+            <Link href="/pricing" className="pp-nav-link">{t("pricing")}</Link>
+            <Link href="/privacy" className="pp-nav-link">{t("privacy")}</Link>
+          </div>
         </div>
         <div className="flex items-center gap-3">
+          <ThemeToggle />
           <LocaleSwitcher />
-          <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
-            <Link href="/login">{t("login")}</Link>
-          </Button>
-          <Button asChild size="sm">
-            <Link href="/signup">{t("signup")}</Link>
-          </Button>
+          <Link href="/login" className="pp-nav-link hidden sm:inline-flex">
+            {t("login")}
+          </Link>
+          <Link href="/signup" className="pp-btn" style={{ padding: "8px 14px" }}>
+            {t("signup")} <IconArrow size={14} />
+          </Link>
         </div>
       </nav>
     </header>
