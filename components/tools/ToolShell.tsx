@@ -10,11 +10,13 @@ export function ToolShell({
   toolId,
   subtitle,
   related,
+  fullWidth = false,
   children,
 }: {
   toolId: string;
   subtitle: string;
   related?: string[];
+  fullWidth?: boolean;
   children: React.ReactNode;
 }) {
   const t = useTranslations("ToolUI");
@@ -54,7 +56,10 @@ export function ToolShell({
 
         <PrivacyBadge type={tool.mode} big />
 
-        <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-[1fr_320px]">
+        {fullWidth ? (
+          <div className="mt-8">{children}</div>
+        ) : (
+          <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-[1fr_320px]">
           <div className="min-w-0">{children}</div>
 
           <aside className="flex flex-col gap-4">
@@ -127,7 +132,8 @@ export function ToolShell({
               </div>
             )}
           </aside>
-        </div>
+          </div>
+        )}
       </div>
     </section>
   );
