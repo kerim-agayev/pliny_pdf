@@ -22,7 +22,7 @@ type Tool =
   | "pen" | "rect" | "circle" | "arrow" | "line" | "eraser";
 
 const COLORS = ["#FACC15", "#F43F5E", "#3B82F6", "#10B981", "#0F0F0F", "#FFFFFF"];
-const RENDER_SCALE = 1.5;
+const RENDER_SCALE = 2;
 
 export function EditorTool() {
   const t = useTranslations("ToolPages.editor");
@@ -187,11 +187,19 @@ export function EditorTool() {
       return;
     }
     if (tl === "sticky") {
-      const rect = new fabric.Rect({ left: 0, top: 0, width: 160, height: 110, rx: 6, ry: 6, fill: hexToRgba("#FACC15", 0.92), stroke: "#EAB308", strokeWidth: 1 });
-      const tb = new fabric.Textbox("Note…", { left: 10, top: 10, width: 140, fontSize: 14, fill: "#1F2937", fontFamily: "Inter, sans-serif" });
-      const grp = new fabric.Group([rect, tb], { left: p.x, top: p.y });
-      fc.add(grp);
-      fc.setActiveObject(grp);
+      // An editable Textbox styled as a sticky note in the selected color
+      // (double-click to re-edit). Text colour auto-contrasts the background.
+      fc.isDrawingMode = false;
+      const note = new fabric.Textbox("Note…", {
+        left: p.x, top: p.y, width: 180, fontSize: 16,
+        fill: contrastText(c), backgroundColor: c, padding: 10,
+        fontFamily: "Inter, sans-serif", editable: true,
+      });
+      fc.add(note);
+      fc.setActiveObject(note);
+      note.enterEditing();
+      note.selectAll();
+      fc.renderAll();
       setTool("select");
       return;
     }
@@ -327,7 +335,7 @@ export function EditorTool() {
         await sc.loadFromJSON(json);
         sc.renderAll();
         const objs = sc.getObjects().length;
-        if (objs > 0) overlays[Number(key)] = sc.toDataURL({ format: "png", multiplier: 1 });
+        if (objs > 0) overlays[Number(key)] = sc.toDataURL({ format: "png", multiplier: 2 });
         sc.dispose();
       }
       const blob = await exportAnnotatedPdf(file, overlays);
@@ -467,4 +475,13 @@ function hexToRgba(hex: string, alpha: number) {
   const m = hex.replace("#", "");
   const n = parseInt(m.length === 3 ? m.split("").map((c) => c + c).join("") : m, 16);
   return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
+}
+
+/** Pick dark or light text for readable contrast against a hex background. */
+function contrastText(hex: string) {
+  const m = hex.replace("#", "");
+  const n = parseInt(m.length === 3 ? m.split("").map((c) => c + c).join("") : m, 16);
+  const [r, g, b] = [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+  return luminance > 0.6 ? "#1F2937" : "#FFFFFF";
 }
