@@ -20,8 +20,9 @@ export function CompressTool() {
   const [pages, setPages] = useState(0);
   const [preset, setPreset] = useState<CompressPreset>("balanced");
   const [status, setStatus] = useState<Status>("idle");
-  const [result, setResult] = useState<{ blob: Blob; originalSize: number; newSize: number } | null>(null);
+  const [result, setResult] = useState<{ blob: Blob; originalSize: number; newSize: number; changed: boolean } | null>(null);
   const [errorMsg, setErrorMsg] = useState<string>();
+  const SMALL = 1024 * 1024;
 
   const PRESETS: { key: CompressPreset; title: string; desc: string }[] = [
     { key: "screen", title: tp("presetScreen"), desc: tp("presetScreenDesc") },
@@ -62,9 +63,13 @@ export function CompressTool() {
     const saved = Math.max(0, Math.round((1 - result.newSize / result.originalSize) * 100));
     return (
       <SuccessPanel
-        title={tp("successTitle")}
-        meta={`${formatBytes(result.originalSize)} → ${formatBytes(result.newSize)}`}
-        badge={tp("savedBadge", { percent: saved })}
+        title={result.changed ? tp("successTitle") : tp("alreadyOptimized")}
+        meta={
+          result.changed
+            ? `${formatBytes(result.originalSize)} → ${formatBytes(result.newSize)}`
+            : formatBytes(result.originalSize)
+        }
+        badge={result.changed ? tp("savedBadge", { percent: saved }) : undefined}
         onDownload={() => downloadBlob(result.blob, `${baseName(file!.name)}-compressed.pdf`)}
         onReset={reset}
       />
@@ -104,6 +109,13 @@ export function CompressTool() {
           );
         })}
       </div>
+
+      {file.size < SMALL && (
+        <div className="flex items-start gap-2 text-[12px]" style={{ color: "var(--amber)" }}>
+          <IconAlert size={14} color="var(--amber)" sw={1.7} />
+          <span>{tp("smallFileNote")}</span>
+        </div>
+      )}
 
       <div className="flex items-start gap-2 text-[12px]" style={{ color: "var(--text-3)" }}>
         <IconAlert size={14} color="var(--amber)" sw={1.7} />
