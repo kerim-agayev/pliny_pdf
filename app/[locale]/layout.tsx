@@ -55,9 +55,12 @@ export default async function LocaleLayout({
     <html
       lang={locale}
       suppressHydrationWarning
-      className={`${sans.variable} ${body.variable} ${mono.variable} h-full antialiased`}
+      className={`${sans.variable} ${body.variable} ${mono.variable} dark h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col bg-background text-foreground">
+      <body
+        suppressHydrationWarning
+        className="min-h-full flex flex-col bg-background text-foreground"
+      >
         <ThemeProvider>
           <NextIntlClientProvider>
             <TooltipProvider>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useTheme } from "next-themes";
+import { useTheme } from "./ThemeProvider";
 import { IconSun, IconMoon } from "./icons";
 
 const OPTIONS = [
@@ -10,10 +10,10 @@ const OPTIONS = [
 ] as const;
 
 export function ThemeToggle() {
-  const { setTheme, resolvedTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
-  const current = mounted ? resolvedTheme ?? "dark" : "dark";
+  const current = mounted ? theme : "dark";
 
   return (
     <div
