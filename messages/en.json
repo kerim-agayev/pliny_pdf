@@ -25,6 +25,19 @@
     "madeWith": "Made with",
     "forPrivacy": "for privacy"
   },
+  "ComingSoon": {
+    "badge": "Coming soon",
+    "body": "This page isn't ready yet — it's on the roadmap for an upcoming sprint.",
+    "back": "Back to home"
+  },
+  "Pages": {
+    "login": "Sign in",
+    "signup": "Create your account",
+    "privacy": "Privacy & Security",
+    "blog": "Blog",
+    "about": "About",
+    "terms": "Terms of Service"
+  },
   "PrivacyBadge": {
     "local": "Local",
     "cloud": "Cloud",
@@ -172,10 +185,13 @@
       "rasterNote": "Compression rasterizes pages — text becomes part of the image and is no longer selectable.",
       "action": "Compress PDF",
       "savedBadge": "Saved {percent}%",
-      "successTitle": "Compressed successfully."
+      "successTitle": "Compressed successfully.",
+      "alreadyOptimized": "Already optimized — original kept.",
+      "smallFileNote": "This file is already small. Compression may not reduce it further."
     },
     "rotate": {
       "subtitle": "Rotate every page or just the ones you pick.",
+      "selectHint": "Click pages to select · none selected = all · Ctrl/Cmd for multi",
       "scopeAll": "All pages",
       "rotateLeft": "Rotate left 90°",
       "rotateRight": "Rotate right 90°",
@@ -193,7 +209,10 @@
     "jpgToPdf": {
       "subtitle": "Combine JPG or PNG images into a single PDF, one image per page.",
       "action": "Create PDF",
-      "successTitle": "PDF created."
+      "successTitle": "PDF created.",
+      "combineOne": "Combine into one PDF",
+      "separateEach": "Separate PDF per image",
+      "zipNote": "one PDF per image, bundled as a .zip"
     },
     "watermark": {
       "subtitle": "Stamp text across your PDF, with a live preview as you type.",

@@ -25,6 +25,19 @@
     "madeWith": "Gizlilik için",
     "forPrivacy": "ile yapıldı"
   },
+  "ComingSoon": {
+    "badge": "Yakında",
+    "body": "Bu sayfa henüz hazır değil — yaklaşan bir sprintin yol haritasında.",
+    "back": "Ana sayfaya dön"
+  },
+  "Pages": {
+    "login": "Giriş yap",
+    "signup": "Hesabınızı oluşturun",
+    "privacy": "Gizlilik ve Güvenlik",
+    "blog": "Blog",
+    "about": "Hakkında",
+    "terms": "Kullanım Şartları"
+  },
   "PrivacyBadge": {
     "local": "Yerel",
     "cloud": "Bulut",
@@ -172,10 +185,13 @@
       "rasterNote": "Sıkıştırma sayfaları görüntüye çevirir — metin görüntünün parçası olur ve artık seçilemez.",
       "action": "PDF'yi sıkıştır",
       "savedBadge": "%{percent} tasarruf",
-      "successTitle": "Başarıyla sıkıştırıldı."
+      "successTitle": "Başarıyla sıkıştırıldı.",
+      "alreadyOptimized": "Zaten optimize — orijinal korundu.",
+      "smallFileNote": "Bu dosya zaten küçük. Sıkıştırma onu daha fazla küçültmeyebilir."
     },
     "rotate": {
       "subtitle": "Tüm sayfaları veya yalnızca seçtiklerinizi döndürün.",
+      "selectHint": "Seçmek için sayfalara tıklayın · seçim yoksa tümü · çoklu için Ctrl/Cmd",
       "scopeAll": "Tüm sayfalar",
       "rotateLeft": "Sola 90° döndür",
       "rotateRight": "Sağa 90° döndür",
@@ -193,7 +209,10 @@
     "jpgToPdf": {
       "subtitle": "JPG veya PNG görsellerini tek bir PDF'de, sayfa başına bir görsel olarak birleştirin.",
       "action": "PDF oluştur",
-      "successTitle": "PDF oluşturuldu."
+      "successTitle": "PDF oluşturuldu.",
+      "combineOne": "Tek PDF'de birleştir",
+      "separateEach": "Her görsele ayrı PDF",
+      "zipNote": "her görsel için bir PDF, .zip olarak paketlenir"
     },
     "watermark": {
       "subtitle": "Yazarken canlı önizleme ile PDF'nize metin filigranı ekleyin.",
