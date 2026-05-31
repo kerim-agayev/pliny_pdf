@@ -9,6 +9,7 @@ import { IconArrow, IconX, IconImage } from "@/components/shared/icons";
 import { jpgToPdf, jpgToPdfSeparate } from "@/lib/pdf/jpgToPdf";
 import { isImage } from "@/lib/pdf/common";
 import { downloadBlob, formatBytes } from "@/lib/format";
+import { analytics } from "@/lib/analytics";
 
 type Status = "idle" | "processing" | "done" | "error";
 type Mode = "combine" | "separate";
@@ -41,6 +42,7 @@ export function JpgToPdfTool() {
         setResult({ blob, filename: "combined.pdf", meta: `combined.pdf · ${formatBytes(blob.size)}` });
       }
       setStatus("done");
+      analytics.toolUsed("jpg-to-pdf");
     } catch {
       setStatus("error");
     }

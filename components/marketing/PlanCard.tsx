@@ -6,6 +6,7 @@ import { Link, useRouter } from "@/i18n/navigation";
 import { IconCheck } from "@/components/shared/icons";
 import { useSession } from "@/lib/auth/client";
 import { postJson, ApiError } from "@/lib/api";
+import { analytics } from "@/lib/analytics";
 
 export function PlanCard({
   plan,
@@ -41,6 +42,7 @@ export function PlanCard({
   // Pro CTA → create a Lemonsqueezy checkout for the signed-in user. Logged-out
   // users are sent to signup first (we need an account to attach the purchase to).
   async function upgrade() {
+    analytics.upgradeClicked(yearly ? "yearly" : "monthly");
     if (!session?.user) {
       router.push("/signup");
       return;
@@ -51,6 +53,7 @@ export function PlanCard({
       const { url } = await postJson<{ url: string }>("/api/billing/checkout", {
         plan: yearly ? "yearly" : "monthly",
       });
+      analytics.checkoutOpened();
       window.location.href = url;
     } catch (e) {
       setCheckoutError(e instanceof ApiError ? e.message : t("checkoutError"));

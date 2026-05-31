@@ -5,6 +5,7 @@ import { setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/components/shared/ThemeProvider";
+import { PostHogProvider } from "@/components/analytics/PostHogProvider";
 import { Navbar } from "@/components/shared/Navbar";
 import { Footer } from "@/components/shared/Footer";
 import { routing } from "@/i18n/routing";
@@ -64,13 +65,15 @@ export default async function LocaleLayout({
         className="min-h-full flex flex-col bg-background text-foreground"
       >
         <ThemeProvider>
-          <NextIntlClientProvider>
-            <TooltipProvider>
-              <Navbar />
-              <main className="flex-1">{children}</main>
-              <Footer />
-            </TooltipProvider>
-          </NextIntlClientProvider>
+          <PostHogProvider>
+            <NextIntlClientProvider>
+              <TooltipProvider>
+                <Navbar />
+                <main className="flex-1">{children}</main>
+                <Footer />
+              </TooltipProvider>
+            </NextIntlClientProvider>
+          </PostHogProvider>
         </ThemeProvider>
       </body>
     </html>

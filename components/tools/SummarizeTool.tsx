@@ -9,6 +9,7 @@ import { Spinner } from "./Spinner";
 import { IconRefresh, IconCopy, IconCheck, IconArrow, IconFile } from "@/components/shared/icons";
 import { postFileJson, ApiError } from "@/lib/api";
 import { formatBytes } from "@/lib/format";
+import { analytics } from "@/lib/analytics";
 
 type Summary = {
   executive: string;
@@ -34,11 +35,13 @@ export function SummarizeTool() {
     setStatus("loading");
     setErrorMsg(undefined);
     setNeedAuth(false);
+    const t0 = performance.now();
     try {
       const r = await postFileJson<Result>("/api/ai/summarize", f);
       setResult(r);
       setTab("executive");
       setStatus("done");
+      analytics.toolUsed("summarize", performance.now() - t0);
     } catch (e) {
       if (e instanceof ApiError && e.status === 401) {
         setNeedAuth(true);

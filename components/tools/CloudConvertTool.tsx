@@ -8,6 +8,7 @@ import { Spinner } from "./Spinner";
 import { IconArrow, IconFile, IconX } from "@/components/shared/icons";
 import { postFile, ApiError } from "@/lib/api";
 import { formatBytes, downloadBlob, baseName } from "@/lib/format";
+import { analytics } from "@/lib/analytics";
 
 type Status = "idle" | "uploading" | "done" | "error";
 
@@ -46,10 +47,12 @@ export function CloudConvertTool({
     if (!file) return;
     setStatus("uploading");
     setErrorMsg(undefined);
+    const t0 = performance.now();
     try {
       const blob = await postFile(endpoint, file);
       setResult({ blob, name: `${baseName(file.name)}${outExt}` });
       setStatus("done");
+      analytics.toolUsed(endpoint.includes("pdf-to-word") ? "pdf-to-word" : "word-to-pdf", performance.now() - t0);
     } catch (e) {
       if (e instanceof ApiError && e.status === 429) {
         setErrorMsg(t("rateLimited"));

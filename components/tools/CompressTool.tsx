@@ -10,6 +10,7 @@ import { IconArrow, IconAlert } from "@/components/shared/icons";
 import { compressPdf, type CompressPreset } from "@/lib/pdf/compress";
 import { readPageCount, isPdf } from "@/lib/pdf/common";
 import { formatBytes, downloadBlob, baseName } from "@/lib/format";
+import { analytics } from "@/lib/analytics";
 
 type Status = "idle" | "processing" | "done" | "error";
 
@@ -47,6 +48,7 @@ export function CompressTool() {
     try {
       setResult(await compressPdf(file, preset));
       setStatus("done");
+      analytics.toolUsed("compress-pdf");
     } catch {
       setStatus("error");
     }

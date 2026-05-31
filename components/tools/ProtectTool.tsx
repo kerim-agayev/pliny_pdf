@@ -10,6 +10,7 @@ import { IconArrow, IconEye } from "@/components/shared/icons";
 import { protectPdf } from "@/lib/pdf/password";
 import { readPageCount, isPdf } from "@/lib/pdf/common";
 import { downloadBlob, baseName } from "@/lib/format";
+import { analytics } from "@/lib/analytics";
 
 type Status = "idle" | "processing" | "done" | "error";
 
@@ -45,6 +46,7 @@ export function ProtectTool() {
     try {
       setResult(await protectPdf(file, password));
       setStatus("done");
+      analytics.toolUsed("password-protect");
     } catch {
       setStatus("error");
     }

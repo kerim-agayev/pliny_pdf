@@ -10,6 +10,7 @@ import { IconArrow } from "@/components/shared/icons";
 import { splitRange, splitEach } from "@/lib/pdf/split";
 import { readPageCount, isPdf } from "@/lib/pdf/common";
 import { downloadBlob } from "@/lib/format";
+import { analytics } from "@/lib/analytics";
 
 type Status = "idle" | "processing" | "done" | "error";
 
@@ -46,6 +47,7 @@ export function SplitTool() {
       const res = mode === "range" ? await splitRange(file, from, to) : await splitEach(file);
       setResult({ blob: res.blob, filename: res.filename });
       setStatus("done");
+      analytics.toolUsed("split-pdf");
     } catch {
       setStatus("error");
     }

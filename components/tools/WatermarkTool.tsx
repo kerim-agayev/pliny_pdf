@@ -10,6 +10,7 @@ import { getPdfjs } from "@/lib/pdf/pdfjs";
 import { applyWatermark, type WatermarkPosition } from "@/lib/pdf/watermark";
 import { isPdf } from "@/lib/pdf/common";
 import { downloadBlob, baseName } from "@/lib/format";
+import { analytics } from "@/lib/analytics";
 
 type Status = "idle" | "processing" | "done" | "error";
 const SWATCHES = ["#F9FAFB", "#6B5CE7", "#F43F5E", "#10B981", "#F59E0B", "#3B82F6"];
@@ -66,6 +67,7 @@ export function WatermarkTool() {
     try {
       setResult(await applyWatermark(file, { ...w, fontSize: w.size, rotation: 0 }));
       setStatus("done");
+      analytics.toolUsed("add-watermark");
     } catch {
       setStatus("error");
     }

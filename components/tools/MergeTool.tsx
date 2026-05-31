@@ -26,6 +26,7 @@ import { IconGrip, IconX, IconArrow, IconPlus } from "@/components/shared/icons"
 import { mergePdfs } from "@/lib/pdf/merge";
 import { readPageCount, isPdf } from "@/lib/pdf/common";
 import { formatBytes, downloadBlob } from "@/lib/format";
+import { analytics } from "@/lib/analytics";
 
 type Row = { id: string; file: File; pages: number };
 type Status = "idle" | "processing" | "done" | "error";
@@ -83,6 +84,7 @@ export function MergeTool() {
       const res = await mergePdfs(rows.map((r) => r.file));
       setResult(res);
       setStatus("done");
+      analytics.toolUsed("merge-pdf");
     } catch {
       setStatus("error");
     }

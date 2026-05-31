@@ -11,6 +11,7 @@ import { getPdfjs } from "@/lib/pdf/pdfjs";
 import { exportAnnotatedPdf } from "@/lib/pdf/editorExport";
 import { isPdf } from "@/lib/pdf/common";
 import { downloadBlob, baseName } from "@/lib/format";
+import { analytics } from "@/lib/analytics";
 import {
   IconCursor, IconType, IconSticky, IconHighlight, IconStrike, IconUnderline,
   IconPen, IconRect, IconCircleShape, IconArrowDraw, IconLineShape, IconEraser,
@@ -341,6 +342,7 @@ export function EditorTool() {
       const blob = await exportAnnotatedPdf(file, overlays);
       setResultBlob(blob);
       setStatus("done");
+      analytics.toolUsed("edit-pdf");
     } catch {
       setStatus("error");
     }

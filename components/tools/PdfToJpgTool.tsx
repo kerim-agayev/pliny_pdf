@@ -10,6 +10,7 @@ import { IconArrow } from "@/components/shared/icons";
 import { pdfToJpg } from "@/lib/pdf/pdfToJpg";
 import { readPageCount, isPdf } from "@/lib/pdf/common";
 import { downloadBlob } from "@/lib/format";
+import { analytics } from "@/lib/analytics";
 
 type Status = "idle" | "processing" | "done" | "error";
 
@@ -39,6 +40,7 @@ export function PdfToJpgTool() {
     try {
       setResult(await pdfToJpg(file));
       setStatus("done");
+      analytics.toolUsed("pdf-to-jpg");
     } catch {
       setStatus("error");
     }

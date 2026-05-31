@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { Link, useRouter } from "@/i18n/navigation";
 import { signIn, signUp } from "@/lib/auth/client";
+import { analytics } from "@/lib/analytics";
 import { Spinner } from "@/components/tools/Spinner";
 import {
   PlinyMark,
@@ -47,6 +48,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
   async function onGoogle() {
     setError(undefined);
     setGoogleLoading(true);
+    if (isSignup) analytics.signupCompleted("google");
     const { error: err } = await signIn.social({
       provider: "google",
       callbackURL: `/${locale}/dashboard`,
@@ -77,6 +79,7 @@ export function AuthForm({ mode }: { mode: Mode }) {
       setLoading(false);
       return;
     }
+    if (isSignup) analytics.signupCompleted("email");
     router.push("/dashboard");
   }
 

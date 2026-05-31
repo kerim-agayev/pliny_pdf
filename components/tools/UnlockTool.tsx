@@ -10,6 +10,7 @@ import { IconArrow, IconEye } from "@/components/shared/icons";
 import { removePassword } from "@/lib/pdf/password";
 import { isPdf } from "@/lib/pdf/common";
 import { downloadBlob, baseName } from "@/lib/format";
+import { analytics } from "@/lib/analytics";
 
 type Status = "idle" | "processing" | "done" | "error";
 
@@ -40,6 +41,7 @@ export function UnlockTool() {
     try {
       setResult(await removePassword(file, password));
       setStatus("done");
+      analytics.toolUsed("remove-password");
     } catch {
       setStatus("error");
       setErrorMsg(tp("wrongPassword"));

@@ -11,6 +11,7 @@ import { rotatePages } from "@/lib/pdf/rotate";
 import { renderThumbnails, type Thumb } from "@/lib/pdf/thumbnails";
 import { isPdf } from "@/lib/pdf/common";
 import { downloadBlob, baseName } from "@/lib/format";
+import { analytics } from "@/lib/analytics";
 
 type Status = "idle" | "loading" | "ready" | "processing" | "done" | "error";
 
@@ -74,6 +75,7 @@ export function RotateTool() {
     try {
       setResult(await rotatePages(file, rotations));
       setStatus("done");
+      analytics.toolUsed("rotate-pdf");
     } catch {
       setStatus("error");
     }
