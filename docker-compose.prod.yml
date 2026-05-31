@@ -1,0 +1,13 @@
+# Production Gotenberg (Hetzner). Differs from the dev docker-compose.yml in two ways:
+#  1. Bound to 127.0.0.1 only — Gotenberg must NOT be exposed to the internet; the backend
+#     (and Caddy) reach it locally. UFW also leaves :3001 closed.
+#  2. Fixed container_name so the PDF->Word `docker exec` path (server/services/libreoffice.ts,
+#     env GOTENBERG_CONTAINER=pliny_pdf-gotenberg-1) targets a stable name.
+# Bring up with: docker compose -f docker-compose.prod.yml up -d
+services:
+  gotenberg:
+    image: gotenberg/gotenberg:8
+    container_name: pliny_pdf-gotenberg-1
+    ports:
+      - "127.0.0.1:3001:3000"
+    restart: unless-stopped

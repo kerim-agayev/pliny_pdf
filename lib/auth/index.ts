@@ -22,7 +22,19 @@ export const auth = betterAuth({
   }),
   secret: process.env.BETTER_AUTH_SECRET,
   baseURL: process.env.BETTER_AUTH_URL ?? "http://localhost:3000",
-  trustedOrigins: ["http://localhost:3000", "http://localhost:8080"],
+  // Dev defaults keep both localhost ports; prod sets TRUSTED_ORIGINS to the real https origins.
+  trustedOrigins: (process.env.TRUSTED_ORIGINS ?? "http://localhost:3000,http://localhost:8080")
+    .split(",")
+    .map((s) => s.trim()),
+  // In prod, COOKIE_DOMAIN=.plinypdf.com scopes the session cookie to the parent domain so it
+  // reaches the api.plinypdf.com backend (sibling subdomain). Unset in dev (same-origin ports).
+  ...(process.env.COOKIE_DOMAIN
+    ? {
+        advanced: {
+          crossSubDomainCookies: { enabled: true, domain: process.env.COOKIE_DOMAIN },
+        },
+      }
+    : {}),
   emailAndPassword: {
     enabled: true,
   },

@@ -1,0 +1,19 @@
+[Unit]
+# PlinyPDF Elysia backend (Bun). Runs on :8080, fronted by Caddy at api.plinypdf.com.
+# Install: copy to /etc/systemd/system/plinypdf-backend.service, then
+#   systemctl daemon-reload && systemctl enable --now plinypdf-backend
+Description=PlinyPDF Elysia backend (Bun)
+After=network.target docker.service
+Wants=docker.service
+
+[Service]
+WorkingDirectory=/opt/pliny_pdf
+EnvironmentFile=/opt/pliny_pdf/.env.local
+# Prod: no --watch (that is dev-only). Adjust the bun path if installed elsewhere (which bun).
+ExecStart=/root/.bun/bin/bun run server/index.ts
+Restart=always
+RestartSec=3
+User=root
+
+[Install]
+WantedBy=multi-user.target

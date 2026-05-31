@@ -1,0 +1,7 @@
+# PlinyPDF reverse proxy (Hetzner). Caddy fronts only the backend — the frontend lives on
+# Vercel with its own TLS. Caddy auto-issues a Let's Encrypt cert for api.plinypdf.com once
+# the A record for that subdomain points at this server.
+# Install: place at /etc/caddy/Caddyfile, then `systemctl reload caddy`.
+api.plinypdf.com {
+	reverse_proxy localhost:8080
+}
