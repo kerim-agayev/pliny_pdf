@@ -5,13 +5,14 @@
 
 ## Current Status
 - Phase: 1 (Launch — first 3 months)
-- Active sprint: Sprint 5-6 — Premium Tools + Backend + Billing — COMPLETE (Bun/Elysia backend, Supabase+Drizzle, Better Auth, PDF↔Word, Gemini Summarize, Upstash limits, Lemonsqueezy billing, dynamic Free/Pro dashboard)
-- Next step: Sprint 7-8 — Launch prep (36 SEO landing pages, 5 blog posts, Privacy/ToS, analytics PostHog/Sentry, mobile responsive pass, ProductHunt/HN/Reddit)
+- Active sprint: Sprint 7-8 — Launch prep. Phase A (deploy artifacts + cross-subdomain auth) + Phase B (Hetzner backend, steps 1-6, live at 49.13.119.27:8080) done. Domain-independent launch work (Tasks 1-6) **COMPLETE**: real About/Privacy/Terms + 5-post markdown blog, SEO (sitemap/robots/OG/JSON-LD/canonicals), PostHog analytics (no-op until key), mobile Navbar menu, launch materials.
+- Next step: when **plinypdf.com** is purchased, resume Phase B steps 7-8 (Cloudflare DNS + Caddy SSL) + Phase C (Vercel deploy + custom domain + Google OAuth + LS webhook) → GATE 2 full e2e. Steps in `deploy/README.md`. Also provide `NEXT_PUBLIC_POSTHOG_KEY` (Vercel env) to activate analytics; decide Lemonsqueezy go-live.
 
 ## Completed Sprints
 - Sprint 1-2: Foundation — Next.js 16 + Tailwind 4 + shadcn/ui + next-intl (en/tr/ru) + design tokens + docker-compose + placeholder shared UI — 2026-05-29
 - Sprint 3-4: Claude Design handoff (6 screens, dark/light theme toggle) + 10 local PDF tools (pdf-lib / pdfjs-dist / @cantoo/pdf-lib / fabric.js) + coming-soon placeholders; round of bug fixes from user testing — 2026-05-30
 - Sprint 5-6: Bun/Elysia backend (:8080) + Supabase/Drizzle + Better Auth (email + Google) + PDF↔Word (Gotenberg HTTP + docker-exec LibreOffice) + R2 + Gemini 2.5 Flash Summarize + Upstash rate limits + Lemonsqueezy billing (checkout + HMAC webhook) + dynamic auth-guarded Free/Pro dashboard with file-history cleanup — 2026-05-31
+- Sprint 7-8 (partial): deploy artifacts + cross-subdomain auth; Hetzner backend live (steps 1-6); real About/Privacy/Terms + 5 blog posts; SEO (sitemap/robots/OG/JSON-LD/canonicals); PostHog analytics; mobile Navbar menu; launch materials. Domain steps + Vercel deferred until plinypdf.com purchased — 2026-05-31
 
 ## Key Files
 - `CLAUDE.md` — working rules, tech stack, Phase 1 scope
