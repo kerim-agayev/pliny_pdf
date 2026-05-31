@@ -4,6 +4,7 @@ import { PlinyMark } from "./icons";
 import { ThemeToggle } from "./ThemeToggle";
 import { LocaleSwitcher } from "./LocaleSwitcher";
 import { NavAuth } from "./NavAuth";
+import { MobileNav } from "./MobileNav";
 
 export function Navbar() {
   const t = useTranslations("Nav");
@@ -33,6 +34,7 @@ export function Navbar() {
           <ThemeToggle />
           <LocaleSwitcher />
           <NavAuth />
+          <MobileNav />
         </div>
       </nav>
     </header>
