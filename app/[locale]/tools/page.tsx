@@ -9,10 +9,13 @@ export const metadata: Metadata = {
 
 export default async function ToolsRoute({
   params,
+  searchParams,
 }: {
   params: Promise<{ locale: string }>;
+  searchParams: Promise<{ category?: string }>;
 }) {
   const { locale } = await params;
+  const { category } = await searchParams;
   setRequestLocale(locale);
-  return <ToolsCatalog />;
+  return <ToolsCatalog initialCategory={category} />;
 }

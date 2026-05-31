@@ -48,6 +48,7 @@ export function NavAuth() {
   }
 
   const name = user.name || user.email || "";
+  const isPro = (user as { plan?: string }).plan === "pro";
 
   async function doSignOut() {
     setOpen(false);
@@ -57,10 +58,31 @@ export function NavAuth() {
   }
 
   return (
-    <div className="relative" ref={ref}>
+    <div className="relative flex items-center gap-2" ref={ref}>
+      {isPro && (
+        <span
+          className="pp-badge hidden sm:inline-flex"
+          style={{
+            fontSize: 9.5,
+            letterSpacing: "0.07em",
+            padding: "2px 7px",
+            background: "rgba(16,185,129,0.12)",
+            borderColor: "rgba(16,185,129,0.28)",
+            color: "#6EE7B7",
+          }}
+        >
+          PRO
+        </span>
+      )}
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
+        // Prevent the button from grabbing focus on mousedown — in the sticky
+        // navbar that focus shift can jolt the page scroll when the menu opens.
+        onMouseDown={(e) => e.preventDefault()}
+        onClick={(e) => {
+          e.preventDefault();
+          setOpen((o) => !o);
+        }}
         aria-haspopup="menu"
         aria-expanded={open}
         className="flex size-9 items-center justify-center rounded-full text-[13px] font-semibold transition-opacity hover:opacity-90"

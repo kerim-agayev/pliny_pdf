@@ -5,9 +5,12 @@ import { useTranslations } from "next-intl";
 import { CATEGORIES, TOOLS, type FilterCategory } from "@/lib/tools";
 import { ToolCard } from "@/components/shared/ToolCard";
 
-export function ToolsCatalog() {
+export function ToolsCatalog({ initialCategory }: { initialCategory?: string }) {
   const t = useTranslations("ToolsPage");
-  const [filter, setFilter] = useState<FilterCategory>("All");
+  const initial = (CATEGORIES as readonly string[]).includes(initialCategory ?? "")
+    ? (initialCategory as FilterCategory)
+    : "All";
+  const [filter, setFilter] = useState<FilterCategory>(initial);
   const filtered = filter === "All" ? TOOLS : TOOLS.filter((tool) => tool.cat === filter);
 
   return (

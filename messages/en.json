@@ -361,6 +361,7 @@
     "perYear": "/year",
     "freeCta": "Start Free — no signup needed",
     "proCta": "Upgrade to Pro",
+    "currentPlan": "Current plan",
     "redirecting": "Redirecting to checkout…",
     "checkoutError": "Could not start checkout. Please try again.",
     "freeFeatures": [
@@ -426,6 +427,13 @@
     "planFree": "FREE",
     "planPro": "PRO",
     "emptyActivity": "Nothing here yet. Run a tool to see it in your history.",
-    "openTool": "Open"
+    "emptyPrivacy": "Local tools don't appear here — your files never touch our servers. Only cloud tools (PDF↔Word, AI Summary) are recorded.",
+    "openTool": "Open",
+    "historyRange": "Last {days} days",
+    "thisMonth": "This month",
+    "filesProcessed": "Files processed",
+    "unlimited": "Unlimited",
+    "proPerk": "Everything unlimited — no daily or monthly caps.",
+    "privacyNote": "Only cloud tools appear here — local tools never touch our servers."
   }
 }

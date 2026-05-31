@@ -361,6 +361,7 @@
     "perYear": "/yıl",
     "freeCta": "Ücretsiz Başla — kayıt gerekmez",
     "proCta": "Pro'ya yükselt",
+    "currentPlan": "Mevcut plan",
     "redirecting": "Ödemeye yönlendiriliyor…",
     "checkoutError": "Ödeme başlatılamadı. Lütfen tekrar deneyin.",
     "freeFeatures": [
@@ -426,6 +427,13 @@
     "planFree": "ÜCRETSİZ",
     "planPro": "PRO",
     "emptyActivity": "Henüz bir şey yok. Geçmişinizde görmek için bir araç çalıştırın.",
-    "openTool": "Aç"
+    "emptyPrivacy": "Yerel araçlar burada görünmez — dosyalarınız sunucularımıza hiç dokunmaz. Yalnızca bulut araçları (PDF↔Word, AI Özet) kaydedilir.",
+    "openTool": "Aç",
+    "historyRange": "Son {days} gün",
+    "thisMonth": "Bu ay",
+    "filesProcessed": "İşlenen dosyalar",
+    "unlimited": "Sınırsız",
+    "proPerk": "Her şey sınırsız — günlük veya aylık limit yok.",
+    "privacyNote": "Burada yalnızca bulut araçları görünür — yerel araçlar sunucularımıza hiç dokunmaz."
   }
 }

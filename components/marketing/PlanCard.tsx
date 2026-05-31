@@ -26,6 +26,7 @@ export function PlanCard({
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [checkoutError, setCheckoutError] = useState<string>();
+  const alreadyPro = isPro && (session?.user as { plan?: string } | undefined)?.plan === "pro";
 
   const ctaStyle = {
     padding: 12,
@@ -100,15 +101,24 @@ export function PlanCard({
         <div className="text-[13px]" style={{ color: "var(--text-2)" }}>{unit}</div>
       </div>
       {isPro ? (
-        <button
-          type="button"
-          onClick={upgrade}
-          disabled={loading}
-          className="pp-btn block w-full text-center"
-          style={{ ...ctaStyle, opacity: loading ? 0.7 : 1, cursor: loading ? "default" : "pointer" }}
-        >
-          {loading ? t("redirecting") : t("proCta")}
-        </button>
+        alreadyPro ? (
+          <div
+            className="pp-btn block w-full text-center"
+            style={{ ...ctaStyle, opacity: 0.75, cursor: "default", pointerEvents: "none" }}
+          >
+            {t("currentPlan")}
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={upgrade}
+            disabled={loading}
+            className="pp-btn block w-full text-center"
+            style={{ ...ctaStyle, opacity: loading ? 0.7 : 1, cursor: loading ? "default" : "pointer" }}
+          >
+            {loading ? t("redirecting") : t("proCta")}
+          </button>
+        )
       ) : (
         <Link href="/signup" className="pp-btn block text-center" style={ctaStyle}>
           {t("freeCta")}
