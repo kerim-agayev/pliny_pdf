@@ -32,6 +32,54 @@
     "body": "Bu sayfa henüz hazır değil — yaklaşan bir sprintin yol haritasında.",
     "back": "Ana sayfaya dön"
   },
+  "About": {
+    "title": "PlinyPDF Hakkında",
+    "intro": "Sana saygı duyan PDF aracı.",
+    "h": {
+      "story": "Neden \"Pliny\"?",
+      "mission": "Misyonumuz",
+      "howItWorks": "Nasıl çalışır",
+      "cloudTools": "Üç bulut aracı",
+      "stack": "Açık kaynakla inşa edildi"
+    }
+  },
+  "Privacy": {
+    "title": "Gizlilik Politikası",
+    "lastUpdated": "Son güncelleme: Haziran 2026",
+    "intro": "Seni takip etmiyoruz, dosyalarını saklamıyoruz ve veri satmıyoruz. İşte ayrıntılar.",
+    "h": {
+      "collect": "Topladığımız veriler",
+      "dontCollect": "Toplamadığımız veriler",
+      "thirdParties": "Üçüncü taraflar",
+      "cookies": "Çerezler",
+      "retention": "Veri saklama",
+      "rights": "Haklarınız (GDPR ve KVKK)",
+      "contact": "İletişim"
+    }
+  },
+  "Terms": {
+    "title": "Kullanım Şartları",
+    "lastUpdated": "Son güncelleme: Haziran 2026",
+    "intro": "Sizinle PlinyPDF arasındaki sözleşme. Sade dil, sürpriz yok.",
+    "h": {
+      "service": "Hizmet",
+      "account": "Hesabınız",
+      "acceptableUse": "Kabul edilebilir kullanım",
+      "billing": "Faturalandırma ve iadeler",
+      "processing": "Dosyalarınız nasıl işlenir",
+      "liability": "Sorumluluğun sınırlandırılması",
+      "law": "Geçerli hukuk",
+      "contact": "İletişim"
+    }
+  },
+  "Blog": {
+    "title": "Blog",
+    "subtitle": "Gizlilik, PDF'ler ve çevrimiçi araçların gerçekte nasıl çalıştığı.",
+    "minRead": "dk okuma",
+    "backToBlog": "← Tüm yazılar",
+    "readMore": "Devamını oku →",
+    "empty": "Henüz yazı yok — yakında tekrar bak."
+  },
   "Pages": {
     "login": "Giriş yap",
     "signup": "Hesabınızı oluşturun",

@@ -32,6 +32,54 @@
     "body": "This page isn't ready yet — it's on the roadmap for an upcoming sprint.",
     "back": "Back to home"
   },
+  "About": {
+    "title": "About PlinyPDF",
+    "intro": "The PDF tool that respects you.",
+    "h": {
+      "story": "Why \"Pliny\"?",
+      "mission": "Our mission",
+      "howItWorks": "How it works",
+      "cloudTools": "The three cloud tools",
+      "stack": "Built in the open"
+    }
+  },
+  "Privacy": {
+    "title": "Privacy Policy",
+    "lastUpdated": "Last updated: June 2026",
+    "intro": "We don't track you, we don't store your files, and we don't sell data. Here are the specifics.",
+    "h": {
+      "collect": "Data we collect",
+      "dontCollect": "Data we don't collect",
+      "thirdParties": "Third parties",
+      "cookies": "Cookies",
+      "retention": "Data retention",
+      "rights": "Your rights (GDPR & KVKK)",
+      "contact": "Contact"
+    }
+  },
+  "Terms": {
+    "title": "Terms of Service",
+    "lastUpdated": "Last updated: June 2026",
+    "intro": "The agreement between you and PlinyPDF. Plain language, no surprises.",
+    "h": {
+      "service": "The service",
+      "account": "Your account",
+      "acceptableUse": "Acceptable use",
+      "billing": "Billing & refunds",
+      "processing": "How your files are processed",
+      "liability": "Limitation of liability",
+      "law": "Governing law",
+      "contact": "Contact"
+    }
+  },
+  "Blog": {
+    "title": "Blog",
+    "subtitle": "Privacy, PDFs, and how online tools really work.",
+    "minRead": "min read",
+    "backToBlog": "← All posts",
+    "readMore": "Read more →",
+    "empty": "No posts yet — check back soon."
+  },
   "Pages": {
     "login": "Sign in",
     "signup": "Create your account",
