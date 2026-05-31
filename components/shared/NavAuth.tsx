@@ -99,7 +99,7 @@ export function NavAuth() {
       {open && (
         <div
           role="menu"
-          className="pp-card absolute right-0 mt-2 w-56 overflow-hidden"
+          className="pp-card absolute right-0 top-full z-50 mt-2 w-56 overflow-hidden"
           style={{ padding: 6 }}
         >
           <div className="px-3 py-2.5">

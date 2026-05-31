@@ -16,7 +16,6 @@ import {
   IconBolt,
   IconClock,
   IconStar,
-  IconFolder,
   IconSettings,
   IconFile,
   type IconProps,
@@ -120,7 +119,6 @@ export default async function DashboardRoute({
           <SideLabel>Library</SideLabel>
           <SideItem Icon={IconClock} label="Recent" href="/dashboard" active />
           <SideItem Icon={IconStar} label="Favorites" href="/tools" />
-          <SideItem Icon={IconFolder} label={t("historyRange", { days: windowDays })} href="/dashboard" />
         </div>
         <div>
           <SideLabel>Tools</SideLabel>
