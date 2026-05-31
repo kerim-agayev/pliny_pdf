@@ -1,8 +1,9 @@
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import { PlinyMark, IconArrow } from "./icons";
+import { PlinyMark } from "./icons";
 import { ThemeToggle } from "./ThemeToggle";
 import { LocaleSwitcher } from "./LocaleSwitcher";
+import { NavAuth } from "./NavAuth";
 
 export function Navbar() {
   const t = useTranslations("Nav");
@@ -31,12 +32,7 @@ export function Navbar() {
         <div className="flex items-center gap-3">
           <ThemeToggle />
           <LocaleSwitcher />
-          <Link href="/login" className="pp-nav-link hidden sm:inline-flex">
-            {t("login")}
-          </Link>
-          <Link href="/signup" className="pp-btn" style={{ padding: "8px 14px" }}>
-            {t("signup")} <IconArrow size={14} />
-          </Link>
+          <NavAuth />
         </div>
       </nav>
     </header>
