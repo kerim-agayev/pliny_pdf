@@ -123,3 +123,30 @@ The user previously used Prisma + NeonDB. For PlinyPDF, Drizzle was chosen becau
 - Committed to git, versioned
 - Next.js does not include it in the build (only app/, public/ are included)
 - NOTE: This is a Next.js project, not Unity — an in-project docs/ folder is safe
+
+## Sprint 7-8 decisions
+
+### Domain purchase deferred
+User decided to defer plinypdf.com purchase until stakeholders approve the product. Consequence:
+- Phase B steps 7-8 (Cloudflare DNS + Caddy SSL) blocked
+- Phase C (Vercel deploy + domain wiring) blocked
+- Auth-dependent features broken without domain: AI Summarize, Pro checkout, rate-limited cloud tools
+- Local tools + anonymous PDF↔Word work without domain
+- All blocked steps documented in deploy/README.md
+
+### PostHog key deferred
+PostHog is wired into all 13 tools + signup/upgrade/checkout events but runs as no-op until `NEXT_PUBLIC_POSTHOG_KEY` is set.
+Build does NOT break without the key.
+Add the key to Vercel env when deploying — never hardcode.
+Events tracked: tool_used, signup_completed, upgrade_clicked, checkout_opened.
+
+### Sentry deferred entirely
+Sentry was skipped this sprint. Reason: no production environment exists yet (no domain, no Vercel deploy). Sentry catches production errors — meaningless before go-live. Add after domain is wired and Vercel is deployed. Use `@sentry/nextjs` + `SENTRY_DSN` env var.
+
+### Blog post bodies EN-only for v1
+Blog post bodies are English only. Only UI chrome (title/subtitle/"min read" label) is translated to TR/RU. Localize post bodies in Phase 2 if needed.
+
+### Lemonsqueezy stays in test mode
+Do NOT switch to live mode without explicit user confirmation.
+Test cards work: 4242 4242 4242 4242 (any future date, any CVV).
+Switch to live mode only at actual public launch.

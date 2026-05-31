@@ -4,9 +4,23 @@
 > Drill down to the relevant `sprints/sprint-XX.md` only when detail is needed.
 
 ## Current Status
-- Phase: 1 (Launch — first 3 months)
-- Active sprint: Sprint 7-8 — Launch prep. Phase A (deploy artifacts + cross-subdomain auth) + Phase B (Hetzner backend, steps 1-6, live at 49.13.119.27:8080) done. Domain-independent launch work (Tasks 1-6) **COMPLETE**: real About/Privacy/Terms + 5-post markdown blog, SEO (sitemap/robots/OG/JSON-LD/canonicals), PostHog analytics (no-op until key), mobile Navbar menu, launch materials.
-- Next step: when **plinypdf.com** is purchased, resume Phase B steps 7-8 (Cloudflare DNS + Caddy SSL) + Phase C (Vercel deploy + custom domain + Google OAuth + LS webhook) → GATE 2 full e2e. Steps in `deploy/README.md`. Also provide `NEXT_PUBLIC_POSTHOG_KEY` (Vercel env) to activate analytics; decide Lemonsqueezy go-live.
+- Phase: 1 (Launch Prep)
+- Sprint 7-8: **PARTIALLY COMPLETE**
+- Completed: Tasks 1-6 (docs, content, SEO, analytics, mobile, launch)
+- BLOCKED: Domain purchase pending stakeholder approval
+
+### Next step (when domain purchased)
+1. Buy plinypdf.com from Cloudflare Registrar (~$10/yr)
+2. Cloudflare DNS: add `api.plinypdf.com` A record → `49.13.119.27` (DNS-only, grey cloud, NOT proxied)
+3. SSH to Hetzner: install Caddy, copy `deploy/Caddyfile`, reload
+4. Vercel: connect GitHub repo, set env vars, deploy, add custom domain `plinypdf.com`
+5. Google Console: add `https://plinypdf.com/api/auth/callback/google`
+6. Lemonsqueezy: update webhook URL to `https://api.plinypdf.com/api/webhooks/lemonsqueezy`
+7. Add `NEXT_PUBLIC_POSTHOG_KEY` to Vercel env (PostHog dormant until then)
+8. Add Sentry after domain is live (deferred — no production yet)
+9. GATE 2: full e2e test on `https://plinypdf.com` (incognito): signup, PDF→Word, Watermark, pricing checkout, test-card Pro upgrade, plan flip, /en /tr /ru
+
+Full runbook already in `deploy/README.md` under "Remaining when domain is purchased".
 
 ## Completed Sprints
 - Sprint 1-2: Foundation — Next.js 16 + Tailwind 4 + shadcn/ui + next-intl (en/tr/ru) + design tokens + docker-compose + placeholder shared UI — 2026-05-29

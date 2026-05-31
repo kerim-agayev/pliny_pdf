@@ -16,3 +16,27 @@ Steps 7-8 (DNS + Caddy SSL) blocked pending domain purchase (plinypdf.com). Back
 
 ## [2026-05-31] Sprint 7-8 domain-independent launch work (Tasks 1-6) complete
 Built the launch surface that ships now and goes live the moment the domain is wired. (2) Real content: About/Privacy(GDPR+KVKK)/Terms via shared `LegalShell` (titles/headings localized EN/TR/RU, legal bodies EN v1) + markdown blog (gray-matter + markdown-to-jsx, `lib/blog.ts`, index + `[slug]` SSG) with 5 SEO posts (locale-prefixed internal links). (3) SEO: `lib/seo.ts` (SITE_URL + pageMetadata canonical/hreflang/OG), `app/sitemap.ts` (~75 URLs, hreflang), `app/robots.ts`, `app/api/og` dynamic 1200×630 image, JSON-LD (SoftwareApplication on /tools, per-tool FAQ+HowTo, BlogPosting), metadataBase. (4) PostHog: provider (no-op without `NEXT_PUBLIC_POSTHOG_KEY`) + `lib/analytics.ts`; events tool_used (all 13 tools), signup_completed, upgrade_clicked, checkout_opened; Sentry deferred. (5) Mobile: `components/shared/MobileNav.tsx` hamburger (rest already 375px-clean). (6) `deploy/LAUNCH.md` (ProductHunt/Show HN/Reddit + checklist). Commits c28a940→4f3f400; each `bun run build` verified green. Deferred (need domain/keys): Phase B7-8 + Phase C, PostHog key, Lemonsqueezy go-live decision.
+
+## [2026-05-31] Sprint 7-8 domain-independent work complete
+
+Tasks completed:
+- Task 1: docs updated with Hetzner deploy state + domain deferral
+- Task 2: About/Privacy/Terms real content + 5-post markdown blog
+- Task 3: SEO — sitemap (75 URLs), robots.txt, OG images, FAQ/HowTo/SoftwareApplication JSON-LD, canonicals + hreflang
+- Task 4: PostHog wired (no-op without key)
+- Task 5: Navbar hamburger menu for mobile; rest already 375px-clean
+- Task 6: deploy/LAUNCH.md — ProductHunt/Show HN/Reddit drafts
+
+Commits on origin/main: a106a47 → 603ae40 (8 commits)
+
+Blocked (domain required):
+- Phase B step 7: Cloudflare DNS api.plinypdf.com A record
+- Phase B step 8: Caddy install + SSL
+- Phase C: Vercel deploy + custom domain
+- Google OAuth redirect URI update
+- Lemonsqueezy webhook URL update
+- PostHog key activation
+- Sentry setup
+- GATE 2 full e2e test
+
+Backend healthy: http://49.13.119.27:8080/api/health

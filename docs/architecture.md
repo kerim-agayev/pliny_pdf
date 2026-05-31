@@ -73,3 +73,60 @@ System architecture summary. Updated whenever a new architectural decision lands
 - Auth-guarded server component: no session → redirect `/login`. Reads real `users.plan`,
   recent `file_history`, and live usage; purges old history (7d Free / 30d Pro) on load.
   Free and Pro variants branch on `plan`.
+
+## Production topology — Sprint 7-8 (partial)
+
+### What is live
+Hetzner CPX21 server (49.13.119.27, Falkenstein, Ubuntu 24.04):
+- Bun/Elysia backend: port 8080, systemd managed (auto-restart on crash/boot)
+  - Service file: /etc/systemd/system/plinypdf-backend.service
+  - Working dir: /opt/pliny_pdf
+  - Env: /opt/pliny_pdf/.env.local
+  - Start: systemctl start plinypdf-backend
+  - Restart: systemctl restart plinypdf-backend
+  - Logs: journalctl -u plinypdf-backend -f
+- Gotenberg: 127.0.0.1:3001 (Docker, localhost-only, LibreOffice + Chromium)
+  - Start: cd /opt/pliny_pdf && docker compose -f docker-compose.prod.yml up -d
+  - Health: curl http://localhost:3001/health
+- UFW firewall: 22/80/443 open, 8080/3001 internal only
+
+### What is NOT live (pending domain)
+- Caddy reverse proxy: NOT installed
+  - Config ready at deploy/Caddyfile
+  - Will proxy api.plinypdf.com → localhost:8080
+  - Will auto-issue Let's Encrypt SSL for api.plinypdf.com
+- Vercel frontend: NOT deployed
+- Custom domain plinypdf.com: NOT purchased
+
+### Cross-subdomain auth (how it works when domain is wired)
+Cookie set on plinypdf.com with Domain=.plinypdf.com reaches api.plinypdf.com because they share eTLD+1.
+Config: COOKIE_DOMAIN=.plinypdf.com in both Vercel and Hetzner .env.local.
+Without this: auth breaks on Vercel URL (*.vercel.app ≠ api.plinypdf.com).
+
+### Blog system
+- Posts: content/blog/*.md (gray-matter frontmatter)
+- Parser: lib/blog.ts (getAllPosts, getPost)
+- Renderer: markdown-to-jsx
+- Routes: app/[locale]/blog/page.tsx (index) + app/[locale]/blog/[slug]/page.tsx
+- SSG: generateStaticParams over slugs × locales at build time
+- 5 posts in content/blog/, all EN body
+
+### OG image generation
+- Route: app/api/og/route.tsx (next/og ImageResponse)
+- Size: 1200×630
+- Params: ?title=...&description=...
+- Wired to metadata.openGraph.images on all tool + content pages
+
+### PostHog analytics
+- Provider: components/analytics/PostHogProvider.tsx (client component)
+- No-op when NEXT_PUBLIC_POSTHOG_KEY is absent
+- Events: tool_used, signup_completed, upgrade_clicked, checkout_opened
+- Wired at: all 13 tool components, AuthForm, PlanCard
+
+### Updating the backend after code changes
+1. git push origin main (local machine)
+2. SSH: ssh root@49.13.119.27
+3. cd /opt/pliny_pdf && git pull origin main
+4. bun install (if package.json changed)
+5. systemctl restart plinypdf-backend
+6. curl http://localhost:8080/api/health (verify)

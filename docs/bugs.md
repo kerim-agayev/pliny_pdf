@@ -90,3 +90,15 @@ to avoid re-discovering known issues.
   3. **Sidebar items weren't links** — `SideItem` rendered a `<div>`. Now renders `<Link>`: Library → `/dashboard`/`/tools`; categories → `/tools?category=<Cat>` (the tools page reads `searchParams.category` to pre-select the filter).
   4. **FREE badge invisible** — base `.pp-badge` (muted `--line-3`/`--text-2`) was too low-contrast; gave the Free badge an explicit visible chip style.
 - **Commit:** feat: Dashboard (Free + Pro variants)
+
+## [2026-05-31] PostHog event wiring — wrong component internals assumed
+Sprint 7-8, Task 4.
+Symptom: PostHog capture() calls added to wrong variable names (authClient, handleUpgrade, setResultBlob) that didn't exist in actual component code. Build passed (orphan imports compile) but events silently failed.
+Fix: grep verification of each component's real call sites, re-wired all 13 tools correctly.
+Lesson: always read the actual component before adding event calls. Don't assume variable names from component signatures.
+
+## [2026-05-31] docs/index.md edits not persisting
+Sprint 7-8, Task 1 + final sync.
+Symptom: Two successive edits to docs/index.md were overwritten by subsequent writes in the same session.
+Fix: required three separate commits to stabilize.
+Lesson: verify index.md content after every write with a read-back.
