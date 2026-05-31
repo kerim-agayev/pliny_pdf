@@ -200,7 +200,22 @@
     "cloudProcessing": "Sunucumuzda dönüştürülüyor…",
     "cloudNote": "Güvenle işlenir · dosya 24 saat içinde silinir",
     "cloudDeletedNote": "Dosyanız güvenle işlenir ve 24 saat içinde silinir.",
-    "wrongTypeWord": "Yalnızca Word belgeleri (.docx) desteklenir."
+    "wrongTypeWord": "Yalnızca Word belgeleri (.docx) desteklenir.",
+    "rateLimited": "Günlük sınıra ulaşıldı. Daha fazlası için giriş yapın veya Pro'ya yükseltin.",
+    "aiAnalyzing": "PDF'iniz okunuyor ve özetleniyor…",
+    "signInRequired": "AI Özet'i kullanmak için lütfen giriş yapın.",
+    "signIn": "Giriş yap",
+    "createAccount": "Hesap oluştur",
+    "aiLimitReached": "Bu ayki ücretsiz AI özetlerinizi kullandınız. Sınırsız için Pro'ya yükseltin.",
+    "tabExecutive": "Yönetici özeti",
+    "tabOutline": "Anahat",
+    "tabSections": "Bölüm bölüm",
+    "copy": "Kopyala",
+    "copied": "Kopyalandı",
+    "summarizeAgain": "Tekrar özetle",
+    "words": "kelime",
+    "minRead": "dk okuma",
+    "aiDisclaimer": "AI tarafından oluşturulan özet. Metin yalnızca özetleme için gönderilir — saklanmaz, eğitim için kullanılmaz."
   },
   "ToolPages": {
     "merge": {
@@ -322,6 +337,9 @@
       "subtitle": "Word belgesini şık bir PDF'e dönüştürün. Sunucumuzda dönüştürülür, sonra silinir.",
       "action": "PDF'e dönüştür",
       "successTitle": "PDF'e dönüştürüldü."
+    },
+    "summarize": {
+      "subtitle": "Herhangi bir PDF'in özünü saniyeler içinde alın — yönetici özeti, anahat veya bölüm bölüm."
     }
   },
   "Pricing": {

@@ -2,6 +2,7 @@ import { Elysia } from "elysia";
 import { cors } from "@elysiajs/cors";
 import { health } from "./routes/health";
 import { convert } from "./routes/convert";
+import { ai } from "./routes/ai";
 
 /**
  * PlinyPDF backend (Bun + Elysia). Separate process from Next.js — it owns the
@@ -16,6 +17,7 @@ const app = new Elysia()
   .use(cors({ origin: FRONTEND_ORIGIN, credentials: true }))
   .use(health)
   .use(convert)
+  .use(ai)
   .listen(PORT);
 
 console.log(`🦅 PlinyPDF backend running at http://localhost:${PORT}`);

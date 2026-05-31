@@ -200,7 +200,22 @@
     "cloudProcessing": "Converting on our server…",
     "cloudNote": "Processed securely · file deleted within 24 hours",
     "cloudDeletedNote": "Your file is processed securely and deleted within 24 hours.",
-    "wrongTypeWord": "Only Word documents (.docx) are supported."
+    "wrongTypeWord": "Only Word documents (.docx) are supported.",
+    "rateLimited": "Daily limit reached. Sign in or upgrade to Pro for more.",
+    "aiAnalyzing": "Reading and summarizing your PDF…",
+    "signInRequired": "Please sign in to use AI Summary.",
+    "signIn": "Sign in",
+    "createAccount": "Create account",
+    "aiLimitReached": "You've used your free AI summaries this month. Upgrade to Pro for unlimited.",
+    "tabExecutive": "Executive summary",
+    "tabOutline": "Outline",
+    "tabSections": "Per section",
+    "copy": "Copy",
+    "copied": "Copied",
+    "summarizeAgain": "Summarize again",
+    "words": "words",
+    "minRead": "min read",
+    "aiDisclaimer": "AI-generated summary. Text is sent for summarization only — never stored or used for training."
   },
   "ToolPages": {
     "merge": {
@@ -322,6 +337,9 @@
       "subtitle": "Turn a Word document into a polished PDF. Converted on our server, then deleted.",
       "action": "Convert to PDF",
       "successTitle": "Converted to PDF."
+    },
+    "summarize": {
+      "subtitle": "Get the gist of any PDF in seconds — executive summary, outline, or per-section."
     }
   },
   "Pricing": {

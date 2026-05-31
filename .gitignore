@@ -43,3 +43,8 @@ next-env.d.ts
 # local dev logs
 .dev.log
 .server.log
+
+# agent tooling (superpowers/skills — personal, not project)
+.claude/
+.agents/
+skills-lock.json
