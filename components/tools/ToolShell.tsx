@@ -67,22 +67,25 @@ export function ToolShell({
             <div className="pp-card" style={{ padding: 24 }}>
               <h3 className="mb-[18px] text-[15px] tracking-[-0.015em]">{t("howItWorks")}</h3>
               <div className="flex flex-col gap-[18px]">
-                {[1, 2, 3].map((n) => (
-                  <div key={n} className="flex gap-3.5">
-                    <div
-                      className="pp-mono flex size-6 shrink-0 items-center justify-center rounded-md text-[11px] font-semibold"
-                      style={{ background: "rgba(107,92,231,0.14)", color: "#BFB5FF" }}
-                    >
-                      {n}
-                    </div>
-                    <div>
-                      <div className="mb-0.5 text-[13.5px] font-medium">{t(`step${n}Title`)}</div>
-                      <div className="text-[12.5px] leading-relaxed" style={{ color: "var(--text-2)" }}>
-                        {t(`step${n}Body`)}
+                {[1, 2, 3].map((n) => {
+                  const prefix = tool.mode === "cloud" ? "cloudStep" : "step";
+                  return (
+                    <div key={n} className="flex gap-3.5">
+                      <div
+                        className="pp-mono flex size-6 shrink-0 items-center justify-center rounded-md text-[11px] font-semibold"
+                        style={{ background: "rgba(107,92,231,0.14)", color: "#BFB5FF" }}
+                      >
+                        {n}
+                      </div>
+                      <div>
+                        <div className="mb-0.5 text-[13.5px] font-medium">{t(`${prefix}${n}Title`)}</div>
+                        <div className="text-[12.5px] leading-relaxed" style={{ color: "var(--text-2)" }}>
+                          {t(`${prefix}${n}Body`)}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 

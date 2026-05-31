@@ -5,7 +5,9 @@
     "privacy": "Gizlilik",
     "blog": "Blog",
     "login": "Giriş yap",
-    "signup": "Ücretsiz Başla"
+    "signup": "Ücretsiz Başla",
+    "dashboard": "Panel",
+    "signout": "Çıkış yap"
   },
   "Footer": {
     "tagline": "PDF'leri yüklemeden düzenleyin. Bilgiyi düzenleyen Yaşlı Pliny'nin adını taşır.",
@@ -185,8 +187,20 @@
     "step2Body": "Her şey WebAssembly ile tarayıcınızda olur. Yükleme yok.",
     "step3Title": "İndirin",
     "step3Body": "Sonucu kaydedin veya doğrudan başka bir araca gönderin.",
+    "cloudStep1Title": "Dosyanızı yükleyin",
+    "cloudStep1Body": "Bir dosya seçin — şifreli bir bağlantı üzerinden sunucumuza gönderilir.",
+    "cloudStep2Title": "Biz dönüştürürüz",
+    "cloudStep2Body": "Sunucumuz (LibreOffice) dönüştürmeyi yapar, ardından dosyayı 24 saat içinde siler.",
+    "cloudStep3Title": "İndirin",
+    "cloudStep3Body": "Dönüştürülen dosyayı kaydedin. Giriş yapan kullanıcılar kısa bir geçmiş tutar.",
     "filesCount": "{count, plural, one {# dosya} other {# dosya}}",
-    "pagesCount": "{count, plural, one {# sayfa} other {# sayfa}}"
+    "pagesCount": "{count, plural, one {# sayfa} other {# sayfa}}",
+    "dropWordTitle": "Word belgesini buraya bırakın",
+    "converting": "Dönüştürülüyor…",
+    "cloudProcessing": "Sunucumuzda dönüştürülüyor…",
+    "cloudNote": "Güvenle işlenir · dosya 24 saat içinde silinir",
+    "cloudDeletedNote": "Dosyanız güvenle işlenir ve 24 saat içinde silinir.",
+    "wrongTypeWord": "Yalnızca Word belgeleri (.docx) desteklenir."
   },
   "ToolPages": {
     "merge": {
@@ -298,6 +312,16 @@
         "undo": "Geri al",
         "redo": "Yinele"
       }
+    },
+    "pdfToWord": {
+      "subtitle": "PDF'i düzenlenebilir bir Word belgesine dönüştürün. Sunucumuzda dönüştürülür, sonra silinir.",
+      "action": "Word'e dönüştür",
+      "successTitle": "Word'e dönüştürüldü."
+    },
+    "wordToPdf": {
+      "subtitle": "Word belgesini şık bir PDF'e dönüştürün. Sunucumuzda dönüştürülür, sonra silinir.",
+      "action": "PDF'e dönüştür",
+      "successTitle": "PDF'e dönüştürüldü."
     }
   },
   "Pricing": {

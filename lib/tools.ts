@@ -51,8 +51,8 @@ export const TOOLS: Tool[] = [
   { id: "protect", slug: "password-protect", name: "Password Protect", desc: "Encrypt a PDF with a password.", cat: "Secure", mode: "local", icon: IconLock, accent: "#34D399", available: true },
   { id: "unlock", slug: "remove-password", name: "Remove Password", desc: "Strip the password if you own the file.", cat: "Secure", mode: "local", icon: IconUnlock, accent: "#34D399", available: true },
   { id: "edit", slug: "edit-pdf", name: "PDF Editor", desc: "Annotate, highlight, draw, and mark up.", cat: "Edit", mode: "local", icon: IconPen, accent: "#BFB5FF", available: true },
-  { id: "pdf-to-word", slug: "pdf-to-word", name: "PDF to Word", desc: "High-fidelity DOCX conversion.", cat: "Convert", mode: "cloud", icon: IconWord, accent: "#60A5FA", available: false },
-  { id: "word-to-pdf", slug: "word-to-pdf", name: "Word to PDF", desc: "DOCX in, perfectly formatted PDF out.", cat: "Convert", mode: "cloud", icon: IconWord, accent: "#60A5FA", available: false },
+  { id: "pdf-to-word", slug: "pdf-to-word", name: "PDF to Word", desc: "High-fidelity DOCX conversion.", cat: "Convert", mode: "cloud", icon: IconWord, accent: "#60A5FA", available: true },
+  { id: "word-to-pdf", slug: "word-to-pdf", name: "Word to PDF", desc: "DOCX in, perfectly formatted PDF out.", cat: "Convert", mode: "cloud", icon: IconWord, accent: "#60A5FA", available: true },
   { id: "summarize", slug: "summarize", name: "AI Summary", desc: "Outline or executive summary in seconds.", cat: "AI", mode: "cloud", icon: IconSparkle, accent: "#BFB5FF", tag: "AI-powered", available: false },
 ];
 

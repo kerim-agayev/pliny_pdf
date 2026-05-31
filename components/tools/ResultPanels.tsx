@@ -65,8 +65,17 @@ export function SuccessPanel({
   );
 }
 
-/** Friendly error banner with reassurance and retry. */
-export function ErrorBanner({ message, onRetry }: { message?: string; onRetry: () => void }) {
+/** Friendly error banner with reassurance and retry. `note` overrides the default
+ * local-privacy reassurance (cloud tools pass a cloud-appropriate note). */
+export function ErrorBanner({
+  message,
+  note,
+  onRetry,
+}: {
+  message?: string;
+  note?: string;
+  onRetry: () => void;
+}) {
   const t = useTranslations("ToolUI");
   return (
     <div
@@ -79,7 +88,7 @@ export function ErrorBanner({ message, onRetry }: { message?: string; onRetry: (
           {message ?? t("errorTitle")}
         </div>
       </div>
-      <p className="mb-3 text-[12.5px]" style={{ color: "var(--text-2)" }}>{t("neverUploaded")}</p>
+      <p className="mb-3 text-[12.5px]" style={{ color: "var(--text-2)" }}>{note ?? t("neverUploaded")}</p>
       <button type="button" className="pp-btn pp-btn-ghost" style={{ padding: "8px 14px" }} onClick={onRetry}>
         <IconRefresh size={14} /> {t("tryAgain")}
       </button>

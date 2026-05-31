@@ -5,7 +5,9 @@
     "privacy": "Privacy",
     "blog": "Blog",
     "login": "Sign in",
-    "signup": "Start Free"
+    "signup": "Start Free",
+    "dashboard": "Dashboard",
+    "signout": "Sign out"
   },
   "Footer": {
     "tagline": "Edit PDFs without uploading them. Named after Pliny the Elder, who organized human knowledge.",
@@ -185,8 +187,20 @@
     "step2Body": "Everything happens in your browser via WebAssembly. No upload.",
     "step3Title": "Download",
     "step3Body": "Save the result or send it straight to another tool.",
+    "cloudStep1Title": "Upload your file",
+    "cloudStep1Body": "Choose a file — it's sent to our server over an encrypted connection.",
+    "cloudStep2Title": "We convert it",
+    "cloudStep2Body": "Our server (LibreOffice) does the conversion, then deletes the file within 24 hours.",
+    "cloudStep3Title": "Download",
+    "cloudStep3Body": "Save the converted file. Signed-in users keep a short history of their conversions.",
     "filesCount": "{count, plural, one {# file} other {# files}}",
-    "pagesCount": "{count, plural, one {# page} other {# pages}}"
+    "pagesCount": "{count, plural, one {# page} other {# pages}}",
+    "dropWordTitle": "Drop a Word document here",
+    "converting": "Converting…",
+    "cloudProcessing": "Converting on our server…",
+    "cloudNote": "Processed securely · file deleted within 24 hours",
+    "cloudDeletedNote": "Your file is processed securely and deleted within 24 hours.",
+    "wrongTypeWord": "Only Word documents (.docx) are supported."
   },
   "ToolPages": {
     "merge": {
@@ -298,6 +312,16 @@
         "undo": "Undo",
         "redo": "Redo"
       }
+    },
+    "pdfToWord": {
+      "subtitle": "Turn a PDF into an editable Word document. Converted on our server, then deleted.",
+      "action": "Convert to Word",
+      "successTitle": "Converted to Word."
+    },
+    "wordToPdf": {
+      "subtitle": "Turn a Word document into a polished PDF. Converted on our server, then deleted.",
+      "action": "Convert to PDF",
+      "successTitle": "Converted to PDF."
     }
   },
   "Pricing": {

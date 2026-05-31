@@ -4,11 +4,12 @@ import { useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { IconUpload } from "@/components/shared/icons";
 
-type Accept = "pdf" | "image";
+type Accept = "pdf" | "image" | "word";
 
 const ACCEPT_ATTR: Record<Accept, string> = {
   pdf: "application/pdf,.pdf",
   image: "image/jpeg,image/png,.jpg,.jpeg,.png",
+  word: "application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/msword,.docx,.doc",
 };
 
 export function FileDropzone({
