@@ -6,7 +6,7 @@ import { FileDropzone } from "./FileDropzone";
 import { SuccessPanel, ErrorBanner } from "./ResultPanels";
 import { Spinner } from "./Spinner";
 import { IconArrow, IconFile, IconX } from "@/components/shared/icons";
-import { postFile } from "@/lib/api";
+import { postFile, ApiError } from "@/lib/api";
 import { formatBytes, downloadBlob, baseName } from "@/lib/format";
 
 type Status = "idle" | "uploading" | "done" | "error";
@@ -51,7 +51,11 @@ export function CloudConvertTool({
       setResult({ blob, name: `${baseName(file.name)}${outExt}` });
       setStatus("done");
     } catch (e) {
-      setErrorMsg(e instanceof Error ? e.message : undefined);
+      if (e instanceof ApiError && e.status === 429) {
+        setErrorMsg(t("rateLimited"));
+      } else {
+        setErrorMsg(e instanceof Error ? e.message : undefined);
+      }
       setStatus("error");
     }
   }

@@ -2,7 +2,8 @@ import { Elysia, t } from "elysia";
 import { wordToPdf } from "../services/gotenberg";
 import { pdfToWord } from "../services/libreoffice";
 import { storeTemp, r2Configured } from "../services/r2";
-import { getRequester } from "../services/session";
+import { getRequester, type Requester } from "../services/session";
+import { checkServerTool } from "@/lib/ratelimit";
 import { db } from "@/lib/db";
 import { fileHistory } from "@/lib/db/schema";
 import { baseName } from "@/lib/format";
@@ -11,14 +12,19 @@ const DOCX_TYPE =
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 const PDF_TYPE = "application/pdf";
 
+/** Best-effort client IP for anonymous (IP-based) rate limiting. */
+function clientIp(request: Request): string {
+  const xff = request.headers.get("x-forwarded-for");
+  return xff?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || "local";
+}
+
 /** Record a cloud conversion in history — only for logged-in users (privacy: anonymous runs are never stored). */
 async function recordHistory(
-  headers: Headers,
+  who: Requester,
   toolSlug: string,
   filename: string,
   size: number,
 ) {
-  const who = await getRequester(headers);
   if (!who) return;
   await db
     .insert(fileHistory)
@@ -54,6 +60,12 @@ export const convert = new Elysia({ prefix: "/api/convert" })
         set.status = 400;
         return { error: "wrongType", message: "Please upload a PDF file." };
       }
+      const who = await getRequester(request.headers);
+      const lim = await checkServerTool(who?.plan ?? null, who?.userId ?? clientIp(request));
+      if (!lim.ok) {
+        set.status = 429;
+        return { error: "rateLimited", message: "Daily conversion limit reached. Sign in or upgrade for more.", resetAt: lim.resetAt };
+      }
       const input = new Uint8Array(await file.arrayBuffer());
       let out: Uint8Array;
       try {
@@ -64,7 +76,7 @@ export const convert = new Elysia({ prefix: "/api/convert" })
       }
       const outName = `${baseName(file.name)}.docx`;
       await maybeStore(`conversions/${crypto.randomUUID()}-${outName}`, out, DOCX_TYPE);
-      await recordHistory(request.headers, "pdf-to-word", outName, out.byteLength);
+      await recordHistory(who, "pdf-to-word", outName, out.byteLength);
       return fileResponse(out, outName, DOCX_TYPE);
     },
     { body: t.Object({ file: t.File() }) },
@@ -77,6 +89,12 @@ export const convert = new Elysia({ prefix: "/api/convert" })
         set.status = 400;
         return { error: "wrongType", message: "Please upload a Word (.docx) file." };
       }
+      const who = await getRequester(request.headers);
+      const lim = await checkServerTool(who?.plan ?? null, who?.userId ?? clientIp(request));
+      if (!lim.ok) {
+        set.status = 429;
+        return { error: "rateLimited", message: "Daily conversion limit reached. Sign in or upgrade for more.", resetAt: lim.resetAt };
+      }
       const input = new Uint8Array(await body.file.arrayBuffer());
       let out: Uint8Array;
       try {
@@ -87,7 +105,7 @@ export const convert = new Elysia({ prefix: "/api/convert" })
       }
       const outName = `${baseName(body.file.name)}.pdf`;
       await maybeStore(`conversions/${crypto.randomUUID()}-${outName}`, out, PDF_TYPE);
-      await recordHistory(request.headers, "word-to-pdf", outName, out.byteLength);
+      await recordHistory(who, "word-to-pdf", outName, out.byteLength);
       return fileResponse(out, outName, PDF_TYPE);
     },
     { body: t.Object({ file: t.File() }) },
