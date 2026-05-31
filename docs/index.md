@@ -20,7 +20,11 @@
 - `docs/architecture.md` — system architecture (theming, PDF processing, compress strategy, editor)
 - `docs/bugs.md` — known bugs and their fixes (read when touching related code)
 - `docs/log.md` — chronological record
-- `app/[locale]/` — i18n-routed App Router pages (home, tools, pricing, dashboard, 10 tool routes, coming-soon)
+- `app/[locale]/` — i18n-routed App Router pages (home, tools, pricing, dashboard, 13 tool routes, real about/privacy/terms, blog index + `blog/[slug]`)
+- `lib/seo.ts` + `lib/structured-data.ts` + `components/seo/JsonLd.tsx` — SEO (canonical/hreflang/OG, JSON-LD); `app/sitemap.ts` + `app/robots.ts` + `app/api/og/route.tsx`
+- `lib/blog.ts` + `content/blog/*.md` — markdown blog; `components/marketing/LegalShell.tsx` — about/privacy/terms shell
+- `components/analytics/PostHogProvider.tsx` + `lib/analytics.ts` — PostHog (no-op without key); `components/shared/MobileNav.tsx` — mobile nav
+- `deploy/` — Hetzner runbook (`README.md`), systemd unit, Caddyfile, `LAUNCH.md`; `docker-compose.prod.yml`
 - `i18n/{routing,navigation,request}.ts` + `proxy.ts` — next-intl wiring
 - `lib/pdf/*` — per-tool in-browser PDF logic; `lib/tools.ts` — tool catalog
 - `components/tools/*` — ToolShell, FileDropzone, ResultPanels + one component per tool (incl. CloudConvertTool, SummarizeTool)
