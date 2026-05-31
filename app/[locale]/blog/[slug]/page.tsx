@@ -4,6 +4,8 @@ import { setRequestLocale, getTranslations } from "next-intl/server";
 import Markdown from "markdown-to-jsx";
 import { Link } from "@/i18n/navigation";
 import { getAllSlugs, getPost } from "@/lib/blog";
+import { pageMetadata, ogImageUrl, SITE_URL } from "@/lib/seo";
+import { JsonLd } from "@/components/seo/JsonLd";
 
 export function generateStaticParams() {
   return getAllSlugs().map((slug) => ({ slug }));
@@ -12,14 +14,21 @@ export function generateStaticParams() {
 export async function generateMetadata({
   params,
 }: {
-  params: Promise<{ slug: string }>;
+  params: Promise<{ locale: string; slug: string }>;
 }): Promise<Metadata> {
-  const { slug } = await params;
+  const { locale, slug } = await params;
   const post = getPost(slug);
   if (!post) return {};
-  return {
+  const meta = pageMetadata({
+    locale,
+    path: `/blog/${slug}`,
     title: `${post.title} — PlinyPDF`,
     description: post.excerpt,
+  });
+  // Articles get the richer "article" OG type + published date.
+  return {
+    ...meta,
+    openGraph: { ...meta.openGraph, type: "article", publishedTime: post.date },
   };
 }
 
@@ -73,8 +82,21 @@ export default async function BlogPostPage({
   const t = await getTranslations("Blog");
   const fmt = new Intl.DateTimeFormat(locale, { year: "numeric", month: "long", day: "numeric" });
 
+  const articleSchema = {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: post.title,
+    description: post.excerpt,
+    datePublished: post.date,
+    image: ogImageUrl(post.title, post.excerpt),
+    url: `${SITE_URL}/${locale}/blog/${slug}`,
+    author: { "@type": "Organization", name: "PlinyPDF" },
+    publisher: { "@type": "Organization", name: "PlinyPDF" },
+  };
+
   return (
     <article className="mx-auto max-w-[720px] px-5 pt-16 pb-24 sm:px-8">
+      <JsonLd data={articleSchema} />
       <Link href="/blog" className="text-[14px]" style={{ color: "var(--text-3)" }}>
         {t("backToBlog")}
       </Link>

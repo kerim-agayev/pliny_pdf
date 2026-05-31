@@ -8,6 +8,7 @@ import { ThemeProvider } from "@/components/shared/ThemeProvider";
 import { Navbar } from "@/components/shared/Navbar";
 import { Footer } from "@/components/shared/Footer";
 import { routing } from "@/i18n/routing";
+import { SITE_URL } from "@/lib/seo";
 import "../globals.css";
 
 const sans = Plus_Jakarta_Sans({
@@ -29,6 +30,7 @@ const mono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: "PlinyPDF — Edit PDFs without uploading them",
   description:
     "Privacy-first online PDF toolkit. Files are processed in your browser whenever possible.",

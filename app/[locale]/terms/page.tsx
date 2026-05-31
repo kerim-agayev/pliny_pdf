@@ -1,12 +1,22 @@
 import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { LegalShell, LegalSection } from "@/components/marketing/LegalShell";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Terms of Service — PlinyPDF",
-  description:
-    "PlinyPDF Terms of Service: acceptable use, billing via Lemonsqueezy, 14-day money-back guarantee, and how local and cloud tools handle your files.",
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  return pageMetadata({
+    locale,
+    path: "/terms",
+    title: "Terms of Service — PlinyPDF",
+    description:
+      "PlinyPDF Terms of Service: acceptable use, billing via Lemonsqueezy, 14-day money-back guarantee, and how local and cloud tools handle your files.",
+  });
+}
 
 export default async function TermsPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;

@@ -1,9 +1,11 @@
+import type { Metadata } from "next";
 import { setRequestLocale } from "next-intl/server";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { ToolCard } from "@/components/shared/ToolCard";
 import { PlanCard } from "@/components/marketing/PlanCard";
 import { PrivacyBadge } from "@/components/shared/PrivacyBadge";
+import { pageMetadata } from "@/lib/seo";
 import {
   IconArrow,
   IconCheck,
@@ -16,6 +18,21 @@ import {
   IconSparkle,
   IconGlobe,
 } from "@/components/shared/icons";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  return pageMetadata({
+    locale,
+    path: "/",
+    title: "PlinyPDF — Edit PDFs without uploading them",
+    description:
+      "Privacy-first online PDF toolkit. Files are processed in your browser whenever possible.",
+  });
+}
 
 export default async function HomePage({
   params,

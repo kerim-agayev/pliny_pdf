@@ -2,11 +2,22 @@ import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { getAllPosts } from "@/lib/blog";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Blog — PlinyPDF",
-  description: "Privacy, PDFs, and how online tools really work. Guides and comparisons from PlinyPDF.",
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  return pageMetadata({
+    locale,
+    path: "/blog",
+    title: "Blog — PlinyPDF",
+    description:
+      "Privacy, PDFs, and how online tools really work. Guides and comparisons from PlinyPDF.",
+  });
+}
 
 export default async function BlogPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;

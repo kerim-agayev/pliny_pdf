@@ -1,12 +1,22 @@
 import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { LegalShell, LegalSection } from "@/components/marketing/LegalShell";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "Privacy Policy — PlinyPDF",
-  description:
-    "How PlinyPDF handles your data: GDPR & KVKK compliant, no tracking, local processing for most tools, files deleted within 24 hours for cloud tools.",
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  return pageMetadata({
+    locale,
+    path: "/privacy",
+    title: "Privacy Policy — PlinyPDF",
+    description:
+      "How PlinyPDF handles your data: GDPR & KVKK compliant, no tracking, local processing for most tools, files deleted within 24 hours for cloud tools.",
+  });
+}
 
 export default async function PrivacyPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;

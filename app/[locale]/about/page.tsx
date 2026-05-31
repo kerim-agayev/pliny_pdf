@@ -2,12 +2,22 @@ import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { LegalShell, LegalSection } from "@/components/marketing/LegalShell";
+import { pageMetadata } from "@/lib/seo";
 
-export const metadata: Metadata = {
-  title: "About — PlinyPDF",
-  description:
-    "Why PlinyPDF exists: a privacy-first PDF toolkit that processes your files in the browser. Named after Pliny the Elder.",
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}): Promise<Metadata> {
+  const { locale } = await params;
+  return pageMetadata({
+    locale,
+    path: "/about",
+    title: "About — PlinyPDF",
+    description:
+      "Why PlinyPDF exists: a privacy-first PDF toolkit that processes your files in the browser. Named after Pliny the Elder.",
+  });
+}
 
 export default async function AboutPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;

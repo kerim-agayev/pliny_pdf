@@ -1,12 +1,11 @@
-import type { Metadata } from "next";
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { ToolShell } from "@/components/tools/ToolShell";
 import { MergeTool } from "@/components/tools/MergeTool";
+import { toolMetadata } from "@/lib/seo";
+import { toolSchemas } from "@/lib/structured-data";
+import { JsonLd } from "@/components/seo/JsonLd";
 
-export const metadata: Metadata = {
-  title: "Merge PDF — PlinyPDF",
-  description: "Combine multiple PDFs into one, right in your browser. No upload, no limits.",
-};
+export const generateMetadata = toolMetadata("merge-pdf");
 
 export default async function MergePage({
   params,
@@ -17,8 +16,11 @@ export default async function MergePage({
   setRequestLocale(locale);
   const t = await getTranslations("ToolPages.merge");
   return (
-    <ToolShell toolId="merge" subtitle={t("subtitle")} related={["split", "compress", "rotate"]}>
-      <MergeTool />
-    </ToolShell>
+    <>
+      <JsonLd data={toolSchemas("merge-pdf")} />
+      <ToolShell toolId="merge" subtitle={t("subtitle")} related={["split", "compress", "rotate"]}>
+        <MergeTool />
+      </ToolShell>
+    </>
   );
 }
