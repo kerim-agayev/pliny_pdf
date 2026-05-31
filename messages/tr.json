@@ -361,6 +361,8 @@
     "perYear": "/yıl",
     "freeCta": "Ücretsiz Başla — kayıt gerekmez",
     "proCta": "Pro'ya yükselt",
+    "redirecting": "Ödemeye yönlendiriliyor…",
+    "checkoutError": "Ödeme başlatılamadı. Lütfen tekrar deneyin.",
     "freeFeatures": [
       "Tüm yerel araçlar — sınırsız",
       "Sunucu araçları · günde 10",

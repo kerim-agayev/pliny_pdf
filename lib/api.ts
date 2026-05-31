@@ -47,6 +47,21 @@ export async function postFileJson<T>(path: string, file: File): Promise<T> {
   return (await res.json()) as T;
 }
 
+/** POST a JSON body and parse a JSON response (used by billing checkout). */
+export async function postJson<T>(path: string, body: unknown): Promise<T> {
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+    credentials: "include",
+  });
+
+  if (!res.ok) {
+    throw await toApiError(res);
+  }
+  return (await res.json()) as T;
+}
+
 async function toApiError(res: Response): Promise<ApiError> {
   let message = `Request failed (${res.status})`;
   try {

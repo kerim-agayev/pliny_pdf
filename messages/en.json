@@ -361,6 +361,8 @@
     "perYear": "/year",
     "freeCta": "Start Free — no signup needed",
     "proCta": "Upgrade to Pro",
+    "redirecting": "Redirecting to checkout…",
+    "checkoutError": "Could not start checkout. Please try again.",
     "freeFeatures": [
       "All local tools — unlimited",
       "Server tools · 10 per day",

@@ -1,8 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { Link } from "@/i18n/navigation";
+import { Link, useRouter } from "@/i18n/navigation";
 import { IconCheck } from "@/components/shared/icons";
+import { useSession } from "@/lib/auth/client";
+import { postJson, ApiError } from "@/lib/api";
 
 export function PlanCard({
   plan,
@@ -18,6 +21,41 @@ export function PlanCard({
   const price = isPro ? (yearly ? 39 : 4.99) : 0;
   const unit = isPro ? (yearly ? t("perYear") : t("perMonth")) : t("forever");
   const features = t.raw(isPro ? "proFeatures" : "freeFeatures") as string[];
+
+  const { data: session } = useSession();
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [checkoutError, setCheckoutError] = useState<string>();
+
+  const ctaStyle = {
+    padding: 12,
+    background: isPro ? "var(--indigo)" : "transparent",
+    color: isPro ? "white" : "var(--text)",
+    border: isPro ? "none" : "1px solid var(--line-2)",
+    boxShadow: isPro
+      ? "0 1px 0 rgba(255,255,255,0.12) inset, 0 8px 20px -10px rgba(107,92,231,0.6)"
+      : "none",
+  } as const;
+
+  // Pro CTA → create a Lemonsqueezy checkout for the signed-in user. Logged-out
+  // users are sent to signup first (we need an account to attach the purchase to).
+  async function upgrade() {
+    if (!session?.user) {
+      router.push("/signup");
+      return;
+    }
+    setCheckoutError(undefined);
+    setLoading(true);
+    try {
+      const { url } = await postJson<{ url: string }>("/api/billing/checkout", {
+        plan: yearly ? "yearly" : "monthly",
+      });
+      window.location.href = url;
+    } catch (e) {
+      setCheckoutError(e instanceof ApiError ? e.message : t("checkoutError"));
+      setLoading(false);
+    }
+  }
 
   return (
     <div
@@ -61,21 +99,26 @@ export function PlanCard({
         </div>
         <div className="text-[13px]" style={{ color: "var(--text-2)" }}>{unit}</div>
       </div>
-      <Link
-        href="/signup"
-        className="pp-btn block text-center"
-        style={{
-          padding: 12,
-          background: isPro ? "var(--indigo)" : "transparent",
-          color: isPro ? "white" : "var(--text)",
-          border: isPro ? "none" : "1px solid var(--line-2)",
-          boxShadow: isPro
-            ? "0 1px 0 rgba(255,255,255,0.12) inset, 0 8px 20px -10px rgba(107,92,231,0.6)"
-            : "none",
-        }}
-      >
-        {isPro ? t("proCta") : t("freeCta")}
-      </Link>
+      {isPro ? (
+        <button
+          type="button"
+          onClick={upgrade}
+          disabled={loading}
+          className="pp-btn block w-full text-center"
+          style={{ ...ctaStyle, opacity: loading ? 0.7 : 1, cursor: loading ? "default" : "pointer" }}
+        >
+          {loading ? t("redirecting") : t("proCta")}
+        </button>
+      ) : (
+        <Link href="/signup" className="pp-btn block text-center" style={ctaStyle}>
+          {t("freeCta")}
+        </Link>
+      )}
+      {isPro && checkoutError && (
+        <p className="mt-2.5 text-center text-[12.5px]" style={{ color: "#F87171" }}>
+          {checkoutError}
+        </p>
+      )}
       <hr className="pp-hr" style={{ margin: "24px 0" }} />
       <ul className="flex list-none flex-col gap-3 p-0">
         {features.map((f, i) => (
