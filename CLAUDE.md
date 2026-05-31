@@ -98,6 +98,7 @@ docs/
   decisions.md      # Technical decisions and their REASONS (why Drizzle, why Paddle...)
   architecture.md   # System architecture summary (kept current)
   log.md            # Chronological append-only record: [date] what was done
+  bugs.md        # Known bugs and fixes — read before touching related code
   sprints/
     sprint-01.md    # Sprint details (archived/deleted on completion)
     sprint-02.md
@@ -111,6 +112,8 @@ The user opens the `docs/` folder as an Obsidian vault (for visual navigation, g
 - If the task belongs to a specific sprint, read ONLY that `sprint-XX.md`.
 - Never read the entire `sprints/` folder at once.
 - If a "why this decision?" question arises, read `decisions.md`.
+- Before fixing a bug, read bugs.md first — the same issue 
+  may have been solved before.
 
 ### 4.4. Writing Discipline
 - After each meaningful task, append one line to `log.md`: `## [YYYY-MM-DD] <what was done>`
@@ -204,6 +207,11 @@ git push -u origin main
 
 ### Billing
 - **Paddle** — Merchant of Record, automatic VAT/tax. Pro subscription.
+  > **NOTE (Phase 1):** Paddle Sandbox authentication is broken (known Paddle issue).
+  > Using **Lemonsqueezy** for Phase 1 testing instead — same MoR advantages.
+  > Env vars: LEMONSQUEEZY_API_KEY, LEMONSQUEEZY_WEBHOOK_SECRET, 
+  > LEMONSQUEEZY_STORE_ID, LEMONSQUEEZY_VARIANT_MONTHLY_ID, LEMONSQUEEZY_VARIANT_YEARLY_ID.
+  > May switch back to Paddle when Sandbox is fixed.
 
 ### Services
 - **Resend** (free) — transactional email
@@ -449,7 +457,8 @@ Do not start Sprint 3-4 until the user provides the handoff command and the desi
 20. Supabase + Drizzle (users, subscriptions)
 21. Better Auth (email + Google)
 22. Gemini AI Summarize
-23. Paddle billing
+23. Paddle billing - bunu gormezden gel, cunki sandboxda login zamani error aldim
+23. Lemonsqueezy billing (replacing Paddle — see billing note in Section 6)
 24. Rate limiting (Upstash Redis)
 
 ### Sprint 7-8: Launch
