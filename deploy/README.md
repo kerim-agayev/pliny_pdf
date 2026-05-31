@@ -188,3 +188,25 @@ Use the existing `LEMONSQUEEZY_WEBHOOK_SECRET`. Subscribe to `subscription_*` ev
   BOTH Vercel and the server, and that you are on `https://plinypdf.com` (not the vercel.app URL).
 - **DNS not propagated:** wait ~10 min, re-check with `dig`.
 - **Backend down:** `systemctl status plinypdf-backend`, `journalctl -u plinypdf-backend -n 50`.
+
+---
+
+## ⏸ Remaining when domain is purchased (BLOCKED — deferred)
+
+As of 2026-05-31, `plinypdf.com` is **not bought yet** (deferred until stakeholder approval).
+Phase B steps 1-6 are done and the backend is healthy at `http://49.13.119.27:8080` internally.
+The steps below are everything that still needs the domain. Resume here once it's purchased:
+
+1. **Phase B step 7 — DNS:** in Cloudflare, add `A` record `api` → `49.13.119.27`,
+   **DNS only (grey cloud)**. Verify on the server: `dig +short api.plinypdf.com` → the IP.
+2. **Phase B step 8 — Caddy:** install Caddy, `cp deploy/Caddyfile /etc/caddy/Caddyfile`,
+   `systemctl reload caddy`, watch `journalctl -u caddy` for cert issuance.
+   → **GATE 1:** `curl https://api.plinypdf.com/api/health` from outside returns the health JSON.
+3. **Phase C — Vercel:** connect the repo, set env (NEXT_PUBLIC_API_URL, BETTER_AUTH_URL,
+   COOKIE_DOMAIN, TRUSTED_ORIGINS, DATABASE_URL, BETTER_AUTH_SECRET, GOOGLE_*), deploy, add the
+   custom domain `plinypdf.com` (+ www), point root DNS to Vercel. (Full detail in Phase C above.)
+4. **Google OAuth:** add redirect URI `https://plinypdf.com/api/auth/callback/google`.
+5. **Lemonsqueezy:** set webhook URL → `https://api.plinypdf.com/api/webhooks/lemonsqueezy`
+   (stay in **test mode** until launch).
+6. → **GATE 2:** full end-to-end on `https://plinypdf.com` (signup · PDF→Word · Watermark ·
+   checkout opens · test-card payment flips plan to Pro).
