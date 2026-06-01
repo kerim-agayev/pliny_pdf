@@ -1,8 +1,8 @@
 # Wave 2C — OCR PDF (one cloud tool)
 
-Status: **code complete — committed + pushed (build green, tsc clean) — pending Gate 2C
-(Hetzner provisioning + test)**. Engine: **ocrmypdf** (user-approved over raw Tesseract).
-Commit: `feat(tools): Wave 2C — OCR PDF (ocrmypdf on Hetzner)`.
+Status: **DONE — GATE 2C PASSED (2026-06-01) — PHASE 2 COMPLETE**. Engine: **ocrmypdf**
+(user-approved over raw Tesseract). Commits: `feat(tools): Wave 2C — OCR PDF (ocrmypdf on
+Hetzner)` + `fix(ocr): register POST /api/ocr without trailing-slash mismatch` (a01c5f1).
 
 ## What shipped (code)
 - Slug `ocr-pdf`, id `ocr-pdf`, ToolPages key `ocrPdf`, `cat: Convert`, `mode: cloud`,
@@ -37,10 +37,24 @@ on the dev box (Windows: WSL or a Linux VM; or test against the Hetzner backend 
 `NEXT_PUBLIC_API_URL` at it). The Next dev server alone can't OCR — the Elysia backend must run
 (`bun run server`) with ocrmypdf available.
 
-## Gate 2C (after provisioning)
-- Scanned PDF → text selectable/searchable after.
-- Text PDF passthrough (no error; `--skip-text`).
-- Turkish scanned (`tur`) + Russian scanned (`rus`) recognized.
-- Mobile 375px, dark mode, /en /tr /ru render.
-- Rate limit: 4th anonymous run in a day → 429 (friendly "Daily limit reached").
-Commit: `feat(tools): Wave 2C — OCR PDF (ocrmypdf on Hetzner)`.
+## Gate 2C — PASSED ✅ (2026-06-01)
+- Scanned PDF → searchable PDF (Ctrl+F finds text after) ✅
+- Turkish OCR (`tur`) working ✅
+- Rate limit: 429 after 3 anonymous attempts ✅
+- /en /tr /ru render ✅
+- Hetzner provisioned: ocrmypdf + tesseract eng/tur/rus installed; `FRONTEND_ORIGIN`
+  reverted to `https://plinypdf.com` after testing.
+
+## Bugs found + fixed at the gate (detail in bugs.md)
+- **OCR route 404:** Elysia `prefix:"/api/ocr"` + `.post("/")` → `/api/ocr/` (trailing slash);
+  frontend POSTs `/api/ocr`. Fixed by `prefix:"/api"` + `.post("/ocr")` (commit a01c5f1).
+- **Deploy hazard:** a stale `nohup` bun process can hold :8080 → `systemctl restart` can't bind;
+  use `fuser -k 8080/tcp` first.
+- **429 after flushdb:** @upstash/ratelimit default in-memory cache; full reset = flushdb + restart.
+- **.env in shell:** strip CRLF + quotes (`tr -d '"' | tr -d '\r'`) when extracting values.
+
+## Deviations from the original wave_2c.md plan (documented in decisions.md)
+- Engine **ocrmypdf**, not a hand-rolled pdftoppm→tesseract→pdf-lib pipeline.
+- Rate limiting **reuses `checkServerTool`** (`pp:ip:server` / `pp:user:server`; anon 3/day,
+  free 10/day, Pro unlimited) — no bespoke `ocr:*` keys, no Pro 100/day cap.
+- Route path `/api/ocr` is registered under `prefix:"/api"` (not a dedicated `/api/ocr` prefix).

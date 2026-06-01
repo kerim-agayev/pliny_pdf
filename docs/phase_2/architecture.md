@@ -46,3 +46,27 @@ pages that already have text). Route `server/routes/ocr.ts` = POST `/api/ocr` (m
 `file` + optional `lang`). Frontend `OcrPdf.tsx` adds a language picker (default = locale).
 Requires `ocrmypdf` + `tesseract-ocr-{eng,tur,rus}` installed on the backend host (Hetzner) —
 the Next dev server alone cannot OCR. See `waves/wave_2c.md` for provisioning.
+
+## Unicode font pattern (text-to-pdf, markdown-to-pdf)
+For tools that render arbitrary user text, pdf-lib `StandardFonts` (WinAnsi/CP1252) are unusable
+(no Cyrillic, partial Turkish — they throw). Pattern:
+- `lib/pdf/fonts.ts` — shared loader; `fetch('/fonts/<file>')` once, cached in a module-level Map.
+- Fonts in `public/fonts/`: `NotoSans-Regular.ttf`, `NotoSans-Bold.ttf`, `NotoSansMono-Regular.ttf`
+  (committed to the repo).
+- Embed via `@cantoo/pdf-lib` + `@pdf-lib/fontkit`: `doc.registerFontkit(fontkit)` then
+  `await doc.embedFont(bytes)` — **full font, never `{ subset: true }`** (fontkit@1.1.1 subsetter
+  drops glyphs; see decisions.md + bugs.md). text-to-pdf uses Regular; markdown-to-pdf uses
+  Regular/Bold/Mono.
+
+## Hetzner server state (end of Phase 2)
+- IP 49.13.119.27. Backend: systemd `plinypdf-backend.service` (auto-restart), port 8080.
+- Gotenberg: Docker `pliny_pdf-gotenberg-1` (port 3001) — PDF↔Word only.
+- ocrmypdf installed (apt) + tesseract `eng`/`tur`/`rus` packs — used by `server/services/ocr.ts`
+  via `execFile` (host binary, NOT Docker).
+- OCR rate limiting reuses `checkServerTool` (`lib/ratelimit.ts`) → Upstash keys
+  `pp:ip:server:<ip>` (anon 3/day) and `pp:user:server:<userId>` (free 10/day; Pro unlimited).
+  No OCR-specific Redis keys.
+- UFW: 22/80/443 open; 8080 opened for Gate 2C browser testing — close once domain + Caddy land
+  (then the frontend reaches the backend via `api.plinypdf.com`, not the raw IP:8080).
+- Deploy/update flow: `git pull && bun install && systemctl restart plinypdf-backend`.
+- `FRONTEND_ORIGIN` must be `https://plinypdf.com` in prod (single-origin `@elysiajs/cors`).

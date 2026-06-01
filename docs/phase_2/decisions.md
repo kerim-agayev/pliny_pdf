@@ -47,9 +47,13 @@ sidebar on these screens. ToolShell still provides breadcrumb + header + privacy
 (CP1252) ceiling of pdf-lib's `StandardFonts` — which throws on Cyrillic (RU) and several
 Turkish letters, both day-one launch locales (see bugs.md, 2026-06-01).
 **Decision:** embed **Noto Sans** (Regular/Bold) + **Noto Sans Mono** via `@cantoo/pdf-lib`
-(already a dep) + `@pdf-lib/fontkit` (new dep), with `{ subset: true }`.
+(already a dep) + `@pdf-lib/fontkit` (new dep), embedding the **full font (NOT `subset: true`)**.
 **Why over sanitize-to-ASCII:** sanitizing would silently delete Russian and mangle Turkish —
-unacceptable for EN/TR/RU. Subsetting keeps output PDFs small (only used glyphs embedded).
+unacceptable for EN/TR/RU.
+**Why full embed, not subset:** `@pdf-lib/fontkit@1.1.1`'s subsetter drops glyphs (renders
+correct spacing but blank letters — see bugs.md). `{ subset: true }` is therefore forbidden here.
+Trade-off: output PDFs carry the full font (~280 KB for text-to-pdf's one font; ~1.4 MB for
+markdown's three). Acceptable for v1; revisit with a pre-built minimal subset font if size matters.
 New dep: `@pdf-lib/fontkit`. New assets: `public/fonts/NotoSans-{Regular,Bold}.ttf` +
 `NotoSansMono-Regular.ttf` (~1.5 MB total), fetched at runtime only on these two tool pages
 via `lib/pdf/fonts.ts` (module-level cache). Other tools keep `pdf-lib` StandardFonts — they
@@ -72,3 +76,33 @@ Pro unlimited) — the same limiter the PDF↔Word cloud tools use. **Why:** con
 all server-CPU tools, one place to tune limits, and the existing `rateLimited` i18n + 429
 handling in the client already cover it. Pro "unlimited" matches the product's stated tiers
 (CLAUDE.md §9.6) more cleanly than an arbitrary 100/day cap.
+
+## @upstash/ratelimit has a default in-memory cache (Gate 2C debugging)
+`@upstash/ratelimit@2.0.8`: when `ephemeralCache` is not passed (our case), the constructor
+creates a default in-memory `Map` cache (`dist/index.js:782-783`). Once an identifier is
+blocked, the **running process** answers `blocked` from this Map without consulting Redis for
+the rest of the window. **Consequence:** `flushdb` on Redis alone does NOT reset a live limit —
+the process keeps the block in memory. **Full reset = `flushdb` + `systemctl restart
+plinypdf-backend`.** Documented because it cost real time during Gate 2C.
+
+## Sign PDF is a visual signature, not a cryptographic e-signature
+`sign-pdf` embeds a signature *image* (drawn/typed/uploaded) onto the page. It is NOT a
+PKI/certificate-based digital signature. Correct scope for v1 and matches most online tools;
+the FAQ/JSON-LD says so explicitly. Revisit (PAdES/qualified signatures) only if demanded.
+
+## Design handoff delivered 1 screen per tool, not 4 variants
+Claude Design returned 1 screen per design-needed tool (6 total), not the 4 variants
+(empty + active + dark + mobile) originally envisioned. Empty/active states and dark mode were
+implemented in code from Phase 1 patterns; mobile (375px) verified via DevTools. No quality loss.
+
+## Grayscale PDF re-rasterizes (text stops being selectable)
+`grayscale-pdf` renders each page to a grayscale image, so text becomes part of the image and is
+no longer selectable/searchable — same trade-off as a heavy raster compress. This is stated in
+the tool UI so users aren't surprised. A vector-preserving grayscale would need per-object color
+rewriting (out of scope for v1).
+
+## CORS testing workaround during Gate 2C (must revert)
+To test the localhost:3000 frontend against the Hetzner backend, `FRONTEND_ORIGIN` was
+temporarily set to `http://localhost:3000` on Hetzner (the backend's `@elysiajs/cors` echoes a
+single origin). **This MUST be reverted to `https://plinypdf.com` for production** — never leave
+a localhost origin in prod CORS. Revert command lives in `log.md` / `index.md`.

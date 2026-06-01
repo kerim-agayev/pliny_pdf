@@ -57,3 +57,18 @@ Hetzner)` + pushed to origin/main. **Gate 2C still pending** — needs manual He
 provisioning (`apt install ocrmypdf tesseract-ocr-{eng,tur,rus}`) + backend restart, then the
 gate test (scanned→searchable, text passthrough, TR/RU scans, anon rate-limit). Cannot be done
 from the dev box (cloud tool; requires SSH to 49.13.119.27).
+
+## [2026-06-01] Wave 2C — GATE 2C PASSED — PHASE 2 COMPLETE 🎉
+OCR PDF verified end-to-end on the Hetzner backend. Catalog 27 → 28 (Phase 2: 13 → 28).
+- ocrmypdf installed on Hetzner (apt) + tesseract eng/tur/rus packs.
+- Gate 2C results: scanned PDF → searchable PDF (Ctrl+F finds text) ✅; Turkish OCR ✅;
+  rate-limit 429 after 3 anonymous attempts ✅; /en /tr /ru render ✅.
+- Bugs found + fixed during the gate (see bugs.md): OCR route 404 — Elysia prefix+"/" trailing
+  slash, fixed by `prefix:"/api"`+`.post("/ocr")` (commit a01c5f1); also a stale nohup process
+  can hold :8080 (use fuser -k before restart). 429 persisting after flushdb — @upstash/ratelimit
+  default in-memory cache; full reset = flushdb + restart. Reading .env in shell — strip CRLF+quotes.
+- `FRONTEND_ORIGIN` on Hetzner reverted to `https://plinypdf.com` after testing.
+**Phase 2 complete: 15 new tools across 3 waves, catalog 13 → 28.** Remaining work is the
+domain-gated launch items from Phase 1 (deploy/Vercel/Caddy/Sentry/PostHog/live billing) — OUT
+of Phase 2 scope; see index.md "Phase 1 Deferred Items". Next: user decides domain-first launch
+vs Phase 3 (more tools).

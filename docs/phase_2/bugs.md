@@ -47,3 +47,32 @@ carry the full font (~280 KB for text-to-pdf's one font; ~1.4 MB for markdown's 
 can be revisited with a pre-built minimal subset font if size matters later.
 **Note:** Bug 2 from this gate (Flatten PDF) was not a code bug — it needed a sample fillable
 PDF to exercise `getForm().flatten()`; the no-op path for form-less PDFs already works.
+
+## [2026-06-01] Wave 2C Gate — OCR route 404 (POST /api/ocr → NOT_FOUND)
+**Primary root cause (code):** the route was `new Elysia({ prefix: "/api/ocr" }).post("/", …)`,
+which Elysia resolves to `/api/ocr/` (trailing slash). The frontend POSTs `/api/ocr` (no slash) →
+404. Every other route uses a full path (`health`: `.get("/api/health")`) or a concrete subpath
+(`convert`: `/api/convert` + `.post("/pdf-to-word")`); the OCR route was the only one using a bare
+root `"/"` under a prefix.
+**Fix (commit a01c5f1):** `new Elysia({ prefix: "/api" }).post("/ocr", …)` → exact `/api/ocr`,
+mirroring the `billing` route.
+**Secondary deployment hazard (also seen):** a stale `bun run server` process (started earlier
+with `nohup`) can keep holding port 8080, so `systemctl restart` starts a process that can't bind
+and dies while the old code keeps answering. **Lesson:** use `fuser -k 8080/tcp` (or `systemctl
+stop`) before restart when a manual process may be running; verify with `ss -ltnp 'sport = :8080'`.
+
+## [2026-06-01] Wave 2C Gate — 429 persists after flushdb
+**Symptom:** rate limit kept returning 429 even after `flushdb` returned `{"result":"OK"}`.
+**Root cause:** `@upstash/ratelimit@2.0.8` enables a default in-memory `Map` cache when
+`ephemeralCache` isn't passed (`dist/index.js:782-783`). A blocked identifier is cached in the
+*running process* for the rest of the window, so `flushdb` (Redis) alone doesn't clear it.
+**Fix:** full reset = `flushdb` **+** `systemctl restart plinypdf-backend` (restart clears the
+in-memory Map; flush clears Redis). See decisions.md.
+
+## [2026-06-01] Wave 2C Gate — reading .env values in shell: strip CRLF + quotes
+**Symptom:** `grep … | cut` pipelines that read `.env.local` values (Upstash URL/token) could
+yield a broken value, producing empty/failed curl responses.
+**Root cause/hazard:** `.env` files edited on Windows can carry `\r` (CRLF) and/or wrapping
+quotes, which ride along into the extracted variable and corrupt URLs/tokens.
+**Fix:** always pipe through `tr -d '"' | tr -d '\r'` when extracting env values in shell
+one-liners (applied to the Gate 2C flush commands).
