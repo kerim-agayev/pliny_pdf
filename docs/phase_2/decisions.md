@@ -41,3 +41,16 @@ stays selectable. This is the only way to make "Redactions are permanent" actual
 The six design tools use `<ToolShell ... fullWidth>` (settings + live-preview/canvas two-column)
 instead of the default sidebar layout — matching the handoff, which has no how-it-works
 sidebar on these screens. ToolShell still provides breadcrumb + header + privacy badge.
+
+## Text-input tools embed Noto Sans, not pdf-lib StandardFonts
+`text-to-pdf` and `markdown-to-pdf` take arbitrary user text, so they hit the WinAnsi
+(CP1252) ceiling of pdf-lib's `StandardFonts` — which throws on Cyrillic (RU) and several
+Turkish letters, both day-one launch locales (see bugs.md, 2026-06-01).
+**Decision:** embed **Noto Sans** (Regular/Bold) + **Noto Sans Mono** via `@cantoo/pdf-lib`
+(already a dep) + `@pdf-lib/fontkit` (new dep), with `{ subset: true }`.
+**Why over sanitize-to-ASCII:** sanitizing would silently delete Russian and mangle Turkish —
+unacceptable for EN/TR/RU. Subsetting keeps output PDFs small (only used glyphs embedded).
+New dep: `@pdf-lib/fontkit`. New assets: `public/fonts/NotoSans-{Regular,Bold}.ttf` +
+`NotoSansMono-Regular.ttf` (~1.5 MB total), fetched at runtime only on these two tool pages
+via `lib/pdf/fonts.ts` (module-level cache). Other tools keep `pdf-lib` StandardFonts — they
+draw only ASCII/Latin chrome (page numbers, header/footer), so WinAnsi is fine there.

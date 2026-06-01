@@ -25,3 +25,20 @@ visibility, init once, guarded dispose). `bun run build` green (all routes × en
 no MISSING_MESSAGE). User confirmed every tool: real PDF → correct output, no upload in
 DevTools, mobile 375px, dark mode, /en /tr /ru. Committed + pushed to origin/main.
 Next: Wave 2B (6 no-design local tools).
+
+## [2026-06-01] Wave 2B complete — GATE 2B PASSED (6 tools)
+6 medium-priority local tools shipped, catalog 21 → 27. Tools (simplest → complex):
+`remove-metadata`, `edit-metadata` (share `lib/pdf/metadata.ts`), `grayscale-pdf`
+(re-rasterize pages, page-progress), `flatten-pdf` (`getForm().flatten()`, no-op if no
+form), `text-to-pdf`, `markdown-to-pdf` (split editor + live preview via markdown-to-jsx).
+All no-design; standard `ToolShell` pattern; full 7-touch-point wiring across en/tr/ru.
+Two bugs found at gate and fixed (see bugs.md): (1) Header&Footer-style i18n — n/a here;
+the real gate bugs were **Text→PDF / Markdown→PDF crashing on non-WinAnsi text** (smart
+quotes, Turkish, Cyrillic) — pdf-lib `StandardFonts` use WinAnsi and throw. Fixed by
+embedding **Noto Sans** (Regular/Bold + Mono) via `@cantoo/pdf-lib` + `@pdf-lib/fontkit`
+(new dep), fonts in `public/fonts`, loader `lib/pdf/fonts.ts`. First attempt used
+`{ subset: true }` → glyphs dropped (old fontkit subsetter); fixed by embedding the full
+font. Verified offline (pdfjs text-extraction round-trips TR + RU + smart quotes/em dash).
+(2) Flatten — not a code bug (needed a sample fillable PDF). `bun run build` green (27
+routes × en/tr/ru, no MISSING_MESSAGE). User confirmed all 6. Committed + pushed to
+origin/main. Next: Wave 2C (OCR PDF — the one cloud tool, Tesseract on Hetzner).

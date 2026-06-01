@@ -100,6 +100,32 @@ export const IconExtract = (p: IconProps) => (
     <path d="M14 13h7" /><path d="M18 10l3 3-3 3" />
   </I>
 );
+export const IconTagOff = (p: IconProps) => (
+  <I {...p}>
+    <path d="M4 9l5-5h7a2 2 0 0 1 2 2v7l-3 3" />
+    <path d="M14 20l-10-10" />
+    <path d="M4 4l16 16" />
+  </I>
+);
+export const IconInfo = (p: IconProps) => (
+  <I {...p}><circle cx="12" cy="12" r="9" /><path d="M12 11v5" /><circle cx="12" cy="7.6" r="0.7" fill="currentColor" /></I>
+);
+export const IconGrayscale = (p: IconProps) => (
+  <I {...p}><circle cx="12" cy="12" r="9" /><path d="M12 3a9 9 0 0 1 0 18z" fill="currentColor" stroke="none" /></I>
+);
+export const IconLayers = (p: IconProps) => (
+  <I {...p}><path d="M12 3l9 5-9 5-9-5z" /><path d="M3 13l9 5 9-5" /></I>
+);
+export const IconText = (p: IconProps) => (
+  <I {...p}><path d="M5 6h14" /><path d="M5 10h14" /><path d="M5 14h10" /><path d="M5 18h7" /></I>
+);
+export const IconMarkdown = (p: IconProps) => (
+  <I {...p}>
+    <rect x="3" y="6" width="18" height="12" rx="2" />
+    <path d="M6 14v-4l2 2 2-2v4" />
+    <path d="M15 10v4" /><path d="M13.4 12.4L15 14l1.6-1.6" />
+  </I>
+);
 export const IconArrow = (p: IconProps) => (
   <I {...p}><path d="M5 12h14" /><path d="M13 6l6 6-6 6" /></I>
 );

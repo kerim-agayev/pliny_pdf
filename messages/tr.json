@@ -144,6 +144,12 @@
     "organize-pages": { "name": "Sayfaları Düzenle", "desc": "Sürükleyerek yeniden sırala, döndür, çoğalt, sil." },
     "sign-pdf": { "name": "PDF İmzala", "desc": "İmza çizin, yazın veya yükleyin ve yerleştirin." },
     "redact-content": { "name": "İçeriği Karart", "desc": "Hassas içeriği kalıcı olarak karartın." },
+    "remove-metadata": { "name": "Meta Veriyi Kaldır", "desc": "Yazar, başlık ve gizli bilgileri silin." },
+    "edit-metadata": { "name": "Meta Veriyi Düzenle", "desc": "PDF belge özelliklerini görüntüleyip düzenleyin." },
+    "grayscale-pdf": { "name": "Gri Tonlama", "desc": "Her sayfayı siyah-beyaza çevirin." },
+    "flatten-pdf": { "name": "PDF Düzleştir", "desc": "Form alanlarını ve açıklamaları gömün." },
+    "text-to-pdf": { "name": "Metinden PDF", "desc": "Düz metni temiz bir PDF'ye dönüştürün." },
+    "markdown-to-pdf": { "name": "Markdown'dan PDF", "desc": "Markdown'ı biçimli bir PDF'ye dönüştürün." },
     "pdf-to-jpg": { "name": "PDF'den JPG'ye", "desc": "Her sayfayı bir JPG görüntüsüne dönüştürün." },
     "jpg-to-pdf": { "name": "JPG'den PDF'ye", "desc": "Görselleri tek bir PDF'ye dönüştürün." },
     "watermark": { "name": "Filigran Ekle", "desc": "Canlı önizleme ile metin filigranı ekleyin." },
@@ -463,6 +469,68 @@
       "reviewNote": "Her kutuyu gözden geçirin — indirildikten sonra içerik tamamen kaybolur.",
       "action": "Karartmaları uygula & indir",
       "emptyTitle": "Karartmak için bir PDF bırakın"
+    },
+    "removeMetadata": {
+      "subtitle": "PDF'nizden yazar, başlık ve diğer gizli belge bilgilerini silin.",
+      "currentTitle": "Mevcut meta veri",
+      "none": "Belge meta verisi bulunamadı.",
+      "field_title": "Başlık",
+      "field_author": "Yazar",
+      "field_subject": "Konu",
+      "field_keywords": "Anahtar kelimeler",
+      "field_creator": "Oluşturan",
+      "field_producer": "Üretici",
+      "note": "Sayfa içeriğine dokunulmaz — yalnızca gizli meta veri kaldırılır.",
+      "action": "Meta veriyi kaldır",
+      "successTitle": "Meta veri kaldırıldı.",
+      "emptyTitle": "Meta verisini temizlemek için bir PDF bırakın"
+    },
+    "editMetadata": {
+      "subtitle": "PDF'nizin belge özelliklerini görüntüleyin ve düzenleyin.",
+      "field_title": "Başlık",
+      "field_author": "Yazar",
+      "field_subject": "Konu",
+      "field_keywords": "Anahtar kelimeler",
+      "field_creator": "Oluşturan",
+      "field_producer": "Üretici",
+      "keywordsHint": "Anahtar kelimeleri virgülle ayırın.",
+      "action": "Değişiklikleri kaydet",
+      "successTitle": "Meta veri güncellendi.",
+      "emptyTitle": "Meta verisini düzenlemek için bir PDF bırakın"
+    },
+    "grayscalePdf": {
+      "subtitle": "Her sayfayı siyah-beyaza çevirin — baskı için idealdir.",
+      "rasterNote": "Sayfalar gri tonlamalı görseller olarak yeniden işlenir; metin görselin parçası olur ve artık seçilemez.",
+      "progress": "Sayfa {n} / {total}",
+      "action": "Gri tonlamaya çevir",
+      "successTitle": "Gri tonlamaya çevrildi.",
+      "emptyTitle": "Gri tonlamaya çevirmek için bir PDF bırakın"
+    },
+    "flattenPdf": {
+      "subtitle": "Form alanlarını ve açıklamaları sayfaya gömün, böylece düzenlenemez.",
+      "note": "Form alanları ve değerleri statik sayfa içeriğine dönüşür. Formu olmayan PDF'ler değişmeden kaydedilir.",
+      "action": "PDF'yi düzleştir",
+      "successTitle": "PDF düzleştirildi.",
+      "emptyTitle": "Düzleştirmek için bir PDF bırakın"
+    },
+    "textToPdf": {
+      "subtitle": "Metni yapıştırın veya yazın, temiz ve sayfalanmış bir PDF'ye dönüştürün.",
+      "placeholder": "Metninizi buraya yazın veya yapıştırın…",
+      "pageSize": "Sayfa boyutu",
+      "sizeA4": "A4",
+      "sizeLetter": "Letter",
+      "fontSize": "Yazı boyutu",
+      "action": "PDF oluştur",
+      "successTitle": "PDF oluşturuldu."
+    },
+    "markdownToPdf": {
+      "subtitle": "Canlı önizleme ile Markdown yazın, ardından biçimli bir PDF dışa aktarın.",
+      "editorLabel": "Markdown",
+      "previewLabel": "Önizleme",
+      "previewEmpty": "Önizlemeyi görmek için solda Markdown yazmaya başlayın.",
+      "placeholder": "# Merhaba\n\nBuraya **Markdown** yazın…\n\n- Listeler\n- de çalışır",
+      "action": "PDF indir",
+      "note": "Önizleme ve PDF tarayıcınızda oluşturulur."
     },
     "pdfToJpg": {
       "subtitle": "Her sayfayı yüksek çözünürlüklü bir JPG görüntüsüne dönüştürün.",

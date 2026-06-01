@@ -92,6 +92,36 @@ const TOOL_FAQ: Record<string, ToolSchemaCopy["faq"]> = {
     { q: "Is the redacted content really gone?", a: "Yes. Redacted pages are re-rendered as an image with the boxes burned in, so the underlying text and images are removed from the file — not just covered. This cannot be undone after download." },
     { q: "Can it find sensitive data automatically?", a: "Yes — search any text to redact every match, or auto-detect common patterns like emails, phone numbers, credit cards, and SSNs. All detection runs in your browser." },
   ],
+  "remove-metadata": [
+    PRIVACY_FAQ,
+    { q: "What metadata gets removed?", a: "Document info like title, author, subject, keywords, creator, producer, and creation/modification dates are cleared." },
+    { q: "Does this change the visible content?", a: "No — only the hidden document information is stripped. The pages themselves are untouched." },
+  ],
+  "edit-metadata": [
+    PRIVACY_FAQ,
+    { q: "Which fields can I edit?", a: "Title, author, subject, keywords, creator, and producer. Existing values are loaded so you can adjust them." },
+    { q: "How do I enter multiple keywords?", a: "Separate them with commas — they are stored as the PDF's keyword list." },
+  ],
+  "grayscale-pdf": [
+    PRIVACY_FAQ,
+    { q: "Why does the file change after grayscale?", a: "Each page is re-rendered as a grayscale image, so text becomes part of the image and is no longer selectable — the same trade-off as heavy compression." },
+    { q: "Is colour really removed?", a: "Yes — every pixel is converted to its grayscale luminance, so the output prints cleanly in black and white." },
+  ],
+  "flatten-pdf": [
+    PRIVACY_FAQ,
+    { q: "What does flattening do?", a: "It bakes interactive form fields (and their values) into the page as static content, so they display identically everywhere and can no longer be edited." },
+    { q: "What if my PDF has no form?", a: "Then there's nothing to flatten — the file is saved unchanged. It's safe to run either way." },
+  ],
+  "text-to-pdf": [
+    PRIVACY_FAQ,
+    { q: "Can I choose the page size and font size?", a: "Yes — pick A4 or Letter and set the font size. Text is wrapped and paginated automatically." },
+    { q: "Does it keep my line breaks?", a: "Yes — your line breaks are preserved, and long lines wrap to fit the page width." },
+  ],
+  "markdown-to-pdf": [
+    PRIVACY_FAQ,
+    { q: "Which Markdown features are supported?", a: "Headings, paragraphs, bold/italic, bullet and numbered lists, links, and fenced code blocks. A live preview shows the result as you type." },
+    { q: "Is anything sent to a server?", a: "No — both the preview and the PDF are generated in your browser. Your text never leaves your device." },
+  ],
   "pdf-to-jpg": [
     PRIVACY_FAQ,
     { q: "What resolution are the images?", a: "Pages are rendered at high resolution; you can pick the JPG quality." },

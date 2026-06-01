@@ -107,6 +107,30 @@ export const TOOL_SEO: Record<string, { title: string; description: string }> = 
     title: "Redact PDF — PlinyPDF",
     description: "Permanently remove sensitive content from a PDF. Draw boxes or auto-detect patterns, all in your browser.",
   },
+  "remove-metadata": {
+    title: "Remove PDF Metadata — PlinyPDF",
+    description: "Strip author, title, and other hidden metadata from a PDF, right in your browser. No uploads.",
+  },
+  "edit-metadata": {
+    title: "Edit PDF Metadata — PlinyPDF",
+    description: "View and edit a PDF's title, author, subject, keywords, and more — right in your browser.",
+  },
+  "grayscale-pdf": {
+    title: "Grayscale PDF — PlinyPDF",
+    description: "Convert a PDF to black and white in your browser. No uploads, ideal for printing.",
+  },
+  "flatten-pdf": {
+    title: "Flatten PDF — PlinyPDF",
+    description: "Flatten form fields and annotations into the page so they can't be edited. In your browser.",
+  },
+  "text-to-pdf": {
+    title: "Text to PDF — PlinyPDF",
+    description: "Convert plain text into a clean, paginated PDF, right in your browser. No uploads.",
+  },
+  "markdown-to-pdf": {
+    title: "Markdown to PDF — PlinyPDF",
+    description: "Write Markdown with a live preview and export a formatted PDF, right in your browser.",
+  },
   "pdf-to-jpg": {
     title: "PDF to JPG — PlinyPDF",
     description: "Convert each PDF page to a high-resolution JPG, right in your browser.",

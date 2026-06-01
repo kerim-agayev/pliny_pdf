@@ -144,6 +144,12 @@
     "organize-pages": { "name": "Organize Pages", "desc": "Reorder, rotate, duplicate, delete by drag." },
     "sign-pdf": { "name": "Sign PDF", "desc": "Draw, type, or upload a signature and place it." },
     "redact-content": { "name": "Redact Content", "desc": "Permanently black out sensitive content." },
+    "remove-metadata": { "name": "Remove Metadata", "desc": "Strip author, title, and other hidden info." },
+    "edit-metadata": { "name": "Edit Metadata", "desc": "View and edit PDF document properties." },
+    "grayscale-pdf": { "name": "Grayscale PDF", "desc": "Convert every page to black and white." },
+    "flatten-pdf": { "name": "Flatten PDF", "desc": "Bake form fields and annotations in." },
+    "text-to-pdf": { "name": "Text to PDF", "desc": "Turn plain text into a clean PDF." },
+    "markdown-to-pdf": { "name": "Markdown to PDF", "desc": "Render Markdown to a formatted PDF." },
     "pdf-to-jpg": { "name": "PDF to JPG", "desc": "Convert each page to a JPG image." },
     "jpg-to-pdf": { "name": "JPG to PDF", "desc": "Turn images into a single PDF." },
     "watermark": { "name": "Add Watermark", "desc": "Stamp text with a live preview." },
@@ -463,6 +469,68 @@
       "reviewNote": "Review every box — once downloaded, content is gone for good.",
       "action": "Apply redactions & download",
       "emptyTitle": "Drop a PDF to redact"
+    },
+    "removeMetadata": {
+      "subtitle": "Strip author, title, and other hidden document info from your PDF.",
+      "currentTitle": "Current metadata",
+      "none": "No document metadata found.",
+      "field_title": "Title",
+      "field_author": "Author",
+      "field_subject": "Subject",
+      "field_keywords": "Keywords",
+      "field_creator": "Creator",
+      "field_producer": "Producer",
+      "note": "Page content is untouched — only hidden metadata is removed.",
+      "action": "Remove metadata",
+      "successTitle": "Metadata removed.",
+      "emptyTitle": "Drop a PDF to clean its metadata"
+    },
+    "editMetadata": {
+      "subtitle": "View and edit your PDF's document properties.",
+      "field_title": "Title",
+      "field_author": "Author",
+      "field_subject": "Subject",
+      "field_keywords": "Keywords",
+      "field_creator": "Creator",
+      "field_producer": "Producer",
+      "keywordsHint": "Separate keywords with commas.",
+      "action": "Save changes",
+      "successTitle": "Metadata updated.",
+      "emptyTitle": "Drop a PDF to edit its metadata"
+    },
+    "grayscalePdf": {
+      "subtitle": "Convert every page to black and white — ideal for printing.",
+      "rasterNote": "Pages are re-rendered as grayscale images, so text becomes part of the image and is no longer selectable.",
+      "progress": "Page {n} of {total}",
+      "action": "Convert to grayscale",
+      "successTitle": "Converted to grayscale.",
+      "emptyTitle": "Drop a PDF to convert to grayscale"
+    },
+    "flattenPdf": {
+      "subtitle": "Bake form fields and annotations into the page so they can't be edited.",
+      "note": "Form fields and their values become static page content. PDFs with no form are saved unchanged.",
+      "action": "Flatten PDF",
+      "successTitle": "PDF flattened.",
+      "emptyTitle": "Drop a PDF to flatten"
+    },
+    "textToPdf": {
+      "subtitle": "Paste or type text and turn it into a clean, paginated PDF.",
+      "placeholder": "Type or paste your text here…",
+      "pageSize": "Page size",
+      "sizeA4": "A4",
+      "sizeLetter": "Letter",
+      "fontSize": "Font size",
+      "action": "Create PDF",
+      "successTitle": "PDF created."
+    },
+    "markdownToPdf": {
+      "subtitle": "Write Markdown with a live preview, then export a formatted PDF.",
+      "editorLabel": "Markdown",
+      "previewLabel": "Preview",
+      "previewEmpty": "Start typing Markdown on the left to see a preview here.",
+      "placeholder": "# Hello\n\nWrite **Markdown** here…\n\n- Lists\n- Work too",
+      "action": "Download PDF",
+      "note": "Preview and PDF are generated in your browser."
     },
     "pdfToJpg": {
       "subtitle": "Render each page to a high-resolution JPG image.",
