@@ -52,6 +52,46 @@ const TOOL_FAQ: Record<string, ToolSchemaCopy["faq"]> = {
     { q: "Can I rotate just some pages?", a: "Yes — select specific pages, or rotate the whole document at once." },
     { q: "Is the rotation permanent?", a: "Yes — the downloaded PDF has the new orientation baked in." },
   ],
+  "delete-pages": [
+    PRIVACY_FAQ,
+    { q: "Can I delete several pages at once?", a: "Yes — select any number of pages, then remove them all in one click." },
+    { q: "Is my original file changed?", a: "No — you download a new PDF with the selected pages removed. Your original stays untouched." },
+  ],
+  "extract-pages": [
+    PRIVACY_FAQ,
+    { q: "Can I extract non-consecutive pages?", a: "Yes — enter a mix of ranges and single pages, like 1-5, 8, 11-13." },
+    { q: "What order are the extracted pages in?", a: "Pages appear in the order you list them, copied exactly with no re-compression." },
+  ],
+  "add-page-numbers": [
+    PRIVACY_FAQ,
+    { q: "Can I choose where the number appears?", a: "Yes — pick any of nine positions, the format (1, 2, 3 · Page 1 of N · roman · letters), font size, colour, and margin, with a live preview." },
+    { q: "Can I skip the cover page?", a: "Yes — toggle 'Skip first page', and set which page numbering starts on and the first number to use." },
+  ],
+  "header-footer": [
+    PRIVACY_FAQ,
+    { q: "What tokens can I use?", a: "Use {page}, {total}, {date}, and {filename} — they resolve automatically on every page." },
+    { q: "Can the header and footer differ?", a: "Yes — each band has its own text, alignment, font size, and colour. You can also skip the first page." },
+  ],
+  "crop-pdf": [
+    PRIVACY_FAQ,
+    { q: "Does cropping delete the trimmed content?", a: "It resizes the page box so the trimmed area no longer shows. Use it to remove margins or change the page shape." },
+    { q: "Can I crop only some pages?", a: "Yes — apply the crop to all pages, the current page, or a custom page range. Presets like A4, Letter, Square, or auto remove-margins are one click." },
+  ],
+  "organize-pages": [
+    PRIVACY_FAQ,
+    { q: "What can I do to pages here?", a: "Drag to reorder, and select pages to rotate, duplicate, or delete. Multi-select with Ctrl/Cmd-click or Shift-click for a range." },
+    { q: "Is the original PDF modified?", a: "No — you build a new arrangement and download it. The source file is never changed, and nothing is uploaded." },
+  ],
+  "sign-pdf": [
+    PRIVACY_FAQ,
+    { q: "How do I create a signature?", a: "Draw it with your mouse or finger, type your name in a signature font, or upload a transparent PNG — then drag it onto the page." },
+    { q: "Is this a legally binding e-signature?", a: "It places a visual signature image on the PDF. It is not a cryptographic/qualified digital signature. Everything happens locally — nothing is uploaded." },
+  ],
+  "redact-content": [
+    PRIVACY_FAQ,
+    { q: "Is the redacted content really gone?", a: "Yes. Redacted pages are re-rendered as an image with the boxes burned in, so the underlying text and images are removed from the file — not just covered. This cannot be undone after download." },
+    { q: "Can it find sensitive data automatically?", a: "Yes — search any text to redact every match, or auto-detect common patterns like emails, phone numbers, credit cards, and SSNs. All detection runs in your browser." },
+  ],
   "pdf-to-jpg": [
     PRIVACY_FAQ,
     { q: "What resolution are the images?", a: "Pages are rendered at high resolution; you can pick the JPG quality." },

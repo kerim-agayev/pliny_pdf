@@ -15,6 +15,13 @@ import {
   IconWord,
   IconSparkle,
   IconPen,
+  IconTrash,
+  IconExtract,
+  IconType,
+  IconUnderline,
+  IconRect,
+  IconFolder,
+  IconWhiteout,
 } from "@/components/shared/icons";
 
 export type ToolMode = "local" | "cloud";
@@ -45,6 +52,14 @@ export const TOOLS: Tool[] = [
   { id: "split", slug: "split-pdf", name: "Split PDF", desc: "Extract pages or split a PDF into parts.", cat: "Organize", mode: "local", icon: IconSplit, accent: "#A78BFA", available: true },
   { id: "compress", slug: "compress-pdf", name: "Compress PDF", desc: "Reduce file size while keeping quality.", cat: "Edit", mode: "local", icon: IconCompress, accent: "#F472B6", available: true },
   { id: "rotate", slug: "rotate-pdf", name: "Rotate PDF", desc: "Rotate pages — single or all at once.", cat: "Organize", mode: "local", icon: IconRotate, accent: "#A78BFA", available: true },
+  { id: "delete-pages", slug: "delete-pages", name: "Delete Pages", desc: "Remove unwanted pages from your PDF.", cat: "Organize", mode: "local", icon: IconTrash, accent: "#A78BFA", available: true },
+  { id: "extract-pages", slug: "extract-pages", name: "Extract Pages", desc: "Pull selected pages into a new PDF.", cat: "Organize", mode: "local", icon: IconExtract, accent: "#A78BFA", available: true },
+  { id: "add-page-numbers", slug: "add-page-numbers", name: "Add Page Numbers", desc: "Number every page — format, position, style.", cat: "Edit", mode: "local", icon: IconType, accent: "#F472B6", available: true },
+  { id: "header-footer", slug: "header-footer", name: "Header & Footer", desc: "Running text top and bottom, with tokens.", cat: "Edit", mode: "local", icon: IconUnderline, accent: "#F472B6", available: true },
+  { id: "crop-pdf", slug: "crop-pdf", name: "Crop PDF", desc: "Trim margins and resize the page box.", cat: "Edit", mode: "local", icon: IconRect, accent: "#F472B6", available: true },
+  { id: "organize-pages", slug: "organize-pages", name: "Organize Pages", desc: "Reorder, rotate, duplicate, delete by drag.", cat: "Organize", mode: "local", icon: IconFolder, accent: "#A78BFA", available: true },
+  { id: "sign-pdf", slug: "sign-pdf", name: "Sign PDF", desc: "Draw, type, or upload a signature and place it.", cat: "Edit", mode: "local", icon: IconPen, accent: "#F472B6", available: true },
+  { id: "redact-content", slug: "redact-content", name: "Redact Content", desc: "Permanently black out sensitive content.", cat: "Edit", mode: "local", icon: IconWhiteout, accent: "#F472B6", available: true },
   { id: "pdf-to-jpg", slug: "pdf-to-jpg", name: "PDF to JPG", desc: "Convert each page to a JPG image.", cat: "Convert", mode: "local", icon: IconImage, accent: "#60A5FA", available: true },
   { id: "jpg-to-pdf", slug: "jpg-to-pdf", name: "JPG to PDF", desc: "Turn images into a single PDF.", cat: "Convert", mode: "local", icon: IconImageToPdf, accent: "#60A5FA", available: true },
   { id: "watermark", slug: "add-watermark", name: "Add Watermark", desc: "Stamp text with a live preview.", cat: "Edit", mode: "local", icon: IconWatermark, accent: "#F472B6", tag: "Live preview", available: true },

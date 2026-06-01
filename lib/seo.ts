@@ -75,6 +75,38 @@ export const TOOL_SEO: Record<string, { title: string; description: string }> = 
     title: "Rotate PDF — PlinyPDF",
     description: "Rotate PDF pages — single or all — in your browser. No uploads.",
   },
+  "delete-pages": {
+    title: "Delete PDF Pages — PlinyPDF",
+    description: "Remove pages from a PDF, right in your browser. No uploads, no limits.",
+  },
+  "extract-pages": {
+    title: "Extract PDF Pages — PlinyPDF",
+    description: "Pull selected pages into a new PDF, right in your browser. No uploads.",
+  },
+  "add-page-numbers": {
+    title: "Add Page Numbers to PDF — PlinyPDF",
+    description: "Number every PDF page — choose format, position, and style with a live preview. In your browser.",
+  },
+  "header-footer": {
+    title: "Add Header & Footer to PDF — PlinyPDF",
+    description: "Add running header and footer text with {page}, {total}, {date}, and {filename} tokens. In your browser.",
+  },
+  "crop-pdf": {
+    title: "Crop PDF — PlinyPDF",
+    description: "Trim margins and resize the page box with draggable handles or presets. In your browser, no uploads.",
+  },
+  "organize-pages": {
+    title: "Organize PDF Pages — PlinyPDF",
+    description: "Reorder, rotate, duplicate, and delete PDF pages by drag-and-drop. In your browser, no uploads.",
+  },
+  "sign-pdf": {
+    title: "Sign PDF — PlinyPDF",
+    description: "Draw, type, or upload a signature and place it on the page. Signed entirely in your browser.",
+  },
+  "redact-content": {
+    title: "Redact PDF — PlinyPDF",
+    description: "Permanently remove sensitive content from a PDF. Draw boxes or auto-detect patterns, all in your browser.",
+  },
   "pdf-to-jpg": {
     title: "PDF to JPG — PlinyPDF",
     description: "Convert each PDF page to a high-resolution JPG, right in your browser.",

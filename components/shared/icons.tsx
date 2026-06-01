@@ -85,6 +85,21 @@ export const IconWord = (p: IconProps) => (
     <path d="M8 13l1.5 5L11 14l1.5 4L14 13" />
   </I>
 );
+export const IconTrash = (p: IconProps) => (
+  <I {...p}>
+    <path d="M4 7h16" />
+    <path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+    <path d="M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13" />
+    <path d="M10 11v6" /><path d="M14 11v6" />
+  </I>
+);
+export const IconExtract = (p: IconProps) => (
+  <I {...p}>
+    <path d="M13 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7" />
+    <path d="M13 3v5h5" />
+    <path d="M14 13h7" /><path d="M18 10l3 3-3 3" />
+  </I>
+);
 export const IconArrow = (p: IconProps) => (
   <I {...p}><path d="M5 12h14" /><path d="M13 6l6 6-6 6" /></I>
 );
