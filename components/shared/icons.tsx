@@ -126,6 +126,15 @@ export const IconMarkdown = (p: IconProps) => (
     <path d="M15 10v4" /><path d="M13.4 12.4L15 14l1.6-1.6" />
   </I>
 );
+export const IconScan = (p: IconProps) => (
+  <I {...p}>
+    <path d="M4 8V6a2 2 0 0 1 2-2h2" />
+    <path d="M16 4h2a2 2 0 0 1 2 2v2" />
+    <path d="M20 16v2a2 2 0 0 1-2 2h-2" />
+    <path d="M8 20H6a2 2 0 0 1-2-2v-2" />
+    <path d="M7 12h10" />
+  </I>
+);
 export const IconArrow = (p: IconProps) => (
   <I {...p}><path d="M5 12h14" /><path d="M13 6l6 6-6 6" /></I>
 );

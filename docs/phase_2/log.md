@@ -42,3 +42,18 @@ font. Verified offline (pdfjs text-extraction round-trips TR + RU + smart quotes
 (2) Flatten — not a code bug (needed a sample fillable PDF). `bun run build` green (27
 routes × en/tr/ru, no MISSING_MESSAGE). User confirmed all 6. Committed + pushed to
 origin/main. Next: Wave 2C (OCR PDF — the one cloud tool, Tesseract on Hetzner).
+
+## [2026-06-01] Wave 2C OCR PDF — code committed + pushed (Gate 2C pending)
+`ocr-pdf` (the one Phase 2 cloud tool) built and pushed, catalog 27 → 28. Engine =
+**ocrmypdf** (user-approved over the raw-Tesseract pipeline the wave doc sketched — see
+decisions.md). Frontend: `OcrPdf.tsx` (dropzone + eng/tur/rus language picker defaulting to
+locale + progress + download), `app/[locale]/ocr-pdf/page.tsx`, new `postFileForm` in
+`lib/api.ts`, full 7-touch-point wiring × en/tr/ru. Backend: `server/services/ocr.ts`
+(`ocrmypdf -l <lang> --skip-text --optimize 1`, temp files), `server/routes/ocr.ts`
+(POST `/api/ocr`, auth-optional, shared `checkServerTool` rate limit), wired in
+`server/index.ts`; `OCRMYPDF_BIN` in `.env.example`. `bun run build` green (28 routes ×
+en/tr/ru); `tsc --noEmit` 0 errors. Committed `feat(tools): Wave 2C — OCR PDF (ocrmypdf on
+Hetzner)` + pushed to origin/main. **Gate 2C still pending** — needs manual Hetzner
+provisioning (`apt install ocrmypdf tesseract-ocr-{eng,tur,rus}`) + backend restart, then the
+gate test (scanned→searchable, text passthrough, TR/RU scans, anon rate-limit). Cannot be done
+from the dev box (cloud tool; requires SSH to 49.13.119.27).

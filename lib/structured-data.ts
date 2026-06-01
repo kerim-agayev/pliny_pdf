@@ -162,6 +162,11 @@ const TOOL_FAQ: Record<string, ToolSchemaCopy["faq"]> = {
     { q: "Will my formatting be kept?", a: "Yes — the document is rendered to PDF server-side with formatting intact." },
     { q: "Which formats are supported?", a: "Word .docx documents." },
   ],
+  "ocr-pdf": [
+    CLOUD_PRIVACY_FAQ,
+    { q: "Which languages can it recognize?", a: "English, Turkish, and Russian. Pick the language that matches your document for the best accuracy." },
+    { q: "What if my PDF already has text?", a: "Pages that already contain selectable text are passed through unchanged — OCR is only applied to scanned/image pages." },
+  ],
   summarize: [
     CLOUD_PRIVACY_FAQ,
     { q: "What kinds of summary can I get?", a: "An executive summary, an outline, or a per-section breakdown." },

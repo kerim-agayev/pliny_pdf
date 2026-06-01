@@ -32,4 +32,17 @@ Shared UI: `ToolShell`, `FileDropzone`, `SuccessPanel`/`ErrorBanner` (`ResultPan
 → mutate / `PDFDocument.create()` + `copyPages(src, indices)` + `addPage` → `doc.save()` →
 `new Blob([data as BlobPart], { type: "application/pdf" })`.
 
-<!-- OCR pipeline (Wave 2C) and design-tool specifics documented as they are built. -->
+## Cloud tool pattern (OCR PDF — Wave 2C)
+Cloud tools (PDF↔Word, OCR) talk to the **Bun/Elysia backend** (`server/`, port 8080), not the
+Next app. Flow: client `postFile`/`postFileForm` (`lib/api.ts`, `credentials:"include"` so the
+Better Auth cookie reaches the cross-origin backend) → Elysia route → `getRequester(headers)`
+(session → plan/userId, or null) → `checkServerTool(plan, userId|ip)` (Upstash; anon 3/day,
+free 10/day, Pro unlimited) → service spawn → `fileResponse` (attachment). 429 → client shows
+`ToolUI.rateLimited`. History saved for signed-in users only (privacy).
+
+**OCR specifics:** `server/services/ocr.ts` spawns `ocrmypdf -l <eng|tur|rus> --skip-text
+--optimize 1` over temp files (preserves original pages, adds an invisible text layer; skips
+pages that already have text). Route `server/routes/ocr.ts` = POST `/api/ocr` (multipart
+`file` + optional `lang`). Frontend `OcrPdf.tsx` adds a language picker (default = locale).
+Requires `ocrmypdf` + `tesseract-ocr-{eng,tur,rus}` installed on the backend host (Hetzner) —
+the Next dev server alone cannot OCR. See `waves/wave_2c.md` for provisioning.

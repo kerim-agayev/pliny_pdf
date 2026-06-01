@@ -5,10 +5,10 @@
 
 ## Current Status
 - Current phase: **Wave 2C**
-- Current tool: **OCR PDF — starting (the one cloud tool of Phase 2)**
-- Total tools: **14 / 15 confirmed** (Wave 2A + Wave 2B); Wave 2C's 1 cloud tool pending
+- Current tool: **OCR PDF — code committed + pushed (build green); pending Gate 2C (Hetzner provisioning + test)**
+- Total tools: **14 / 15 confirmed** (Wave 2A + Wave 2B); Wave 2C's 1 cloud tool committed, pending Gate 2C
 - Completed waves: **Wave 2A** (8 tools) + **Wave 2B** (6 tools), both gate-passed + committed 2026-06-01
-- Next action: **build Wave 2C OCR PDF** (cloud, Tesseract on Hetzner) → Gate 2C.
+- Next action: **provision Hetzner** (`apt install ocrmypdf tesseract-ocr-{eng,tur,rus}`) → restart backend → Gate 2C test → mark DONE. Engine = ocrmypdf (see decisions.md).
 
 ## Waves
 - **Wave 2A** — 8 high-priority local tools (DONE, gate-passed). Detail: `waves/wave_2a.md`.
@@ -32,8 +32,8 @@
 - [x] flatten-pdf
 - [x] text-to-pdf
 - [x] markdown-to-pdf
-### Wave 2C (0 / 1)
-- [ ] ocr-pdf (cloud, Tesseract on Hetzner)
+### Wave 2C (1 built — committed + pushed; pending Gate 2C)
+- [~] ocr-pdf (cloud, ocrmypdf on Hetzner) — code committed, build green; awaiting provisioning + test
 
 ## Key Phase 2 Files
 - `CLAUDE_2.md` (root) — Phase 2 master plan.

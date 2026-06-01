@@ -163,6 +163,10 @@ export const TOOL_SEO: Record<string, { title: string; description: string }> = 
     title: "Word to PDF — PlinyPDF",
     description: "Convert a Word document to a polished PDF. Processed securely, deleted after.",
   },
+  "ocr-pdf": {
+    title: "OCR PDF — PlinyPDF",
+    description: "Make scanned PDFs searchable. Recognizes English, Turkish, and Russian text. Processed securely, deleted after.",
+  },
   summarize: {
     title: "AI PDF Summary — PlinyPDF",
     description:

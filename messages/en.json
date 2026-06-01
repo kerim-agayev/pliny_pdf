@@ -158,6 +158,7 @@
     "edit": { "name": "PDF Editor", "desc": "Annotate, highlight, draw, and mark up." },
     "pdf-to-word": { "name": "PDF to Word", "desc": "High-fidelity DOCX conversion." },
     "word-to-pdf": { "name": "Word to PDF", "desc": "DOCX in, perfectly formatted PDF out." },
+    "ocr-pdf": { "name": "OCR PDF", "desc": "Make scanned PDFs searchable and selectable." },
     "summarize": { "name": "AI Summary", "desc": "Outline or executive summary in seconds." }
   },
   "Home": {
@@ -611,6 +612,16 @@
       "subtitle": "Turn a Word document into a polished PDF. Converted on our server, then deleted.",
       "action": "Convert to PDF",
       "successTitle": "Converted to PDF."
+    },
+    "ocrPdf": {
+      "subtitle": "Make a scanned PDF searchable. We add an invisible text layer on our server, then delete the file.",
+      "action": "Make searchable",
+      "successTitle": "Your PDF is now searchable.",
+      "langLabel": "Document language",
+      "langEng": "English",
+      "langTur": "Turkish",
+      "langRus": "Russian",
+      "langHint": "Pick the language in your document for the best accuracy."
     },
     "summarize": {
       "subtitle": "Get the gist of any PDF in seconds — executive summary, outline, or per-section."

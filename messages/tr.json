@@ -158,6 +158,7 @@
     "edit": { "name": "PDF Düzenleyici", "desc": "Açıklama ekleyin, vurgulayın, çizin." },
     "pdf-to-word": { "name": "PDF'den Word'e", "desc": "Yüksek doğrulukta DOCX dönüşümü." },
     "word-to-pdf": { "name": "Word'den PDF'ye", "desc": "DOCX girin, kusursuz PDF alın." },
+    "ocr-pdf": { "name": "PDF OCR", "desc": "Taranmış PDF'leri aranabilir ve seçilebilir yapın." },
     "summarize": { "name": "Yapay Zekâ Özeti", "desc": "Saniyeler içinde özet veya taslak." }
   },
   "Home": {
@@ -611,6 +612,16 @@
       "subtitle": "Word belgesini şık bir PDF'e dönüştürün. Sunucumuzda dönüştürülür, sonra silinir.",
       "action": "PDF'e dönüştür",
       "successTitle": "PDF'e dönüştürüldü."
+    },
+    "ocrPdf": {
+      "subtitle": "Taranmış bir PDF'i aranabilir yapın. Sunucumuzda görünmez bir metin katmanı ekler, sonra dosyayı sileriz.",
+      "action": "Aranabilir yap",
+      "successTitle": "PDF'iniz artık aranabilir.",
+      "langLabel": "Belge dili",
+      "langEng": "İngilizce",
+      "langTur": "Türkçe",
+      "langRus": "Rusça",
+      "langHint": "En iyi doğruluk için belgenizdeki dili seçin."
     },
     "summarize": {
       "subtitle": "Herhangi bir PDF'in özünü saniyeler içinde alın — yönetici özeti, anahat veya bölüm bölüm."

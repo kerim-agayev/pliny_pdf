@@ -2,6 +2,7 @@ import { Elysia } from "elysia";
 import { cors } from "@elysiajs/cors";
 import { health } from "./routes/health";
 import { convert } from "./routes/convert";
+import { ocr } from "./routes/ocr";
 import { ai } from "./routes/ai";
 import { billing } from "./routes/billing";
 
@@ -18,6 +19,7 @@ const app = new Elysia()
   .use(cors({ origin: FRONTEND_ORIGIN, credentials: true }))
   .use(health)
   .use(convert)
+  .use(ocr)
   .use(ai)
   .use(billing)
   .listen(PORT);

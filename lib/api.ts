@@ -30,6 +30,31 @@ export async function postFile(path: string, file: File): Promise<Blob> {
   return res.blob();
 }
 
+/**
+ * Like postFile, but also appends extra string form fields (e.g. an OCR
+ * language). Returns the response body as a Blob.
+ */
+export async function postFileForm(
+  path: string,
+  file: File,
+  fields: Record<string, string>,
+): Promise<Blob> {
+  const form = new FormData();
+  form.append("file", file);
+  for (const [k, v] of Object.entries(fields)) form.append(k, v);
+
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: "POST",
+    body: form,
+    credentials: "include",
+  });
+
+  if (!res.ok) {
+    throw await toApiError(res);
+  }
+  return res.blob();
+}
+
 /** Like postFile, but parses a JSON response (used by AI Summarize). */
 export async function postFileJson<T>(path: string, file: File): Promise<T> {
   const form = new FormData();
