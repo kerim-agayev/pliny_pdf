@@ -210,7 +210,6 @@ export function CropPdf() {
   }
 
   const displayW = thumb ? Math.min(thumb.w, MAX_PREVIEW_W) : MAX_PREVIEW_W;
-  const displayH = thumb ? (thumb.h * displayW) / thumb.w : MAX_PREVIEW_W * 1.3;
   const outW = ptToUnit(size.w * (1 - (insets.left + insets.right) / 100), unit);
   const outH = ptToUnit(size.h * (1 - (insets.top + insets.bottom) / 100), unit);
   const darken = "rgba(10,10,12,0.72)";
@@ -349,8 +348,8 @@ export function CropPdf() {
           </div>
         ) : (
           <>
-            <div ref={frameRef} className="relative mt-6 shrink-0 select-none" style={{ width: displayW, height: displayH }}>
-              <img src={thumb.url} alt={`page ${previewPage}`} className="rounded shadow-lg" style={{ width: displayW, height: displayH }} draggable={false} />
+            <div ref={frameRef} className="relative mt-6 shrink-0 select-none" style={{ width: displayW, maxWidth: "100%", aspectRatio: `${thumb.w} / ${thumb.h}` }}>
+              <img src={thumb.url} alt={`page ${previewPage}`} className="h-full w-full rounded shadow-lg" draggable={false} />
               {/* darken */}
               <div className="pointer-events-none absolute inset-0">
                 <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: `${insets.top}%`, background: darken }} />

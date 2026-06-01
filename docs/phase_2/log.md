@@ -72,3 +72,21 @@ OCR PDF verified end-to-end on the Hetzner backend. Catalog 27 → 28 (Phase 2: 
 domain-gated launch items from Phase 1 (deploy/Vercel/Caddy/Sentry/PostHog/live billing) — OUT
 of Phase 2 scope; see index.md "Phase 1 Deferred Items". Next: user decides domain-first launch
 vs Phase 3 (more tools).
+
+## [2026-06-01] Sprint 7-8 catch-up — SEO audit + mobile fixes + launch assets (28-tool catalog)
+Post-Phase-2 pass to align launch assets with the 28-tool catalog.
+- **SEO audit (15 new tools): clean.** Every tool has unique TOOL_SEO (title+desc), 3-Q TOOL_FAQ,
+  page `toolMetadata()` (canonical + hreflang en/tr/ru + OG via `/api/og`), `JsonLd(toolSchemas)`
+  (FAQ+HowTo), and a `lib/tools.ts` entry. Verified the built `sitemap.xml.body` lists all 15
+  slugs (12× each = 3 locales + hreflang alternates). No gaps; no fixes needed.
+- **Mobile (375px) fixes:** design-tool previews hard-capped above 375px and overflowed. Fixed:
+  `SignPdf`/`CropPdf`/`RedactContent` previews now `maxWidth:100%` + `aspectRatio` (coords are
+  %-based / use live getBoundingClientRect, so safe). `AddPageNumbers`/`HeaderFooter` (px-positioned
+  overlays at thumb scale 0.7 ≈ 417px wide) wrapped in new `components/tools/ScaledPreview.tsx`
+  (ResizeObserver + uniform CSS transform scale — keeps px/% overlays aligned). `OrganizePages`
+  floating toolbar got `flex-wrap`. All interactions already used Pointer Events (touch-safe);
+  two-column ToolShell layouts already stacked (`grid-cols-1 lg:grid-cols-[...]`).
+- **deploy/LAUNCH.md:** updated 13→28 tools — ProductHunt description + maker comment, Show HN
+  body, Reddit r/privacy + r/selfhosted (added organize/sign/redact/crop; OCR as a server tool),
+  gallery shot list (+Organize Pages drag hero, Sign PDF, Redact Content). Tagline unchanged.
+- `bun run build` green (28 routes × en/tr/ru, no MISSING_MESSAGE).

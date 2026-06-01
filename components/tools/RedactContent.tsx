@@ -238,7 +238,6 @@ export function RedactContent() {
   }
 
   const displayW = thumb ? Math.min(thumb.w, 520) : 520;
-  const displayH = thumb ? (thumb.h * displayW) / thumb.w : 680;
 
   return (
     <div className="flex flex-col gap-4">
@@ -280,7 +279,7 @@ export function RedactContent() {
                 <div
                   ref={wrapRef}
                   className="relative shrink-0 select-none"
-                  style={{ width: displayW, height: displayH, cursor: tool === "redact" ? "crosshair" : "default", touchAction: "none" }}
+                  style={{ width: displayW, maxWidth: "100%", aspectRatio: `${thumb.w} / ${thumb.h}`, cursor: tool === "redact" ? "crosshair" : "default", touchAction: "none" }}
                   onPointerDown={onSurfaceDown}
                 >
                   <img src={thumb.url} alt={`page ${previewPage}`} className="h-full w-full rounded shadow-lg" draggable={false} />

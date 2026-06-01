@@ -344,7 +344,7 @@ export function SignPdf() {
           </div>
         ) : (
           <>
-            <div ref={pageWrapRef} className="relative mt-7 shrink-0 select-none" style={{ width: Math.min(thumb.w, 460), height: (thumb.h * Math.min(thumb.w, 460)) / thumb.w }}>
+            <div ref={pageWrapRef} className="relative mt-7 shrink-0 select-none" style={{ width: Math.min(thumb.w, 460), maxWidth: "100%", aspectRatio: `${thumb.w} / ${thumb.h}` }}>
               <img src={thumb.url} alt={`page ${previewPage}`} className="h-full w-full rounded shadow-lg" draggable={false} />
               {sig && (
                 <div

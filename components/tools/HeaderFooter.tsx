@@ -6,6 +6,7 @@ import { FileDropzone } from "./FileDropzone";
 import { FileInfoBar } from "./FileInfoBar";
 import { SuccessPanel, ErrorBanner } from "./ResultPanels";
 import { Spinner } from "./Spinner";
+import { ScaledPreview } from "./ScaledPreview";
 import { IconCheck, IconChevron } from "@/components/shared/icons";
 import {
   applyHeaderFooter,
@@ -251,7 +252,8 @@ export function HeaderFooter() {
           </div>
         ) : (
           <>
-            <div className="relative mt-8 shrink-0" style={{ width: thumb.w, height: thumb.h }}>
+            <ScaledPreview width={thumb.w} height={thumb.h} className="mt-8">
+              <div className="relative" style={{ width: thumb.w, height: thumb.h }}>
               <img src={thumb.url} alt={`page ${previewPage}`} className="rounded shadow-lg" style={{ width: thumb.w, height: thumb.h }} draggable={false} />
               {!skipped && header.text.trim() && (
                 <div style={bandStyle(header, "top")}>
@@ -269,7 +271,8 @@ export function HeaderFooter() {
                   </span>
                 </div>
               )}
-            </div>
+              </div>
+            </ScaledPreview>
 
             <div className="mt-6 flex items-center gap-3.5">
               <button type="button" onClick={() => setPreviewPage((p) => Math.max(1, p - 1))} className="flex rounded-lg p-2" style={{ background: "var(--card)", border: "1px solid var(--line)", color: "var(--text-2)" }} aria-label="previous page">

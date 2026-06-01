@@ -289,7 +289,7 @@ export function OrganizePages() {
       {/* Floating selection toolbar */}
       {selected.size > 0 && (
         <div
-          className="sticky top-20 z-[15] mx-auto flex w-fit items-center gap-1 p-1.5"
+          className="sticky top-20 z-[15] mx-auto flex w-fit max-w-full flex-wrap items-center justify-center gap-1 p-1.5"
           style={{ background: "var(--card-hi)", border: "1px solid var(--line-2)", borderRadius: 14, boxShadow: "0 16px 40px -16px rgba(0,0,0,0.6), 0 0 0 1px rgba(107,92,231,0.2)" }}
         >
           <div className="flex items-center gap-2 pl-2 pr-3">

@@ -6,6 +6,7 @@ import { FileDropzone } from "./FileDropzone";
 import { FileInfoBar } from "./FileInfoBar";
 import { SuccessPanel, ErrorBanner } from "./ResultPanels";
 import { Spinner } from "./Spinner";
+import { ScaledPreview } from "./ScaledPreview";
 import { IconType, IconCheck, IconChevron, IconArrow } from "@/components/shared/icons";
 import {
   addPageNumbers,
@@ -347,7 +348,8 @@ export function AddPageNumbers() {
           </div>
         ) : (
           <>
-            <div className="relative mt-8 shrink-0" style={{ width: thumb.w, height: thumb.h }}>
+            <ScaledPreview width={thumb.w} height={thumb.h} className="mt-8">
+              <div className="relative" style={{ width: thumb.w, height: thumb.h }}>
               <img src={thumb.url} alt={`page ${previewPage}`} className="rounded shadow-lg" style={{ width: thumb.w, height: thumb.h }} draggable={false} />
               {previewLabel !== null ? (
                 <div style={numStyle}>
@@ -362,7 +364,8 @@ export function AddPageNumbers() {
                   {tp("firstPageSkipped")}
                 </div>
               )}
-            </div>
+              </div>
+            </ScaledPreview>
 
             <div className="mt-6 flex items-center gap-3.5">
               <button
