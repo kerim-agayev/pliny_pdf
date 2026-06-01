@@ -48,8 +48,8 @@ function fileResponse(bytes: Uint8Array, name: string): Response {
  * ocrmypdf), so it shares the server-tool rate limits (anon 3/day, free 10/day,
  * Pro unlimited). Auth-optional: anonymous users are limited by IP and never logged.
  */
-export const ocr = new Elysia({ prefix: "/api/ocr" }).post(
-  "/",
+export const ocr = new Elysia({ prefix: "/api" }).post(
+  "/ocr",
   async ({ body, request, set }) => {
     const file = body.file;
     if (!file.name?.toLowerCase().endsWith(".pdf")) {
