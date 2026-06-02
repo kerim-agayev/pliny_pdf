@@ -302,6 +302,8 @@
     "dropWordTitle": "Drop a Word document here",
     "converting": "Converting…",
     "cloudProcessing": "Converting on our server…",
+    "cloudPatience": "Large or complex files can take a minute or two — please keep this tab open.",
+    "cloudPatienceLong": "Still converting… large documents take a little longer. Almost there — please don't close this tab.",
     "cloudNote": "Processed securely · file deleted within 24 hours",
     "cloudDeletedNote": "Your file is processed securely and deleted within 24 hours.",
     "wrongTypeWord": "Only Word documents (.docx) are supported.",

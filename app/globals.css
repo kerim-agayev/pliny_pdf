@@ -327,6 +327,10 @@ input[type="range"].pp-range::-moz-range-thumb {
 /* progress bar */
 .pp-progress { height: 6px; background: var(--line); border-radius: 999px; overflow: hidden; }
 .pp-progress > span { display: block; height: 100%; background: linear-gradient(90deg, var(--indigo), var(--indigo-hi)); border-radius: 999px; }
+/* indeterminate variant (Wave 3H patience UI) — slides a partial bar while we wait */
+.pp-progress[data-indeterminate] > span { width: 40%; animation: ppindeterminate 1.4s ease-in-out infinite; }
+@keyframes ppindeterminate { 0% { transform: translateX(-110%); } 100% { transform: translateX(310%); } }
+@media (prefers-reduced-motion: reduce) { .pp-progress[data-indeterminate] > span { animation: pppulse 1.6s ease-in-out infinite; width: 100%; } }
 
 /* file row */
 .pp-filerow {

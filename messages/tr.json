@@ -302,6 +302,8 @@
     "dropWordTitle": "Word belgesini buraya bırakın",
     "converting": "Dönüştürülüyor…",
     "cloudProcessing": "Sunucumuzda dönüştürülüyor…",
+    "cloudPatience": "Büyük veya karmaşık dosyalar bir iki dakika sürebilir — lütfen bu sekmeyi açık tutun.",
+    "cloudPatienceLong": "Hâlâ dönüştürülüyor… büyük belgeler biraz daha uzun sürer. Az kaldı — lütfen sekmeyi kapatmayın.",
     "cloudNote": "Güvenle işlenir · dosya 24 saat içinde silinir",
     "cloudDeletedNote": "Dosyanız güvenle işlenir ve 24 saat içinde silinir.",
     "wrongTypeWord": "Yalnızca Word belgeleri (.docx) desteklenir.",

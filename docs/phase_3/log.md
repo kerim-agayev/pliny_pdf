@@ -57,6 +57,19 @@ auto-update via lib/blog.ts. Build green; old slug 404s; /en/blog shows new post
 
 ## [2026-06-02] Wave 3E gate passed → 019e10e (post body) + fcbd595 (delete) pushed.
 
+## [2026-06-02] PHASE 3 COMPLETE — all 8 waves gate-passed
+3H gate passed. Final closeout build green (exit 0, 138 pages, no MISSING_MESSAGE).
+Phase 3 (hardening) shipped: 3A foundations, 3B limits/security, 3C compress+grayscale,
+3D email-off/request-a-tool/support, 3E privacy blog, 3F UX polish (recent files, shortcuts,
+toasts), 3G performance (lazy-load, streaming download, raster web worker), 3H PDF→Word
+patience UI. Catalog unchanged (28 tools). Commits d667578→3H. `.env.local` never committed.
+
+## [2026-06-02] Wave 3H patience UI built (pre-gate)
+Option B (decisions.md): CloudConvertTool uploading box gains a live mm:ss timer, an
+indeterminate progress bar, and a patience message that escalates after 45s
+(cloudPatience→cloudPatienceLong). Gotenberg flow/limits unchanged; no page cap. i18n
+en/tr/ru. Build green (exit 0). Timer/escalation needs browser gate. (Final wave.)
+
 ## [2026-06-02] Wave 3G-3 raster web worker built (pre-gate)
 Shared env-agnostic `raster-core.ts` (CanvasEnv abstraction) runs grayscale/compress-raster/
 pdf→jpgs on either thread. `pdf.worker.ts` (OffscreenCanvas) + `pdfWorkerClient.ts` (one

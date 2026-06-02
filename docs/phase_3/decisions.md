@@ -1,5 +1,12 @@
 # Phase 3 — Decisions
 
+## 2026-06-02 — Wave 3H PDF→Word = Option B (patience UI), per CLAUDE_3.md default
+Kept the existing Gotenberg flow and added a patience UI to CloudConvertTool: a live
+mm:ss timer, an indeterminate progress bar, and a reassurance message that escalates
+after 45s ("still converting… almost there"). NO hard page cap (Option A) — the per-plan
+cloud size limits from 3B already bound the work; revisit Option A only if real testing
+shows Gotenberg timeouts on allowed sizes. Option C (job queue) is out of scope for Phase 3.
+
 ## 2026-06-02 — Wave 3G worker scope = raster ops only (user-chosen at gate)
 The ops that actually freeze the UI are the canvas/raster tools (Compress, Grayscale,
 PDF→JPG); pure pdf-lib ops (Merge/Split/Organize/Crop/Redact) are fast and don't freeze.
