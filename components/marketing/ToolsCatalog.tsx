@@ -74,7 +74,9 @@ export function ToolsCatalog({ initialCategory }: { initialCategory?: string }) 
             <h3 className="mb-1.5 text-xl">{t("missingTitle")}</h3>
             <p className="text-sm" style={{ color: "var(--text-2)" }}>{t("missingBody")}</p>
           </div>
-          <button type="button" className="pp-btn pp-btn-ghost shrink-0">{t("missingCta")}</button>
+          <a href="mailto:feedback@plinypdf.com" className="pp-btn pp-btn-ghost shrink-0">
+            {t("missingCta")} →
+          </a>
         </div>
       </div>
     </section>

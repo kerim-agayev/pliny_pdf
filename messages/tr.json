@@ -24,7 +24,6 @@
     "privacyPolicy": "Gizlilik",
     "terms": "Şartlar",
     "support": "Destek",
-    "requestTool": "Bir araç mı eksik? Bize yazın:",
     "rights": "© {year} PlinyPDF · İzleme yok · Takip yok",
     "madeWith": "Gizlilik için",
     "forPrivacy": "ile yapıldı"
@@ -215,9 +214,9 @@
     "subtitle": "Varsayılan olarak önce yerel. Bulut yalnızca sonucu belirgin biçimde iyileştirdiğinde — ve mümkün olan en kısa saklama süresiyle.",
     "legendLocal": "Yerel — tarayıcıda çalışır",
     "legendCloud": "Bulut — sunucu destekli",
-    "missingTitle": "Eksik bir araç mı var?",
-    "missingBody": "En çok neyi kullanacağınızı söyleyin, bir sonraki sprintte ekleyelim.",
-    "missingCta": "Araç iste",
+    "missingTitle": "Bir araç mı eksik?",
+    "missingBody": "En çok neye ihtiyaç duyduğunuzu söyleyin, bir sonraki sürümde ekleyelim.",
+    "missingCta": "Araç talep et",
     "category": {
       "All": "Tümü",
       "Organize": "Düzenle",

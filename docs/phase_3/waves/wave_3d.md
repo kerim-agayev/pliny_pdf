@@ -5,9 +5,11 @@
   no `sendVerification`/`requireEmailVerification` refs). Made explicit with
   `emailAndPassword.requireEmailVerification: false` in `lib/auth/index.ts` (self-documenting,
   no behavior change). Existing users unaffected.
-- [x] **Request-a-tool footer** — no prior "Request a tool" link existed, so this is an *add*:
-  a line under the footer brand tagline: `{requestTool} <a mailto:feedback@plinypdf.com>`.
-  Localized prefix in en/tr/ru (`Footer.requestTool`).
+- [x] **Request-a-tool** — CORRECTED placement (gate feedback): the `/tools` page already had a
+  "Missing a tool?" section (`ToolsCatalog`, `ToolsPage.missing*` keys) — its CTA was a dead
+  `<button>`. Wired it to `mailto:feedback@plinypdf.com` (+ "→") and aligned TR/RU copy to the
+  requested wording. Removed the (wrongly-placed) footer line + `Footer.requestTool` key. No new
+  namespace — reused the existing `ToolsPage.missing*` keys (copy already matched).
 - [x] **/support refund page** — `app/[locale]/support/page.tsx` via existing `LegalShell`/
   `LegalSection` + `pageMetadata`. Sections: Refunds (14-day guarantee, order email +
   Lemonsqueezy order #), Contact. `support@plinypdf.com` as a `t.rich` `<mail>` link.

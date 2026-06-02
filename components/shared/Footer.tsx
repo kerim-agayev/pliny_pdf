@@ -58,16 +58,6 @@ export function Footer() {
             <p className="max-w-[260px] text-[13px] leading-relaxed" style={{ color: "var(--text-2)" }}>
               {t("tagline")}
             </p>
-            <p className="mt-3.5 max-w-[260px] text-[13px] leading-relaxed" style={{ color: "var(--text-2)" }}>
-              {t("requestTool")}{" "}
-              <a
-                href="mailto:feedback@plinypdf.com"
-                className="underline transition-colors hover:text-[var(--text)]"
-                style={{ color: "var(--text-2)", textUnderlineOffset: 3 }}
-              >
-                feedback@plinypdf.com
-              </a>
-            </p>
           </div>
 
           {columns.map((col) => (
