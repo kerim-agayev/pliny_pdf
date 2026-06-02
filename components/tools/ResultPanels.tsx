@@ -2,6 +2,7 @@
 
 import { useTranslations } from "next-intl";
 import { IconCheck, IconDownload, IconAlert, IconRefresh } from "@/components/shared/icons";
+import { Kbd, useModKey } from "@/components/shared/Kbd";
 
 /** Green success panel with a download button and a secondary action. */
 export function SuccessPanel({
@@ -18,6 +19,7 @@ export function SuccessPanel({
   badge?: string;
 }) {
   const t = useTranslations("ToolUI");
+  const mod = useModKey();
   return (
     <div
       className="rounded-[18px] p-7 sm:p-9"
@@ -48,16 +50,24 @@ export function SuccessPanel({
           {meta && <p className="pp-mono mt-1 text-[13px]" style={{ color: "var(--text-2)" }}>{meta}</p>}
         </div>
         <div className="flex gap-2.5">
-          <button type="button" className="pp-btn pp-btn-ghost pp-btn-lg" onClick={onReset}>
-            {t("processAnother")}
+          <button
+            type="button"
+            className="pp-btn pp-btn-ghost pp-btn-lg"
+            onClick={onReset}
+            data-pp-shortcut="reset"
+            aria-keyshortcuts="Escape"
+          >
+            {t("processAnother")} <Kbd>Esc</Kbd>
           </button>
           <button
             type="button"
             className="pp-btn pp-btn-lg"
             onClick={onDownload}
+            data-pp-shortcut="download"
+            aria-keyshortcuts="Control+D Meta+D"
             style={{ background: "var(--emerald)", boxShadow: "0 8px 20px -10px rgba(16,185,129,0.6)" }}
           >
-            <IconDownload size={15} /> {t("download")}
+            <IconDownload size={15} /> {t("download")} <Kbd>{mod("D")}</Kbd>
           </button>
         </div>
       </div>

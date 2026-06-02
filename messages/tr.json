@@ -271,6 +271,7 @@
     "processing": "Yerel olarak işleniyor…",
     "loading": "Dosya yükleniyor…",
     "maxSize": "En fazla {mb} MB",
+    "shortcutOpen": "aç",
     "localNote": "Tarayıcınızda çalışır · sıfır ağ isteği",
     "successTitle": "Hazır! Dosyanız indirilebilir.",
     "download": "İndir",

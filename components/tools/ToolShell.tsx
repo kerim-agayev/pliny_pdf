@@ -5,6 +5,7 @@ import { Link } from "@/i18n/navigation";
 import { TOOLS, toolById, type Tool } from "@/lib/tools";
 import { PrivacyBadge } from "@/components/shared/PrivacyBadge";
 import { IconChevron, IconShield, IconArrow } from "@/components/shared/icons";
+import { useToolShortcuts } from "@/lib/hooks/useToolShortcuts";
 
 export function ToolShell({
   toolId,
@@ -23,6 +24,8 @@ export function ToolShell({
   const tt = useTranslations("Tools");
   const tool = toolById(toolId)!;
   const Icon = tool.icon;
+
+  useToolShortcuts();
 
   const relatedTools = (
     related

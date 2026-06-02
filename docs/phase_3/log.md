@@ -57,6 +57,14 @@ auto-update via lib/blog.ts. Build green; old slug 404s; /en/blog shows new post
 
 ## [2026-06-02] Wave 3E gate passed → 019e10e (post body) + fcbd595 (delete) pushed.
 
+## [2026-06-02] Wave 3F-2 keyboard shortcuts built (pre-gate)
+Chokepoint approach (no per-tool edits): `useToolShortcuts` hook mounted once in ToolShell
+acts on `[data-pp-shortcut]` markers — Ctrl/Cmd+O (open via FileDropzone), Ctrl/Cmd+D
+(download via SuccessPanel), Esc (reset via SuccessPanel/FileInfoBar). Skips editable fields;
+preventDefault only when a target exists; no PasswordModal-Esc conflict. Platform-aware Kbd
+hint chips (⌘ vs Ctrl, suppressHydrationWarning). i18n ToolUI.shortcutOpen en/tr/ru. Build
+green, no MISSING_MESSAGE. Live keys need browser gate. (See note: custom-download tools skip Ctrl+D.)
+
 ## [2026-06-02] Wave 3F-1 recent files built (pre-gate)
 Approach: augment + chunked (user-approved). lib/recentFiles.ts (localStorage, max 10, metadata
 only). downloadBlob records on download (slug from path; no tools.ts import to keep format.ts

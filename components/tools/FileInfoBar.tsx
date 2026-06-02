@@ -35,6 +35,8 @@ export function FileInfoBar({
         className="flex size-[30px] items-center justify-center rounded-lg"
         style={{ border: "1px solid var(--line)", color: "var(--text-2)" }}
         aria-label="Remove"
+        aria-keyshortcuts="Escape"
+        data-pp-shortcut="reset"
       >
         <IconX size={14} />
       </button>

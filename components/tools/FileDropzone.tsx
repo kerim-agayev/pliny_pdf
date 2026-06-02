@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { IconUpload } from "@/components/shared/icons";
+import { Kbd, useModKey } from "@/components/shared/Kbd";
 import { Spinner } from "./Spinner";
 import { PasswordModal } from "@/components/shared/PasswordModal";
 import { validateFileType, validateFileSize, isPdfEncrypted } from "@/lib/validation";
@@ -45,6 +46,7 @@ export function FileDropzone({
 }) {
   const t = useTranslations("ToolUI");
   const te = useTranslations("Errors");
+  const mod = useModKey();
   const inputRef = useRef<HTMLInputElement>(null);
   const [glow, setGlow] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -147,6 +149,8 @@ export function FileDropzone({
         role="button"
         tabIndex={0}
         aria-busy={busy}
+        aria-keyshortcuts="Control+O Meta+O"
+        data-pp-shortcut="open"
         onClick={() => !busy && inputRef.current?.click()}
         onKeyDown={(e) => {
           if (!busy && (e.key === "Enter" || e.key === " ")) inputRef.current?.click();
@@ -197,8 +201,16 @@ export function FileDropzone({
           </span>
           {multiple && <span style={{ color: "var(--text-3)" }}> · {t("multiple")}</span>}
         </div>
-        <div className="pp-mono mt-3 text-[11px]" style={{ color: "var(--text-3)" }}>
-          {t("maxSize", { mb: maxSizeMB })}
+        <div className="mt-3 flex items-center justify-center gap-2 text-[11px]" style={{ color: "var(--text-3)" }}>
+          <span className="pp-mono">{t("maxSize", { mb: maxSizeMB })}</span>
+          {!busy && (
+            <>
+              <span aria-hidden>·</span>
+              <span className="inline-flex items-center gap-1">
+                <Kbd>{mod("O")}</Kbd> {t("shortcutOpen")}
+              </span>
+            </>
+          )}
         </div>
       </div>
 

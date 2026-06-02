@@ -271,6 +271,7 @@
     "processing": "Processing locally…",
     "loading": "Loading file…",
     "maxSize": "Max {mb} MB",
+    "shortcutOpen": "open",
     "localNote": "Runs in your browser · zero network requests",
     "successTitle": "Done! Your file is ready.",
     "download": "Download",
