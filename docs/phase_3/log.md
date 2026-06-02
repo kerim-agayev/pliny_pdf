@@ -57,6 +57,12 @@ auto-update via lib/blog.ts. Build green; old slug 404s; /en/blog shows new post
 
 ## [2026-06-02] Wave 3E gate passed → 019e10e (post body) + fcbd595 (delete) pushed.
 
+## [2026-06-02] Wave 3G-2 streaming download built (pre-gate)
+`downloadBlob` (the single download chokepoint) now uses File System Access
+`showSaveFilePicker` + `createWritable/write/close` for files ≥10 MB on supporting secure
+contexts; anchor+blob fallback otherwise; cancelled picker records nothing. Server-safe
+(window use guarded). Build green (exit 0). Save-dialog needs browser gate (Chromium).
+
 ## [2026-06-02] Wave 3G-1 lazy-load built (pre-gate)
 Worker scope decided at gate: raster ops only (decisions.md). 3G-1: central `ToolMount`
 client registry (`next/dynamic` ssr:false + `ToolSkeleton` shimmer) lazy-loads each tool

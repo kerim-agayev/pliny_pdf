@@ -1,10 +1,10 @@
 # Phase 3 — Index
 
 ## Current Status
-- Current phase: **Wave 3G — Performance (chunked; 3G-1 lazy-load built, awaiting gate)**
-- Current task: 3G-1 lazy-load done; 3G-2 streaming + 3G-3 raster worker pending
+- Current phase: **Wave 3G — Performance (chunked; 3G-2 streaming download built, awaiting gate)**
+- Current task: 3G-1 lazy-load ✓ (`dd086a8`); 3G-2 streaming download built; 3G-3 raster worker pending
 - Total waves: 6 / 8 done (3A–3F done); 3G in progress
-- Next action: user verifies 3G-1 → 3G-2 streaming download → 3G-3 raster web worker
+- Next action: user verifies 3G-2 → 3G-3 raster web worker (Compress/Grayscale/PDF→JPG)
 
 ## Waves
 - [x] 3A — Foundations (toast, error UX, validation, PasswordModal, ToolStatus) — committed `d667578`

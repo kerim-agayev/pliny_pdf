@@ -9,9 +9,30 @@ export function formatBytes(bytes: number): string {
   return `${value >= 100 || i === 0 ? Math.round(value) : value.toFixed(1)} ${units[i]}`;
 }
 
-/** Trigger a browser download for a Blob. Also records the file in the local
- * recent-files list (metadata only) when triggered from a known tool page. */
-export function downloadBlob(blob: Blob, filename: string) {
+// Above this size, prefer the File System Access API so large output is written
+// straight to a user-chosen file instead of going through a blob: URL download.
+const STREAM_THRESHOLD = 10 * 1024 * 1024; // 10 MB
+
+// `showSaveFilePicker` isn't in lib.dom; describe just what we use.
+interface FsWritable {
+  write(data: Blob): Promise<void>;
+  close(): Promise<void>;
+}
+interface FsFileHandle {
+  createWritable(): Promise<FsWritable>;
+}
+type ShowSaveFilePicker = (opts?: { suggestedName?: string }) => Promise<FsFileHandle>;
+
+function pickerSupported(): boolean {
+  return (
+    typeof window !== "undefined" &&
+    window.isSecureContext &&
+    "showSaveFilePicker" in window
+  );
+}
+
+/** Classic anchor + blob: URL download (universal fallback). */
+function anchorDownload(blob: Blob, filename: string) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
@@ -20,6 +41,37 @@ export function downloadBlob(blob: Blob, filename: string) {
   a.click();
   a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+/** Stream the blob to a user-chosen file via the File System Access API. */
+async function streamSave(blob: Blob, filename: string) {
+  const picker = (window as unknown as { showSaveFilePicker: ShowSaveFilePicker })
+    .showSaveFilePicker;
+  // Called synchronously at the start of this async fn so the click's user
+  // activation is still valid; suggestedName carries the extension/type.
+  const handle = await picker({ suggestedName: filename });
+  const writable = await handle.createWritable();
+  await writable.write(blob);
+  await writable.close();
+}
+
+/** Trigger a download for a Blob. Large files (≥10 MB) use the File System Access
+ * API when available — written directly to a chosen location, falling back to the
+ * anchor method on unsupported browsers. Records the file in the local recent-files
+ * list (metadata only) when triggered from a known tool page; a cancelled save
+ * picker records nothing (no file was written). */
+export function downloadBlob(blob: Blob, filename: string) {
+  if (blob.size >= STREAM_THRESHOLD && pickerSupported()) {
+    streamSave(blob, filename)
+      .then(() => recordRecent(filename, blob.size))
+      .catch((err: unknown) => {
+        if ((err as DOMException)?.name === "AbortError") return; // user cancelled
+        anchorDownload(blob, filename); // any other failure → fall back
+        recordRecent(filename, blob.size);
+      });
+    return;
+  }
+  anchorDownload(blob, filename);
   recordRecent(filename, blob.size);
 }
 

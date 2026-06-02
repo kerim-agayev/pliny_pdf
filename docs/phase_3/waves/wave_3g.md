@@ -19,8 +19,21 @@ see decisions.md.
 - Verify: build green (exit 0, 138 pages prerendered), no MISSING_MESSAGE. Perceived-load /
   skeleton needs browser gate.
 
-## 3G-2 — Streaming download for large output (pending)
-- File System Access `showSaveFilePicker` for >10 MB on supporting browsers; Blob-URL fallback.
+## 3G-2 — Streaming download for large output ✅ (built, awaiting gate)
+- `lib/format.ts` `downloadBlob` is the single download chokepoint (the only other
+  `createObjectURL` in the app is a JpgToPdf image *preview*, not a download), so wiring it
+  here covers every tool.
+- Files ≥10 MB on a secure context that supports `showSaveFilePicker` → File System Access
+  API: pick a location, `createWritable()` → `write(blob)` → `close()` (written straight to
+  disk). `showSaveFilePicker` is called synchronously at the top of the async path so the
+  click's user activation stays valid.
+- Fallbacks: unsupported browser / non-secure context → classic anchor + blob: URL (unchanged
+  behaviour). Picker cancelled (`AbortError`) → nothing saved, nothing recorded. Any other
+  FSA failure → fall back to the anchor download.
+- Small files (<10 MB) keep the one-click anchor download (no save dialog).
+- Server-safe: all `window`/`document` use is inside function bodies guarded by
+  `pickerSupported()`; the Bun server still imports `baseName`/`formatBytes` fine.
+- Verify: build green (exit 0). Save-dialog behaviour needs browser gate (Chromium-only API).
 
 ## 3G-3 — Web Worker (raster ops only) (pending)
 - `lib/workers/pdf.worker.ts` running pdfjs inline + OffscreenCanvas for Compress / Grayscale /
