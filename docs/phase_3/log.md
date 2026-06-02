@@ -57,6 +57,14 @@ auto-update via lib/blog.ts. Build green; old slug 404s; /en/blog shows new post
 
 ## [2026-06-02] Wave 3E gate passed → 019e10e (post body) + fcbd595 (delete) pushed.
 
+## [2026-06-02] Wave 3G-3 raster web worker built (pre-gate)
+Shared env-agnostic `raster-core.ts` (CanvasEnv abstraction) runs grayscale/compress-raster/
+pdf→jpgs on either thread. `pdf.worker.ts` (OffscreenCanvas) + `pdfWorkerClient.ts` (one
+lazy worker, id-correlated, feature-detected). grayscale/compress(raster)/pdfToJpg try the
+worker, fall back to main-thread core on ANY failure — identical output. pdfjs parses on its
+nested worker inside ours (both chunks emitted). 3C caps kept (fallback safety). Build green
+(exit 0). Off-main-thread behaviour needs browser gate.
+
 ## [2026-06-02] Wave 3G-2 streaming download built (pre-gate)
 `downloadBlob` (the single download chokepoint) now uses File System Access
 `showSaveFilePicker` + `createWritable/write/close` for files ≥10 MB on supporting secure

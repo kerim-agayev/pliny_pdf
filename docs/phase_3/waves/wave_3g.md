@@ -35,7 +35,24 @@ see decisions.md.
   `pickerSupported()`; the Bun server still imports `baseName`/`formatBytes` fine.
 - Verify: build green (exit 0). Save-dialog behaviour needs browser gate (Chromium-only API).
 
-## 3G-3 — Web Worker (raster ops only) (pending)
-- `lib/workers/pdf.worker.ts` running pdfjs inline + OffscreenCanvas for Compress / Grayscale /
-  PDF→JPG, with main-thread fallback if OffscreenCanvas/Worker unavailable. Lets us relax the
-  3C caps once off-main-thread.
+## 3G-3 — Web Worker (raster ops only) ✅ (built, awaiting gate)
+- `lib/pdf/raster-core.ts` — env-agnostic core for the 3 raster algorithms (grayscale,
+  compress-raster, pdf→jpgs). A `CanvasEnv` abstracts the only DOM-specific bit (create
+  canvas + encode JPEG), so ONE copy of each algorithm runs on either thread. pdfjs + pdf-lib
+  both run in the worker.
+- `lib/workers/pdf.worker.ts` — single shared module worker; OffscreenCanvas env; dispatches
+  by `op`; posts `progress`/`done`/`error`; transfers result ArrayBuffers back. pdfjs parses
+  on its own nested worker inside this one (both chunks confirmed emitted by the build).
+- `lib/workers/pdfWorkerClient.ts` — lazily creates ONE worker, correlates by id, exposes
+  `grayscaleInWorker` / `compressRasterInWorker` / `pdfToJpgsInWorker`. `workerSupported()`
+  feature-detects Worker + OffscreenCanvas.convertToBlob. Any failure (unsupported / init /
+  worker error / task error) → promise rejects.
+- Wiring (transparent fallback): `grayscale.ts`, `compress.ts` (rasterBytes only — lossless &
+  hasImages stay fast on main), `pdfToJpg.ts` (zip stays on main) try the worker first and
+  fall back to `*Core` with `domCanvasEnv()` on ANY rejection. Same output either way.
+- 3C caps (Grayscale ≤10 MB/100 pg, Compress ≤50 MB/300 pg) KEPT for now: the main-thread
+  fallback still needs them, and the worker already removes the freeze within those limits.
+  Raising them is a separate UX call (offered at gate).
+- Verify: build green (exit 0); `pdf.worker` + pdfjs `pdf.worker.min.mjs` chunks emitted.
+  Off-main-thread behaviour (responsive UI during a big compress/grayscale; DevTools
+  Performance) needs browser gate. Chromium today; Safari/FF 16.4+; older → main-thread fallback.

@@ -25,4 +25,28 @@ Hardening layer added on top of the existing 28-tool catalog. New shared pieces:
 - `components/shared/ToolStatus.tsx` — standard idle/loading/processing/done/error display.
   Reuses `Spinner` + `ErrorBanner`. Wave 3F wires it into all 28 tools.
 
-(Later waves append here: limits, worker pattern, recent-files, etc.)
+## Lazy-loading (Wave 3G-1)
+- `components/tools/ToolMount.tsx` — central registry; each tool is
+  `next/dynamic(() => import("./X"), { ssr:false, loading: ToolSkeleton })`. Pages render
+  `<ToolMount component="X" [props]/>`; the server-rendered ToolShell (SEO) is unaffected.
+- `components/tools/ToolSkeleton.tsx` — shimmer placeholder (`pp-skeleton` in globals.css).
+
+## Streaming download (Wave 3G-2)
+- `lib/format.ts` `downloadBlob` — single download chokepoint. Files ≥10 MB on a supporting
+  secure context use the File System Access API (`showSaveFilePicker` → `createWritable` →
+  `write` → `close`); otherwise / on cancel it falls back to the anchor+blob: URL method.
+
+## Raster Web Worker (Wave 3G-3) — raster ops only
+- `lib/pdf/raster-core.ts` — env-agnostic algorithms (grayscale, compress-raster, pdf→jpgs).
+  A `CanvasEnv` abstracts canvas-create + JPEG-encode; `domCanvasEnv()` (main thread) and the
+  worker's OffscreenCanvas env share ONE copy of each algorithm. pdfjs + pdf-lib run in both.
+- `lib/workers/pdf.worker.ts` — single shared module worker (`{op, payload}` protocol,
+  `progress`/`done`/`error` messages, transferable ArrayBuffers). pdfjs parses on its own
+  nested worker inside this one.
+- `lib/workers/pdfWorkerClient.ts` — one lazily-created worker, id-correlated promises,
+  `workerSupported()` feature detection. All failures reject.
+- Pattern: the heavy lib fns (`grayscalePdf`, `compressPdf`→rasterBytes, `pdfToJpg`) try the
+  worker, then fall back to `*Core` + `domCanvasEnv()` on any rejection → identical output,
+  worker is pure optimization. 3C size caps retained as fallback-thread safety.
+
+(Later waves append here: recent-files, etc.)

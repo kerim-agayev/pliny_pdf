@@ -1,5 +1,7 @@
 import { PDFDocument } from "pdf-lib";
 import { getPdfjs } from "./pdfjs";
+import { compressRasterCore, domCanvasEnv } from "./raster-core";
+import { compressRasterInWorker } from "@/lib/workers/pdfWorkerClient";
 
 export type CompressPreset = "max" | "balanced" | "high";
 
@@ -60,34 +62,18 @@ async function hasImages(input: ArrayBuffer): Promise<boolean> {
   }
 }
 
-/** Rasterize each page to a JPEG and rebuild (only helps image-heavy/scanned PDFs). */
+/** Rasterize each page to a JPEG and rebuild (only helps image-heavy/scanned PDFs).
+ * Wave 3G-3: runs in the Web Worker (OffscreenCanvas) when available, else main thread. */
 async function rasterBytes(input: ArrayBuffer, preset: CompressPreset): Promise<Uint8Array> {
-  const pdfjs = await getPdfjs();
   const { dpi, quality } = RASTER[preset];
-  const scale = dpi / BASE_DPI;
-  const doc = await pdfjs.getDocument({ data: input.slice(0) }).promise;
-  const out = await PDFDocument.create();
+  const opts = { scale: dpi / BASE_DPI, quality };
   try {
-    for (let i = 1; i <= doc.numPages; i++) {
-      const page = await doc.getPage(i);
-      const viewport = page.getViewport({ scale });
-      const canvas = document.createElement("canvas");
-      canvas.width = Math.ceil(viewport.width);
-      canvas.height = Math.ceil(viewport.height);
-      const ctx = canvas.getContext("2d");
-      if (!ctx) throw new Error("canvas unavailable");
-      await page.render({ canvasContext: ctx, viewport, canvas }).promise;
-      const jpeg: Blob = await new Promise((resolve, reject) =>
-        canvas.toBlob((b) => (b ? resolve(b) : reject(new Error("encode failed"))), "image/jpeg", quality),
-      );
-      const img = await out.embedJpg(new Uint8Array(await jpeg.arrayBuffer()));
-      const p = out.addPage([viewport.width, viewport.height]);
-      p.drawImage(img, { x: 0, y: 0, width: viewport.width, height: viewport.height });
-    }
-  } finally {
-    doc.destroy();
+    const { buf } = await compressRasterInWorker(input.slice(0), opts);
+    return new Uint8Array(buf);
+  } catch {
+    const pdfjs = await getPdfjs();
+    return compressRasterCore(pdfjs, domCanvasEnv(), input, opts);
   }
-  return out.save();
 }
 
 /**
