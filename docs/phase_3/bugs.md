@@ -2,6 +2,14 @@
 
 (One entry per bug found this phase: symptom → cause → fix → status.)
 
+## [2026-06-02] 3F-1 — RecentFiles relativeTime console error (ENVIRONMENT_FALLBACK)
+- **Symptom:** after a merge+download, console error: `relativeTime` called without a `now`
+  parameter and no global default (next-intl) in `RecentFiles.tsx:95`.
+- **Cause:** client-side `format.relativeTime(date)` needs an explicit `now` (unlike the
+  server, which has a request time).
+- **Fix:** use `useNow()` and pass it as the second arg: `format.relativeTime(date, now)`.
+  Status: FIXED.
+
 ## [2026-06-02] Gate 3B — "local tools show Max 25 MB badge" — NOT REPRODUCED
 - **Symptom reported:** local tools (compress-pdf, merge-pdf) showed "Max 25 MB" instead of 100 MB.
 - **Investigation:** code is correct — `FileDropzone` defaults `maxSizeMB = LOCAL_MAX_MB` (100);

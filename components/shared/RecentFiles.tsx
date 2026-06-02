@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useTranslations, useFormatter } from "next-intl";
+import { useTranslations, useFormatter, useNow } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import {
   getRecentFiles,
@@ -72,6 +72,7 @@ export function RecentFiles({ compact = false }: { compact?: boolean }) {
 function RecentRow({ file, compact, last }: { file: RecentFile; compact: boolean; last: boolean }) {
   const tt = useTranslations("Tools");
   const format = useFormatter();
+  const now = useNow();
   const tool = toolBySlug(file.toolSlug);
   const Icon = tool?.icon ?? IconFile;
   const accent = tool?.accent ?? "#60A5FA";
@@ -92,7 +93,7 @@ function RecentRow({ file, compact, last }: { file: RecentFile; compact: boolean
         <div className="flex items-center gap-1.5 text-[11px]" style={{ color: "var(--text-3)" }}>
           <span className="truncate">{toolName}</span>
           <span>·</span>
-          <span className="pp-mono whitespace-nowrap">{format.relativeTime(new Date(file.timestamp))}</span>
+          <span className="pp-mono whitespace-nowrap">{format.relativeTime(new Date(file.timestamp), now)}</span>
           {!compact && file.sizeMB > 0 && (
             <>
               <span>·</span>
