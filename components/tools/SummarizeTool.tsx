@@ -10,6 +10,8 @@ import { IconRefresh, IconCopy, IconCheck, IconArrow, IconFile } from "@/compone
 import { postFileJson, ApiError } from "@/lib/api";
 import { formatBytes } from "@/lib/format";
 import { analytics } from "@/lib/analytics";
+import { useSession } from "@/lib/auth/client";
+import { cloudMaxMB } from "@/lib/limits";
 
 type Summary = {
   executive: string;
@@ -23,6 +25,8 @@ type Tab = "executive" | "outline" | "sections";
 export function SummarizeTool() {
   const t = useTranslations("ToolUI");
   const tp = useTranslations("ToolPages.summarize");
+  const { data: session } = useSession();
+  const maxMB = cloudMaxMB((session?.user as { plan?: "free" | "pro" })?.plan ?? null);
   const [file, setFile] = useState<File | null>(null);
   const [status, setStatus] = useState<Status>("idle");
   const [result, setResult] = useState<Result | null>(null);
@@ -70,7 +74,7 @@ export function SummarizeTool() {
   return (
     <div>
       {status !== "loading" && (
-        <FileDropzone accept="pdf" onFiles={(files) => files[0] && run(files[0])} />
+        <FileDropzone accept="pdf" maxSizeMB={maxMB} onFiles={(files) => files[0] && run(files[0])} />
       )}
 
       {status === "loading" && (

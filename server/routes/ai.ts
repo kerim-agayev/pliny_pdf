@@ -3,6 +3,7 @@ import { extractPdfText } from "../services/pdftext";
 import { summarize } from "../services/gemini";
 import { getRequester } from "../services/session";
 import { checkAi } from "@/lib/ratelimit";
+import { cloudMaxBytes, cloudMaxMB, bytesToMB } from "@/lib/limits";
 import { db } from "@/lib/db";
 import { fileHistory } from "@/lib/db/schema";
 
@@ -19,6 +20,11 @@ export const ai = new Elysia({ prefix: "/api/ai" }).post(
     if (!body.file.name?.toLowerCase().endsWith(".pdf")) {
       set.status = 400;
       return { error: "wrongType", message: "Please upload a PDF file." };
+    }
+
+    if (body.file.size > cloudMaxBytes(who.plan)) {
+      set.status = 413;
+      return { error: "fileTooLarge", limitMB: cloudMaxMB(who.plan), fileMB: bytesToMB(body.file.size) };
     }
 
     // Extract + validate text BEFORE consuming the quota, so a scanned PDF

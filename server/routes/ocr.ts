@@ -3,6 +3,7 @@ import { ocrPdf } from "../services/ocr";
 import { storeTemp, r2Configured } from "../services/r2";
 import { getRequester, type Requester } from "../services/session";
 import { checkServerTool } from "@/lib/ratelimit";
+import { cloudMaxBytes, cloudMaxMB, bytesToMB } from "@/lib/limits";
 import { db } from "@/lib/db";
 import { fileHistory } from "@/lib/db/schema";
 import { baseName } from "@/lib/format";
@@ -57,6 +58,10 @@ export const ocr = new Elysia({ prefix: "/api" }).post(
       return { error: "wrongType", message: "Please upload a PDF file." };
     }
     const who = await getRequester(request.headers);
+    if (file.size > cloudMaxBytes(who?.plan ?? null)) {
+      set.status = 413;
+      return { error: "fileTooLarge", limitMB: cloudMaxMB(who?.plan ?? null), fileMB: bytesToMB(file.size) };
+    }
     const lim = await checkServerTool(who?.plan ?? null, who?.userId ?? clientIp(request));
     if (!lim.ok) {
       set.status = 429;

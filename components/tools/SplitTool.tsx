@@ -14,6 +14,9 @@ import { analytics } from "@/lib/analytics";
 
 type Status = "idle" | "processing" | "done" | "error";
 
+/** "Every page" mode is capped to keep the zip generation reasonable; range mode is unlimited. */
+const EACH_CAP = 500;
+
 export function SplitTool() {
   const t = useTranslations("ToolUI");
   const tp = useTranslations("ToolPages.split");
@@ -38,6 +41,8 @@ export function SplitTool() {
     setPages(n);
     setFrom(1);
     setTo(n || 1);
+    // Every-page mode is capped — fall back to range for very large PDFs.
+    if (n > EACH_CAP) setMode("range");
   }
 
   async function run() {
@@ -92,7 +97,17 @@ export function SplitTool() {
             <NumberField label={tp("to")} value={to} min={from} max={pages} onChange={setTo} />
           </div>
         )}
-        <ModeOption active={mode === "each"} label={tp("modeEach")} onClick={() => setMode("each")} />
+        <ModeOption
+          active={mode === "each"}
+          label={tp("modeEach")}
+          disabled={pages > EACH_CAP}
+          onClick={() => setMode("each")}
+        />
+        {pages > EACH_CAP && (
+          <p className="pl-1 text-[12.5px]" style={{ color: "var(--text-2)" }}>
+            {tp("eachCapped", { pages, cap: EACH_CAP })}
+          </p>
+        )}
       </div>
 
       <div className="flex justify-end">
@@ -106,16 +121,29 @@ export function SplitTool() {
   );
 }
 
-function ModeOption({ active, label, onClick }: { active: boolean; label: string; onClick: () => void }) {
+function ModeOption({
+  active,
+  label,
+  onClick,
+  disabled = false,
+}: {
+  active: boolean;
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+}) {
   return (
     <button
       type="button"
       onClick={onClick}
+      disabled={disabled}
       className="flex items-center gap-3 rounded-xl px-4 py-3.5 text-left text-sm"
       style={{
         border: `1px solid ${active ? "var(--indigo)" : "var(--line)"}`,
         background: active ? "var(--indigo-dim)" : "var(--bg-2)",
         color: "var(--text)",
+        opacity: disabled ? 0.45 : 1,
+        cursor: disabled ? "not-allowed" : "pointer",
       }}
     >
       <span

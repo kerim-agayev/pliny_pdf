@@ -9,6 +9,8 @@ import { IconArrow, IconFile, IconX } from "@/components/shared/icons";
 import { postFileForm, ApiError } from "@/lib/api";
 import { formatBytes, downloadBlob, baseName } from "@/lib/format";
 import { analytics } from "@/lib/analytics";
+import { useSession } from "@/lib/auth/client";
+import { cloudMaxMB } from "@/lib/limits";
 
 type Status = "idle" | "uploading" | "done" | "error";
 type Lang = "eng" | "tur" | "rus";
@@ -24,6 +26,8 @@ export function OcrPdf() {
   const t = useTranslations("ToolUI");
   const tp = useTranslations("ToolPages.ocrPdf");
   const locale = useLocale();
+  const { data: session } = useSession();
+  const maxMB = cloudMaxMB((session?.user as { plan?: "free" | "pro" })?.plan ?? null);
   const [file, setFile] = useState<File | null>(null);
   const [lang, setLang] = useState<Lang>(LOCALE_TO_LANG[locale] ?? "eng");
   const [status, setStatus] = useState<Status>("idle");
@@ -79,7 +83,7 @@ export function OcrPdf() {
 
   return (
     <div>
-      <FileDropzone accept="pdf" onFiles={onFiles} />
+      <FileDropzone accept="pdf" maxSizeMB={maxMB} onFiles={onFiles} />
 
       {errorMsg && (
         <div className="mt-4">

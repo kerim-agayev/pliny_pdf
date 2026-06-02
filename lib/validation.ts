@@ -15,14 +15,16 @@ export type SizeResult =
   | { ok: true; limitMB: number; fileMB: number }
   | { ok: false; error: "FILE_TOO_LARGE"; limitMB: number; fileMB: number };
 
-const MAGIC: Record<"pdf" | "docx", number[]> = {
-  // %PDF
-  pdf: [0x25, 0x50, 0x44, 0x46],
-  // PK\x03\x04 (zip container — docx)
-  docx: [0x50, 0x4b, 0x03, 0x04],
-};
+// Leading magic-byte signatures. A type may have more than one accepted form
+// (e.g. Word covers modern .docx zip containers and legacy .doc OLE files).
+const PDF_SIG = [0x25, 0x50, 0x44, 0x46]; // %PDF
+const ZIP_SIG = [0x50, 0x4b, 0x03, 0x04]; // PK\x03\x04 (docx is a zip)
+const OLE_SIG = [0xd0, 0xcf, 0x11, 0xe0]; // legacy .doc (OLE compound file)
 
-const EXT: Record<"pdf" | "docx", string> = { pdf: ".pdf", docx: ".docx" };
+const RULES: Record<"pdf" | "docx", { exts: string[]; sigs: number[][] }> = {
+  pdf: { exts: [".pdf"], sigs: [PDF_SIG] },
+  docx: { exts: [".docx", ".doc"], sigs: [ZIP_SIG, OLE_SIG] },
+};
 
 /**
  * Validate by BOTH extension and leading magic bytes — a renamed `.exe` with a
@@ -32,12 +34,13 @@ export async function validateFileType(
   file: File,
   expected: "pdf" | "docx",
 ): Promise<ValidationResult> {
-  if (!file.name.toLowerCase().endsWith(EXT[expected])) {
+  const rule = RULES[expected];
+  const name = file.name.toLowerCase();
+  if (!rule.exts.some((ext) => name.endsWith(ext))) {
     return { ok: false, error: "WRONG_TYPE" };
   }
   const header = new Uint8Array(await file.slice(0, 8).arrayBuffer());
-  const sig = MAGIC[expected];
-  const matches = sig.every((byte, i) => header[i] === byte);
+  const matches = rule.sigs.some((sig) => sig.every((byte, i) => header[i] === byte));
   return matches ? { ok: true } : { ok: false, error: "WRONG_TYPE" };
 }
 
