@@ -2,6 +2,21 @@
 
 (One entry per bug found this phase: symptom → cause → fix → status.)
 
+## [2026-06-02] Better Auth "unable to query database" / "fallback join for model user"
+- **Symptom:** dashboard getSession + various Better Auth queries (users/sessions/accounts/
+  verifications) failed with "Better auth was unable to query your database" / "Failed query".
+- **NOT a code/schema/IPv6 bug:** DATABASE_URL was already the pooler/IPv4 host; schema columns
+  match; direct connectivity test returned 13 users on BOTH 5432 and 6543. Failures were transient
+  and clustered, then recovered.
+- **Cause:** Supabase **session pooler (port 5432) caps total clients at ~15**. During a heavy
+  window (Next dev + HMR re-evals + Elysia backend + this session's diagnostic scripts) the cap
+  was exceeded → all queries fail until idle connections drain (~20s).
+- **Fix:** switched DATABASE_URL to the **transaction pooler (port 6543)** in .env.local (verified
+  connects). `prepare:false` already set (required for transaction mode). Updated lib/db/index.ts
+  comment. Requires a `bun dev` (+ backend) restart to take effect. Status: FIXED (pending restart).
+- **Caveat:** drizzle-kit `db:push` can dislike the transaction pooler; if a future migration fails,
+  temporarily use the direct/session URL (commented line in .env.local) for that command only.
+
 ## [2026-06-02] 3F-1 — RecentFiles relativeTime console error (ENVIRONMENT_FALLBACK)
 - **Symptom:** after a merge+download, console error: `relativeTime` called without a `now`
   parameter and no global default (next-intl) in `RecentFiles.tsx:95`.

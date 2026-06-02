@@ -7,10 +7,11 @@ if (!connectionString) {
   throw new Error("DATABASE_URL is not set");
 }
 
-// Supabase's pooler caps total clients (session mode = 15). Two processes (Next +
-// Elysia) each hold a pool, and Next dev HMR re-evaluates this module on every hot
-// reload — without caching that leaks a fresh pool each reload until the cap is hit
-// ("EMAXCONNSESSION: max clients reached"). So: keep the pool small, let idle
+// We connect via Supabase's TRANSACTION pooler (DATABASE_URL port 6543), which allows
+// many short-lived clients — robust against the session pooler's ~15-client cap that
+// two dev processes (Next + Elysia) plus HMR re-evals can exhaust ("max clients
+// reached"). Transaction mode requires `prepare: false` (PgBouncer can't keep prepared
+// statements across pooled connections). We still keep the pool small, let idle
 // connections close, and reuse one client across HMR via globalThis.
 const globalForDb = globalThis as unknown as {
   __plinyPg?: ReturnType<typeof postgres>;
