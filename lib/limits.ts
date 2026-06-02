@@ -12,6 +12,14 @@ export const LOCAL_MAX_MB = 100;
 
 export const CLOUD_MAX_MB = { anon: 25, free: 50, pro: 200 } as const;
 
+// Tool-specific caps for the heaviest local raster operations (Wave 3C). These are
+// stricter than the generic local limit because grayscale/compress re-render every
+// page to a canvas — large/long PDFs would hang the main thread.
+export const GRAYSCALE_MAX_MB = 10;
+export const GRAYSCALE_MAX_PAGES = 100;
+export const COMPRESS_MAX_MB = 50;
+export const COMPRESS_MAX_PAGES = 300;
+
 const MB = 1024 * 1024;
 
 /** Cloud size limit (MB) for a plan. `null`/`undefined` ⇒ anonymous. */

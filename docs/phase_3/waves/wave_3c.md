@@ -28,6 +28,11 @@
   PDF; grayscale output ≤ input on a small color PDF. `textOnly` detection also browser-only
   (fails safe to non-text → never-inflate still protects).
 
+## Post-gate fixes (2026-06-02)
+- Recalibrated compress DPIs to 72/96/120 (q0.35/0.55/0.72) so all presets reduce + stay ordered.
+- Grayscale always returns the converted file (warns if larger), never the color original.
+- Added tool caps: Grayscale ≤10 MB/100 pages, Compress ≤50 MB/300 pages (toast.error in onFiles).
+
 ## Gate 3C
 Compress the same image PDF at all 3 presets → 3 different sizes. Grayscale a small color
 PDF → output ≤ input (or "returning original" warning). Text PDF compress → "text PDF

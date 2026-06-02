@@ -35,3 +35,13 @@ mounted in `app/[locale]/layout.tsx`; tools import `{ toast }` from `sonner` dir
   Decision: the grayscale conversion is the deliverable — always return it; warn (toast) if it grew.
 - **User preference (defer to Phase 4):** user finds 3 compress presets unnecessary and would keep
   only "Maximum". Presets are NOT removed now (only fixed); revisit consolidation in Phase 4.
+
+## 2026-06-02 — Tool-specific caps for grayscale & compress (raster guard)
+Both tools re-render every page to a canvas on the main thread, so very large/long PDFs hang
+(the 26 MB compress test crawled). Added stricter per-tool caps, enforced in the tool's `onFiles`
+(after `readPageCount`) with a localized `toast.error`, before any processing:
+- Grayscale: ≤ 10 MB and ≤ 100 pages (`GRAYSCALE_MAX_MB`, `GRAYSCALE_MAX_PAGES`).
+- Compress: ≤ 50 MB and ≤ 300 pages (`COMPRESS_MAX_MB`, `COMPRESS_MAX_PAGES`; message suggests Split first).
+These sit on top of the generic 100 MB local dropzone limit. New error codes
+`FILE_TOO_LARGE_GRAYSCALE` / `FILE_TOO_LARGE_COMPRESS` in `lib/errors.ts`. Constants in `lib/limits.ts`.
+(Web Workers in Wave 3G will move this off the main thread; caps may be revisited then.)

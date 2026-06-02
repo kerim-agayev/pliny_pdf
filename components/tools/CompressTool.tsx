@@ -12,11 +12,13 @@ import { compressPdf, type CompressPreset } from "@/lib/pdf/compress";
 import { readPageCount, isPdf } from "@/lib/pdf/common";
 import { formatBytes, downloadBlob, baseName } from "@/lib/format";
 import { analytics } from "@/lib/analytics";
+import { COMPRESS_MAX_MB, COMPRESS_MAX_PAGES } from "@/lib/limits";
 
 type Status = "idle" | "processing" | "done" | "error";
 
 export function CompressTool() {
   const t = useTranslations("ToolUI");
+  const te = useTranslations("Errors");
   const tp = useTranslations("ToolPages.compress");
   const [file, setFile] = useState<File | null>(null);
   const [pages, setPages] = useState(0);
@@ -38,9 +40,14 @@ export function CompressTool() {
       setErrorMsg(t("wrongTypePdf"));
       return;
     }
+    const n = await readPageCount(f).catch(() => 0);
+    if (f.size > COMPRESS_MAX_MB * 1024 * 1024 || n > COMPRESS_MAX_PAGES) {
+      toast.error(te("fileTooLargeCompress", { mb: COMPRESS_MAX_MB, pages: COMPRESS_MAX_PAGES }));
+      return;
+    }
     setErrorMsg(undefined);
     setFile(f);
-    setPages(await readPageCount(f).catch(() => 0));
+    setPages(n);
   }
 
   async function run() {

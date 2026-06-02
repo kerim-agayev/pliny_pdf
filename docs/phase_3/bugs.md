@@ -24,6 +24,13 @@
   ordered — max 72 DPI/q0.35, balanced 96 DPI/q0.55, high 120 DPI/q0.72. Logic unchanged; never-inflate kept.
   Status: FIXED (pending re-test). Big-file speed also improves (fewer pixels).
 
+## [2026-06-02] Gate 3C — Perf: heavy raster tools could hang on large PDFs
+- **Symptom:** a 26 MB PDF in Compress took so long the user aborted; grayscale similarly heavy.
+- **Cause:** both tools rasterize every page on the main thread.
+- **Fix:** added per-tool caps enforced in `onFiles` before processing — Grayscale ≤10 MB/≤100 pages,
+  Compress ≤50 MB/≤300 pages — with localized `toast.error`. See decisions.md. Proper off-main-thread
+  fix comes in Wave 3G (web workers). Status: FIXED (pending re-test).
+
 ## [2026-06-02] Gate 3C — Bug 2: Grayscale returned the original (still in color, same size)
 - **Symptom:** grayscale downloaded the same file — same size, still color.
 - **Cause:** for a small/vector color PDF the grayscale raster inflates, so the never-inflate

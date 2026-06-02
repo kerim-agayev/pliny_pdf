@@ -9,14 +9,16 @@ import { SuccessPanel, ErrorBanner } from "./ResultPanels";
 import { Spinner } from "./Spinner";
 import { IconGrayscale } from "@/components/shared/icons";
 import { grayscalePdf } from "@/lib/pdf/grayscale";
-import { isPdf } from "@/lib/pdf/common";
-import { downloadBlob, baseName, MAX_FILE_BYTES } from "@/lib/format";
+import { isPdf, readPageCount } from "@/lib/pdf/common";
+import { downloadBlob, baseName } from "@/lib/format";
 import { analytics } from "@/lib/analytics";
+import { GRAYSCALE_MAX_MB, GRAYSCALE_MAX_PAGES } from "@/lib/limits";
 
 type Status = "idle" | "processing" | "done" | "error";
 
 export function GrayscalePdf() {
   const t = useTranslations("ToolUI");
+  const te = useTranslations("Errors");
   const tp = useTranslations("ToolPages.grayscalePdf");
   const [file, setFile] = useState<File | null>(null);
   const [status, setStatus] = useState<Status>("idle");
@@ -30,8 +32,9 @@ export function GrayscalePdf() {
       setErrorMsg(t("wrongTypePdf"));
       return;
     }
-    if (f.size > MAX_FILE_BYTES) {
-      setErrorMsg(t("tooLarge"));
+    const pages = await readPageCount(f).catch(() => 0);
+    if (f.size > GRAYSCALE_MAX_MB * 1024 * 1024 || pages > GRAYSCALE_MAX_PAGES) {
+      toast.error(te("fileTooLargeGrayscale", { mb: GRAYSCALE_MAX_MB, pages: GRAYSCALE_MAX_PAGES }));
       return;
     }
     setErrorMsg(undefined);

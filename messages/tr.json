@@ -217,6 +217,8 @@
   },
   "Errors": {
     "fileTooLarge": "Bu dosya çok büyük. En fazla {limitMB} MB olabilir (dosyanız {fileMB} MB).",
+    "fileTooLargeGrayscale": "Bu dosya gri tonlama dönüşümü için çok büyük. Lütfen {mb} MB ve {pages} sayfanın altında bir PDF kullanın.",
+    "fileTooLargeCompress": "Bu dosya sıkıştırma için çok büyük. Lütfen {mb} MB ve {pages} sayfanın altında bir PDF kullanın. İpucu: Önce PDF'nizi bölün, sonra her parçayı sıkıştırın.",
     "wrongType": "Bu dosya türü burada desteklenmiyor.",
     "corruptPdf": "Bu PDF bozuk veya okunamıyor görünüyor.",
     "passwordRequired": "Bu PDF parola korumalı.",

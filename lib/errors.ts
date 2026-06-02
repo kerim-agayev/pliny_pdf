@@ -9,6 +9,8 @@
 
 export type ErrorCode =
   | "FILE_TOO_LARGE"
+  | "FILE_TOO_LARGE_GRAYSCALE"
+  | "FILE_TOO_LARGE_COMPRESS"
   | "WRONG_TYPE"
   | "CORRUPT_PDF"
   | "PASSWORD_REQUIRED"
@@ -26,6 +28,8 @@ export function errorMessageKey(code: ErrorCode): string {
 
 const ERROR_KEYS: Record<ErrorCode, string> = {
   FILE_TOO_LARGE: "fileTooLarge",
+  FILE_TOO_LARGE_GRAYSCALE: "fileTooLargeGrayscale",
+  FILE_TOO_LARGE_COMPRESS: "fileTooLargeCompress",
   WRONG_TYPE: "wrongType",
   CORRUPT_PDF: "corruptPdf",
   PASSWORD_REQUIRED: "passwordRequired",
