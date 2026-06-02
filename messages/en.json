@@ -322,11 +322,11 @@
     "compress": {
       "subtitle": "Shrink your PDF. Choose a preset and download a smaller file.",
       "presetMax": "Maximum compression",
-      "presetMaxDesc": "Smallest file · 96 DPI · quality 30",
+      "presetMaxDesc": "Smallest file · strongest compression",
       "presetBalanced": "Balanced",
-      "presetBalancedDesc": "Recommended · 150 DPI · quality 60",
+      "presetBalancedDesc": "Recommended · good size and quality",
       "presetHigh": "High quality",
-      "presetHighDesc": "Best quality · 300 DPI · quality 85",
+      "presetHighDesc": "Best quality · lightest compression",
       "rasterNote": "For image PDFs, compression rasterizes pages — text becomes part of the image and is no longer selectable. Text-only PDFs are compressed losslessly.",
       "action": "Compress PDF",
       "savedBadge": "Saved {percent}%",
@@ -530,7 +530,7 @@
       "action": "Convert to grayscale",
       "successTitle": "Converted to grayscale.",
       "emptyTitle": "Drop a PDF to convert to grayscale",
-      "notReduced": "This PDF couldn't be reduced further — returning the original."
+      "sizeGrew": "Converted to grayscale — note the file is larger than the original."
     },
     "flattenPdf": {
       "subtitle": "Bake form fields and annotations into the page so they can't be edited.",

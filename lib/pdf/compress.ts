@@ -4,16 +4,20 @@ import { getPdfjs } from "./pdfjs";
 export type CompressPreset = "max" | "balanced" | "high";
 
 /**
- * Three genuinely different presets (Phase 3, Wave 3C). pdfjs renders at a scale
- * where 1.0 === 72 DPI, so `scale = dpi / 72`.
- *  - max:      96 DPI,  JPEG quality 0.30 (smallest)
- *  - balanced: 150 DPI, JPEG quality 0.60
- *  - high:     300 DPI, JPEG quality 0.85 (best quality)
+ * Three genuinely different presets (Phase 3, Wave 3C; recalibrated after gate-3C
+ * testing — see docs/phase_3/decisions.md). pdfjs renders at a scale where
+ * 1.0 === 72 DPI, so `scale = dpi / 72`. Values are kept at/below typical screen
+ * resolution so every preset actually reduces a normal image PDF (the spec's
+ * 300 DPI "high" never compressed screen-res PDFs and made large files crawl),
+ * while staying ordered: max (smallest) < balanced < high (best quality).
+ *  - max:      72 DPI,  JPEG quality 0.35 (smallest)
+ *  - balanced: 96 DPI,  JPEG quality 0.55
+ *  - high:     120 DPI, JPEG quality 0.72 (best quality)
  */
 const RASTER: Record<CompressPreset, { dpi: number; quality: number }> = {
-  max: { dpi: 96, quality: 0.3 },
-  balanced: { dpi: 150, quality: 0.6 },
-  high: { dpi: 300, quality: 0.85 },
+  max: { dpi: 72, quality: 0.35 },
+  balanced: { dpi: 96, quality: 0.55 },
+  high: { dpi: 120, quality: 0.72 },
 };
 
 const BASE_DPI = 72;

@@ -46,7 +46,7 @@ export function GrayscalePdf() {
       const res = await grayscalePdf(file, (page, total) => setProgress({ page, total }));
       setResult(res.blob);
       setStatus("done");
-      if (!res.changed) toast.warning(tp("notReduced"));
+      if (res.inflated) toast.warning(tp("sizeGrew"));
       analytics.toolUsed("grayscale-pdf");
     } catch {
       setStatus("error");

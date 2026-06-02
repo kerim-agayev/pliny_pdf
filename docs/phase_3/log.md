@@ -26,3 +26,11 @@ Compress: 3 real presets max/balanced/high (96/150/300 DPI, q30/60/85), pure-tex
 skips raster + textOnly toast, never-inflate kept, before/after toast. Grayscale: 150 DPI cap,
 JPEG not PNG, never-inflate (returns original + warning if not smaller). Build green, tsc clean.
 Canvas-dependent size diffs need browser gate. Awaiting user verification before Wave 3D.
+
+## [2026-06-02] Wave 3C gate found 2 bugs → fixed (pre-re-test)
+Bug1: Balanced/High returned original (150/300 DPI inflate screen PDFs → never-inflate kept
+original). Recalibrated DPIs to 72/96/120 (q0.35/0.55/0.72) so all 3 compress + stay ordered;
+also fixes 26MB-file slowness. Bug2: Grayscale returned the color original (raster inflated →
+never-inflate). Now grayscale ALWAYS returns the converted file; warns (sizeGrew toast) if larger.
+Both documented in bugs.md + decisions.md (deviation from CLAUDE_3.md numbers). Build green, tsc clean.
+Awaiting user re-test.

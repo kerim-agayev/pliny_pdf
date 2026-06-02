@@ -23,3 +23,15 @@ mounted in `app/[locale]/layout.tsx`; tools import `{ toast }` from `sonner` dir
    under `ToolUI`.
 6. `@cantoo/pdf-lib` is installed; `lib/pdf/password.ts` already has `removePassword`/
    `protectPdf`. `isPdfEncrypted` reuses the same load pattern.
+
+## 2026-06-02 — Wave 3C gate fixes (overrides CLAUDE_3.md Wave 3C numbers)
+- **Compress DPIs recalibrated** from CLAUDE_3.md's 96/150/300 to **72/96/120** (q 0.35/0.55/0.72).
+  Reason: at 150/300 DPI the rasterized output of a normal screen-resolution PDF is *larger* than
+  the source, so never-inflate returned the original for Balanced/High (they appeared broken), and
+  300 DPI made large files crawl. Lower DPIs make all three presets reliably compress while staying
+  ordered (max < balanced < high). Never-inflate guarantee retained.
+- **Grayscale always returns the converted file.** CLAUDE_3.md said "if output > input, return the
+  original." In practice that handed back a *color* file for vector/small PDFs, defeating the tool.
+  Decision: the grayscale conversion is the deliverable — always return it; warn (toast) if it grew.
+- **User preference (defer to Phase 4):** user finds 3 compress presets unnecessary and would keep
+  only "Maximum". Presets are NOT removed now (only fixed); revisit consolidation in Phase 4.

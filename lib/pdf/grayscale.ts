@@ -2,22 +2,23 @@ import { PDFDocument } from "pdf-lib";
 import { getPdfjs } from "./pdfjs";
 
 // Cap raster resolution at 150 DPI (pdfjs scale 1.0 === 72 DPI) and embed JPEG
-// (much smaller than PNG) so grayscaling shrinks rather than inflates the file.
+// (much smaller than PNG) to keep the grayscale output as small as possible.
 const DPI = 150;
 const SCALE = DPI / 72;
-const JPEG_QUALITY = 0.8;
+const JPEG_QUALITY = 0.72;
 
 export interface GrayscaleResult {
   blob: Blob;
-  /** false when the grayscale output wasn't smaller, so the original was returned unchanged */
-  changed: boolean;
+  /** true when the grayscale output ended up larger than the original (still returned — converting is the point) */
+  inflated: boolean;
 }
 
 /**
  * Convert every page to grayscale by re-rasterizing it (pdfjs render → grayscale the
  * pixels → embed as a JPEG image page). Text becomes part of the image, like Compress's
- * raster pass. Never inflates: if the result isn't smaller than the input, the original
- * is returned with `changed: false`. `onProgress` reports page-by-page progress.
+ * raster pass. The grayscale result is ALWAYS returned (the conversion is the deliverable);
+ * if it happens to be larger than the original, `inflated` is set so the UI can warn —
+ * we never silently hand back the still-colored original. `onProgress` reports progress.
  */
 export async function grayscalePdf(
   file: File,
@@ -61,9 +62,8 @@ export async function grayscalePdf(
   }
 
   const data = await out.save();
-  if (data.byteLength >= buf.byteLength) {
-    // Couldn't reduce further — return the original rather than a larger file.
-    return { blob: new Blob([buf], { type: "application/pdf" }), changed: false };
-  }
-  return { blob: new Blob([data as BlobPart], { type: "application/pdf" }), changed: true };
+  return {
+    blob: new Blob([data as BlobPart], { type: "application/pdf" }),
+    inflated: data.byteLength > buf.byteLength,
+  };
 }

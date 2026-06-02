@@ -322,11 +322,11 @@
     "compress": {
       "subtitle": "PDF'nizi küçültün. Bir ön ayar seçip daha küçük bir dosya indirin.",
       "presetMax": "En yüksek sıkıştırma",
-      "presetMaxDesc": "En küçük dosya · 96 DPI · kalite 30",
+      "presetMaxDesc": "En küçük dosya · en güçlü sıkıştırma",
       "presetBalanced": "Dengeli",
-      "presetBalancedDesc": "Önerilen · 150 DPI · kalite 60",
+      "presetBalancedDesc": "Önerilen · iyi boyut ve kalite",
       "presetHigh": "Yüksek kalite",
-      "presetHighDesc": "En iyi kalite · 300 DPI · kalite 85",
+      "presetHighDesc": "En iyi kalite · en hafif sıkıştırma",
       "rasterNote": "Görüntü içeren PDF'lerde sıkıştırma sayfaları görüntüye çevirir — metin görüntünün parçası olur ve artık seçilemez. Yalnızca metin içeren PDF'ler kayıpsız sıkıştırılır.",
       "action": "PDF'yi sıkıştır",
       "savedBadge": "%{percent} tasarruf",
@@ -530,7 +530,7 @@
       "action": "Gri tonlamaya çevir",
       "successTitle": "Gri tonlamaya çevrildi.",
       "emptyTitle": "Gri tonlamaya çevirmek için bir PDF bırakın",
-      "notReduced": "Bu PDF daha fazla küçültülemedi — orijinal döndürülüyor."
+      "sizeGrew": "Gri tonlamaya çevrildi — dosyanın orijinalden büyük olduğunu unutmayın."
     },
     "flattenPdf": {
       "subtitle": "Form alanlarını ve açıklamaları sayfaya gömün, böylece düzenlenemez.",
