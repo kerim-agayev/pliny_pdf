@@ -11,6 +11,7 @@ import { remainingServerTool, remainingAi } from "@/lib/ratelimit";
 import { TOOLS, toolBySlug } from "@/lib/tools";
 import { formatBytes } from "@/lib/format";
 import { PrivacyBadge } from "@/components/shared/PrivacyBadge";
+import { RecentFiles } from "@/components/shared/RecentFiles";
 import {
   IconArrow,
   IconBolt,
@@ -119,6 +120,9 @@ export default async function DashboardRoute({
           <SideLabel>Library</SideLabel>
           <SideItem Icon={IconClock} label="Recent" href="/dashboard" active />
           <SideItem Icon={IconStar} label="Favorites" href="/tools" />
+          <div className="mt-3.5">
+            <RecentFiles compact />
+          </div>
         </div>
         <div>
           <SideLabel>Tools</SideLabel>

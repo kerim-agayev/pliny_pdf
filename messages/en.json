@@ -38,6 +38,11 @@
     "refundsBody": "We offer a 14-day money-back guarantee on Pro subscriptions. To request a refund, email <mail>support@plinypdf.com</mail> and include your order email and your Lemonsqueezy order number. We process refunds within 24 hours.",
     "contactBody": "For billing questions, bug reports, or anything else, email <mail>support@plinypdf.com</mail>. We respond within 24 hours."
   },
+  "RecentFiles": {
+    "heading": "Recent files",
+    "clear": "Clear history",
+    "privacy": "Stored in your browser only — never sent to us."
+  },
   "ComingSoon": {
     "badge": "Coming soon",
     "body": "This page isn't ready yet — it's on the roadmap for an upcoming sprint.",

@@ -38,6 +38,11 @@
     "refundsBody": "Pro aboneliklerinde 14 gün para iade garantisi sunuyoruz. İade talebi için <mail>support@plinypdf.com</mail> adresine sipariş e-postanızı ve Lemonsqueezy sipariş numaranızı ekleyerek yazın. İadeleri 24 saat içinde işleme alıyoruz.",
     "contactBody": "Faturalandırma soruları, hata bildirimleri veya başka her şey için <mail>support@plinypdf.com</mail> adresine yazın. 24 saat içinde yanıt veriyoruz."
   },
+  "RecentFiles": {
+    "heading": "Son dosyalar",
+    "clear": "Geçmişi temizle",
+    "privacy": "Yalnızca tarayıcınızda saklanır — bize gönderilmez."
+  },
   "ComingSoon": {
     "badge": "Yakında",
     "body": "Bu sayfa henüz hazır değil — yaklaşan bir sprintin yol haritasında.",

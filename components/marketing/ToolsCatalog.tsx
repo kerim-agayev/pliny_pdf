@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { CATEGORIES, TOOLS, type FilterCategory } from "@/lib/tools";
 import { ToolCard } from "@/components/shared/ToolCard";
+import { RecentFiles } from "@/components/shared/RecentFiles";
 
 export function ToolsCatalog({ initialCategory }: { initialCategory?: string }) {
   const t = useTranslations("ToolsPage");
@@ -61,6 +62,10 @@ export function ToolsCatalog({ initialCategory }: { initialCategory?: string }) 
           {filtered.map((tool) => (
             <ToolCard key={tool.id} toolId={tool.id} dotted />
           ))}
+        </div>
+
+        <div className="mt-12">
+          <RecentFiles />
         </div>
 
         <div

@@ -54,3 +54,12 @@ Per gate feedback, moved request-a-tool from footer to the bottom of /tools (the
 Deleted best-ilovepdf-alternatives-2026.md; wrote how-plinypdf-protects-your-privacy.md (965w,
 DevTools-verify angle, 24h-delete/no-training cloud note, localized internal links). Index/sitemap
 auto-update via lib/blog.ts. Build green; old slug 404s; /en/blog shows new post. Awaiting gate before 3F.
+
+## [2026-06-02] Wave 3E gate passed → 019e10e (post body) + fcbd595 (delete) pushed.
+
+## [2026-06-02] Wave 3F-1 recent files built (pre-gate)
+Approach: augment + chunked (user-approved). lib/recentFiles.ts (localStorage, max 10, metadata
+only). downloadBlob records on download (slug from path; no tools.ts import to keep format.ts
+server-safe). RecentFiles.tsx (full + compact, hidden if empty). Wired into /tools + dashboard
+sidebar; DB "Recent activity" untouched (complementary). RecentFiles i18n en/tr/ru. Build green,
+tsc clean. Populated state pending browser gate.
