@@ -42,4 +42,22 @@ Surgical chokepoint approach — shortcuts act on shared components via a
   multi-image, Editor) won't get Ctrl+D; Ctrl+O/Esc still work everywhere via the dropzone.
 - Verify: build green, no MISSING_MESSAGE. Live key handling needs browser gate.
 
-## 3F-3 — Toast wiring, augment (pending)
+## 3F-3 — Toast wiring (augment) ✅ (built, awaiting gate)
+Augment, not replace: the existing in-panel SuccessPanel/ErrorBanner UI stays; toasts are
+added at the SHARED-component level so one edit covers every tool that uses them (~27):
+- `ResultPanels.tsx`:
+  - `SuccessPanel` fires `toast.success(title)` on mount; new `quietToast` prop opts a tool
+    out when it already raises a richer success toast.
+  - `ErrorBanner` fires `toast.error(message ?? errorTitle)` on mount — reinforces the
+    in-panel error if it's scrolled out of view.
+  - Both use a stable toast `id` (`pp-tool-success` / `pp-tool-error`) so React StrictMode's
+    dev double-invoke collapses to ONE visible toast (also prevents stacking).
+- `CompressTool` passes `quietToast` (keeps its before→after size `toast.success`).
+  `GrayscalePdf` keeps the generic success toast + its conditional `sizeGrew` warning.
+- No duplication with FileDropzone: its toasts are input-validation (wrongType/tooLarge/
+  corrupt) fired BEFORE processing; the panel toasts are the processing result. No tool
+  raises its own *error* toast, so ErrorBanner never doubles one.
+- Coverage note: tools whose success uses a CUSTOM result panel rather than the shared
+  SuccessPanel (e.g. Summarize's AI output, PDF→JPG gallery) won't emit a success toast;
+  any of them that surface failures via ErrorBanner still get the error toast.
+- Verify: build green, no MISSING_MESSAGE. Live toast behaviour needs browser gate.

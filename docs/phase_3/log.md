@@ -57,6 +57,13 @@ auto-update via lib/blog.ts. Build green; old slug 404s; /en/blog shows new post
 
 ## [2026-06-02] Wave 3E gate passed → 019e10e (post body) + fcbd595 (delete) pushed.
 
+## [2026-06-02] Wave 3F-3 toast wiring built (pre-gate)
+Augment approach: toasts fired from shared SuccessPanel (success, `quietToast` opt-out) and
+ErrorBanner (error) on mount — one edit covers ~27 tools, existing panels kept. Stable toast
+ids dedupe StrictMode dev double-invoke. CompressTool opts out (keeps size toast); Grayscale
+keeps generic success + sizeGrew warning. No FileDropzone/tool error-toast duplication. Build
+green, no MISSING_MESSAGE. Live behaviour needs browser gate.
+
 ## [2026-06-02] Wave 3F-2 keyboard shortcuts built (pre-gate)
 Chokepoint approach (no per-tool edits): `useToolShortcuts` hook mounted once in ToolShell
 acts on `[data-pp-shortcut]` markers — Ctrl/Cmd+O (open via FileDropzone), Ctrl/Cmd+D

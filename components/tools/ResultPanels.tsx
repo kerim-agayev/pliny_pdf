@@ -1,25 +1,37 @@
 "use client";
 
+import { useEffect } from "react";
 import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 import { IconCheck, IconDownload, IconAlert, IconRefresh } from "@/components/shared/icons";
 import { Kbd, useModKey } from "@/components/shared/Kbd";
 
-/** Green success panel with a download button and a secondary action. */
+/** Green success panel with a download button and a secondary action.
+ * Fires a transient success toast on mount (Wave 3F-3, augmenting the panel).
+ * Tools that already raise a richer success toast (e.g. Compress shows the
+ * before→after size) pass `quietToast` to avoid a duplicate. */
 export function SuccessPanel({
   title,
   meta,
   onDownload,
   onReset,
   badge,
+  quietToast = false,
 }: {
   title: string;
   meta?: string;
   onDownload: () => void;
   onReset: () => void;
   badge?: string;
+  quietToast?: boolean;
 }) {
   const t = useTranslations("ToolUI");
   const mod = useModKey();
+  useEffect(() => {
+    // Stable id de-dupes React StrictMode's dev double-invoke into one toast.
+    if (!quietToast) toast.success(title, { id: "pp-tool-success" });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   return (
     <div
       className="rounded-[18px] p-7 sm:p-9"
@@ -87,6 +99,12 @@ export function ErrorBanner({
   onRetry: () => void;
 }) {
   const t = useTranslations("ToolUI");
+  useEffect(() => {
+    // Reinforce the in-panel error with a toast (in case the panel is scrolled
+    // out of view). Stable id de-dupes StrictMode's dev double-invoke.
+    toast.error(message ?? t("errorTitle"), { id: "pp-tool-error" });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   return (
     <div
       className="rounded-[14px] p-5"

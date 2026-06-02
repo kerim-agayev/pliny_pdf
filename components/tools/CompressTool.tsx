@@ -89,6 +89,7 @@ export function CompressTool() {
         badge={result.changed ? tp("savedBadge", { percent: saved }) : undefined}
         onDownload={() => downloadBlob(result.blob, `${baseName(file!.name)}-compressed.pdf`)}
         onReset={reset}
+        quietToast
       />
     );
   }
