@@ -23,9 +23,21 @@
     "blog": "Blog",
     "privacyPolicy": "Gizlilik",
     "terms": "Şartlar",
+    "support": "Destek",
+    "requestTool": "Bir araç mı eksik? Bize yazın:",
     "rights": "© {year} PlinyPDF · İzleme yok · Takip yok",
     "madeWith": "Gizlilik için",
     "forPrivacy": "ile yapıldı"
+  },
+  "Support": {
+    "title": "Destek ve İadeler",
+    "intro": "Yardım veya iade mi gerekiyor? Küçük bir ekibiz ve 24 saat içinde yanıt veriyoruz.",
+    "h": {
+      "refunds": "İadeler",
+      "contact": "İletişim"
+    },
+    "refundsBody": "Pro aboneliklerinde 14 gün para iade garantisi sunuyoruz. İade talebi için <mail>support@plinypdf.com</mail> adresine sipariş e-postanızı ve Lemonsqueezy sipariş numaranızı ekleyerek yazın. İadeleri 24 saat içinde işleme alıyoruz.",
+    "contactBody": "Faturalandırma soruları, hata bildirimleri veya başka her şey için <mail>support@plinypdf.com</mail> adresine yazın. 24 saat içinde yanıt veriyoruz."
   },
   "ComingSoon": {
     "badge": "Yakında",

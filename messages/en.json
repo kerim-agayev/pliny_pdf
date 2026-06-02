@@ -23,9 +23,21 @@
     "blog": "Blog",
     "privacyPolicy": "Privacy",
     "terms": "Terms",
+    "support": "Support",
+    "requestTool": "Missing a tool? Email us at",
     "rights": "© {year} PlinyPDF · No telemetry · No trackers",
     "madeWith": "Made with",
     "forPrivacy": "for privacy"
+  },
+  "Support": {
+    "title": "Support & Refunds",
+    "intro": "Need help or a refund? We're a small team and reply within 24 hours.",
+    "h": {
+      "refunds": "Refunds",
+      "contact": "Contact"
+    },
+    "refundsBody": "We offer a 14-day money-back guarantee on Pro subscriptions. To request a refund, email <mail>support@plinypdf.com</mail> and include your order email and your Lemonsqueezy order number. We process refunds within 24 hours.",
+    "contactBody": "For billing questions, bug reports, or anything else, email <mail>support@plinypdf.com</mail>. We respond within 24 hours."
   },
   "ComingSoon": {
     "badge": "Coming soon",

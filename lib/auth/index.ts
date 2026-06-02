@@ -37,6 +37,9 @@ export const auth = betterAuth({
     : {}),
   emailAndPassword: {
     enabled: true,
+    // Phase 3: email verification is intentionally OFF — signup goes straight to the
+    // dashboard, no verification email. (Was already the Better Auth default; made explicit.)
+    requireEmailVerification: false,
   },
   socialProviders: {
     google: {

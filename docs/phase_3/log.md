@@ -34,3 +34,14 @@ also fixes 26MB-file slowness. Bug2: Grayscale returned the color original (rast
 never-inflate). Now grayscale ALWAYS returns the converted file; warns (sizeGrew toast) if larger.
 Both documented in bugs.md + decisions.md (deviation from CLAUDE_3.md numbers). Build green, tsc clean.
 Awaiting user re-test.
+
+## [2026-06-02] Wave 3C re-test passed + tool caps added (c3f6912)
+User confirmed compress/grayscale fixes. Added per-tool caps (grayscale ≤10MB/100pg,
+compress ≤50MB/300pg) to prevent main-thread hangs on big PDFs.
+
+## [2026-06-02] Wave 3D built (pre-gate)
+Email verification confirmed off (made explicit: requireEmailVerification:false). Footer
+request-a-tool mailto (feedback@plinypdf.com) added (no prior link). New /support refund page
+(LegalShell) with support@plinypdf.com, 14-day guarantee + Lemonsqueezy order #; footer Support
+link + sitemap entry; Support namespace en/tr/ru. Build green, /support × 3 locales prerendered.
+Awaiting user gate before Wave 3E.
