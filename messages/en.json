@@ -321,18 +321,19 @@
     },
     "compress": {
       "subtitle": "Shrink your PDF. Choose a preset and download a smaller file.",
-      "presetScreen": "Screen",
-      "presetScreenDesc": "Optimized for digital viewing · smallest",
+      "presetMax": "Maximum compression",
+      "presetMaxDesc": "Smallest file · 96 DPI · quality 30",
       "presetBalanced": "Balanced",
-      "presetBalancedDesc": "Good quality · recommended",
-      "presetMaximum": "Maximum quality",
-      "presetMaximumDesc": "Light compression · best quality",
-      "rasterNote": "Compression rasterizes pages — text becomes part of the image and is no longer selectable.",
+      "presetBalancedDesc": "Recommended · 150 DPI · quality 60",
+      "presetHigh": "High quality",
+      "presetHighDesc": "Best quality · 300 DPI · quality 85",
+      "rasterNote": "For image PDFs, compression rasterizes pages — text becomes part of the image and is no longer selectable. Text-only PDFs are compressed losslessly.",
       "action": "Compress PDF",
       "savedBadge": "Saved {percent}%",
       "successTitle": "Compressed successfully.",
       "alreadyOptimized": "Already optimized — original kept.",
-      "smallFileNote": "This file is already small. Compression may not reduce it further."
+      "smallFileNote": "This file is already small. Compression may not reduce it further.",
+      "textOnlyNote": "This is a text PDF — most space is already optimized, so it compresses minimally."
     },
     "rotate": {
       "subtitle": "Rotate every page or just the ones you pick.",
@@ -528,7 +529,8 @@
       "progress": "Page {n} of {total}",
       "action": "Convert to grayscale",
       "successTitle": "Converted to grayscale.",
-      "emptyTitle": "Drop a PDF to convert to grayscale"
+      "emptyTitle": "Drop a PDF to convert to grayscale",
+      "notReduced": "This PDF couldn't be reduced further — returning the original."
     },
     "flattenPdf": {
       "subtitle": "Bake form fields and annotations into the page so they can't be edited.",

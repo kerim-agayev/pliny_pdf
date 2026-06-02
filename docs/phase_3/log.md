@@ -18,3 +18,11 @@ lib/limits.ts (local 100MB, cloud anon25/free50/pro200). Cloud tools pass plan-t
 Protect/Unlock opt out of auto-prompt; SplitTool 500-page cap; backend 413 enforcement in
 convert/ocr/ai routes; magic-byte (PDF + docx/doc). Build green, tsc clean, validation
 helpers unit-verified PASS. Awaiting user browser gate before Wave 3C.
+
+## [2026-06-02] Wave 3B gate passed → 34220f7 pushed. Badge "bug" investigated, not a bug (428a19e).
+
+## [2026-06-02] Wave 3C compress + grayscale built (pre-gate)
+Compress: 3 real presets max/balanced/high (96/150/300 DPI, q30/60/85), pure-text detection
+skips raster + textOnly toast, never-inflate kept, before/after toast. Grayscale: 150 DPI cap,
+JPEG not PNG, never-inflate (returns original + warning if not smaller). Build green, tsc clean.
+Canvas-dependent size diffs need browser gate. Awaiting user verification before Wave 3D.

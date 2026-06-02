@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 import { FileDropzone } from "./FileDropzone";
 import { FileInfoBar } from "./FileInfoBar";
 import { SuccessPanel, ErrorBanner } from "./ResultPanels";
@@ -21,14 +22,14 @@ export function CompressTool() {
   const [pages, setPages] = useState(0);
   const [preset, setPreset] = useState<CompressPreset>("balanced");
   const [status, setStatus] = useState<Status>("idle");
-  const [result, setResult] = useState<{ blob: Blob; originalSize: number; newSize: number; changed: boolean } | null>(null);
+  const [result, setResult] = useState<{ blob: Blob; originalSize: number; newSize: number; changed: boolean; textOnly: boolean } | null>(null);
   const [errorMsg, setErrorMsg] = useState<string>();
   const SMALL = 1024 * 1024;
 
   const PRESETS: { key: CompressPreset; title: string; desc: string }[] = [
-    { key: "screen", title: tp("presetScreen"), desc: tp("presetScreenDesc") },
+    { key: "max", title: tp("presetMax"), desc: tp("presetMaxDesc") },
     { key: "balanced", title: tp("presetBalanced"), desc: tp("presetBalancedDesc") },
-    { key: "maximum", title: tp("presetMaximum"), desc: tp("presetMaximumDesc") },
+    { key: "high", title: tp("presetHigh"), desc: tp("presetHighDesc") },
   ];
 
   async function onFiles(files: File[]) {
@@ -46,8 +47,15 @@ export function CompressTool() {
     if (!file) return;
     setStatus("processing");
     try {
-      setResult(await compressPdf(file, preset));
+      const res = await compressPdf(file, preset);
+      setResult(res);
       setStatus("done");
+      if (res.changed) {
+        toast.success(`${formatBytes(res.originalSize)} → ${formatBytes(res.newSize)}`);
+      }
+      if (res.textOnly) {
+        toast.info(tp("textOnlyNote"));
+      }
       analytics.toolUsed("compress-pdf");
     } catch {
       setStatus("error");

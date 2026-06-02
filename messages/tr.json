@@ -321,18 +321,19 @@
     },
     "compress": {
       "subtitle": "PDF'nizi küçültün. Bir ön ayar seçip daha küçük bir dosya indirin.",
-      "presetScreen": "Ekran",
-      "presetScreenDesc": "Dijital görüntüleme için · en küçük",
+      "presetMax": "En yüksek sıkıştırma",
+      "presetMaxDesc": "En küçük dosya · 96 DPI · kalite 30",
       "presetBalanced": "Dengeli",
-      "presetBalancedDesc": "İyi kalite · önerilen",
-      "presetMaximum": "En yüksek kalite",
-      "presetMaximumDesc": "Hafif sıkıştırma · en iyi kalite",
-      "rasterNote": "Sıkıştırma sayfaları görüntüye çevirir — metin görüntünün parçası olur ve artık seçilemez.",
+      "presetBalancedDesc": "Önerilen · 150 DPI · kalite 60",
+      "presetHigh": "Yüksek kalite",
+      "presetHighDesc": "En iyi kalite · 300 DPI · kalite 85",
+      "rasterNote": "Görüntü içeren PDF'lerde sıkıştırma sayfaları görüntüye çevirir — metin görüntünün parçası olur ve artık seçilemez. Yalnızca metin içeren PDF'ler kayıpsız sıkıştırılır.",
       "action": "PDF'yi sıkıştır",
       "savedBadge": "%{percent} tasarruf",
       "successTitle": "Başarıyla sıkıştırıldı.",
       "alreadyOptimized": "Zaten optimize — orijinal korundu.",
-      "smallFileNote": "Bu dosya zaten küçük. Sıkıştırma onu daha fazla küçültmeyebilir."
+      "smallFileNote": "Bu dosya zaten küçük. Sıkıştırma onu daha fazla küçültmeyebilir.",
+      "textOnlyNote": "Bu bir metin PDF'i — alanın çoğu zaten optimize, bu yüzden çok az sıkışır."
     },
     "rotate": {
       "subtitle": "Tüm sayfaları veya yalnızca seçtiklerinizi döndürün.",
@@ -528,7 +529,8 @@
       "progress": "Sayfa {n} / {total}",
       "action": "Gri tonlamaya çevir",
       "successTitle": "Gri tonlamaya çevrildi.",
-      "emptyTitle": "Gri tonlamaya çevirmek için bir PDF bırakın"
+      "emptyTitle": "Gri tonlamaya çevirmek için bir PDF bırakın",
+      "notReduced": "Bu PDF daha fazla küçültülemedi — orijinal döndürülüyor."
     },
     "flattenPdf": {
       "subtitle": "Form alanlarını ve açıklamaları sayfaya gömün, böylece düzenlenemez.",

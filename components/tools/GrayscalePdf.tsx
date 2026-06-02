@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 import { FileDropzone } from "./FileDropzone";
 import { FileInfoBar } from "./FileInfoBar";
 import { SuccessPanel, ErrorBanner } from "./ResultPanels";
@@ -42,9 +43,10 @@ export function GrayscalePdf() {
     setStatus("processing");
     setProgress({ page: 0, total: 0 });
     try {
-      const blob = await grayscalePdf(file, (page, total) => setProgress({ page, total }));
-      setResult(blob);
+      const res = await grayscalePdf(file, (page, total) => setProgress({ page, total }));
+      setResult(res.blob);
       setStatus("done");
+      if (!res.changed) toast.warning(tp("notReduced"));
       analytics.toolUsed("grayscale-pdf");
     } catch {
       setStatus("error");
