@@ -215,6 +215,26 @@
       "AI": "Yapay Zekâ"
     }
   },
+  "Errors": {
+    "fileTooLarge": "Bu dosya çok büyük. En fazla {limitMB} MB olabilir (dosyanız {fileMB} MB).",
+    "wrongType": "Bu dosya türü burada desteklenmiyor.",
+    "corruptPdf": "Bu PDF bozuk veya okunamıyor görünüyor.",
+    "passwordRequired": "Bu PDF parola korumalı.",
+    "wrongPassword": "Hatalı parola. Lütfen tekrar deneyin.",
+    "rateLimited": "Bugünkü sınıra ulaştınız. Yarın tekrar deneyin veya Pro'ya geçin.",
+    "networkError": "Ağ hatası. Bağlantınızı kontrol edip tekrar deneyin.",
+    "unknownError": "Bir şeyler ters gitti. Lütfen tekrar deneyin.",
+    "ocrFailed": "Metin tanıma başarısız oldu. Daha net bir tarama veya farklı bir dosya deneyin.",
+    "conversionFailed": "Dönüştürme başarısız oldu. Tekrar deneyin veya farklı bir dosya kullanın."
+  },
+  "PasswordModal": {
+    "title": "Parola korumalı",
+    "description": "Bu PDF kilitli. Devam etmek için parolasını girin.",
+    "placeholder": "Parola",
+    "unlock": "Kilidi aç",
+    "cancel": "İptal",
+    "tooManyAttempts": "Çok fazla deneme. Lütfen baştan başlayın."
+  },
   "ToolUI": {
     "home": "Ana Sayfa",
     "tools": "Araçlar",
@@ -231,6 +251,7 @@
     "verifyBody": "Geliştirici Araçları → Ağ'ı açın. Bu aracı çalıştırdığınızda hiçbir yükleme trafiği göremezsiniz.",
     "howWeVerify": "Nasıl doğruluyoruz →",
     "processing": "Yerel olarak işleniyor…",
+    "loading": "Dosya yükleniyor…",
     "localNote": "Tarayıcınızda çalışır · sıfır ağ isteği",
     "successTitle": "Hazır! Dosyanız indirilebilir.",
     "download": "İndir",

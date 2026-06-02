@@ -8,6 +8,7 @@ import { ThemeProvider } from "@/components/shared/ThemeProvider";
 import { PostHogProvider } from "@/components/analytics/PostHogProvider";
 import { Navbar } from "@/components/shared/Navbar";
 import { Footer } from "@/components/shared/Footer";
+import { Toaster } from "@/components/shared/Toaster";
 import { routing } from "@/i18n/routing";
 import { SITE_URL } from "@/lib/seo";
 import "../globals.css";
@@ -71,6 +72,7 @@ export default async function LocaleLayout({
                 <Navbar />
                 <main className="flex-1">{children}</main>
                 <Footer />
+                <Toaster />
               </TooltipProvider>
             </NextIntlClientProvider>
           </PostHogProvider>

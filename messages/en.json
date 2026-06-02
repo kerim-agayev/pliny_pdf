@@ -215,6 +215,26 @@
       "AI": "AI"
     }
   },
+  "Errors": {
+    "fileTooLarge": "This file is too large. Maximum is {limitMB} MB (your file is {fileMB} MB).",
+    "wrongType": "That file type isn't supported here.",
+    "corruptPdf": "This PDF appears to be damaged or unreadable.",
+    "passwordRequired": "This PDF is password protected.",
+    "wrongPassword": "Incorrect password. Please try again.",
+    "rateLimited": "You've reached today's limit. Try again tomorrow or upgrade to Pro.",
+    "networkError": "Network error. Check your connection and try again.",
+    "unknownError": "Something went wrong. Please try again.",
+    "ocrFailed": "Text recognition failed. Try a clearer scan or a different file.",
+    "conversionFailed": "Conversion failed. Please try again or use a different file."
+  },
+  "PasswordModal": {
+    "title": "Password protected",
+    "description": "This PDF is locked. Enter its password to continue.",
+    "placeholder": "Password",
+    "unlock": "Unlock",
+    "cancel": "Cancel",
+    "tooManyAttempts": "Too many attempts. Please start over."
+  },
   "ToolUI": {
     "home": "Home",
     "tools": "Tools",
@@ -231,6 +251,7 @@
     "verifyBody": "Open DevTools → Network. You'll see no upload traffic when you run this tool.",
     "howWeVerify": "How we verify →",
     "processing": "Processing locally…",
+    "loading": "Loading file…",
     "localNote": "Runs in your browser · zero network requests",
     "successTitle": "Done! Your file is ready.",
     "download": "Download",
