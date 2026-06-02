@@ -1,6 +1,6 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { ToolShell } from "@/components/tools/ToolShell";
-import { SplitTool } from "@/components/tools/SplitTool";
+import { ToolMount } from "@/components/tools/ToolMount";
 import { toolMetadata } from "@/lib/seo";
 import { toolSchemas } from "@/lib/structured-data";
 import { JsonLd } from "@/components/seo/JsonLd";
@@ -19,7 +19,7 @@ export default async function SplitPage({
     <>
       <JsonLd data={toolSchemas("split-pdf")} />
       <ToolShell toolId="split" subtitle={t("subtitle")} related={["merge", "rotate", "compress"]}>
-        <SplitTool />
+        <ToolMount component="SplitTool" />
       </ToolShell>
     </>
   );

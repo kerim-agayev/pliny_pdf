@@ -365,3 +365,13 @@ input[type="range"].pp-range::-moz-range-thumb {
 
 @keyframes ppspin { to { transform: rotate(360deg); } }
 @keyframes pppulse { 0%, 100% { opacity: 0.8; } 50% { opacity: 0.3; } }
+
+/* tool lazy-load skeleton (Wave 3G) */
+.pp-skeleton-wrap { display: flex; flex-direction: column; align-items: center; }
+@keyframes ppshimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+.pp-skeleton {
+  background: linear-gradient(90deg, rgba(127,127,127,0.08) 25%, rgba(127,127,127,0.16) 37%, rgba(127,127,127,0.08) 63%);
+  background-size: 200% 100%;
+  animation: ppshimmer 1.4s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) { .pp-skeleton { animation: pppulse 1.6s ease-in-out infinite; } }

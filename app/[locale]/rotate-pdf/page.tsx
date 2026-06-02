@@ -1,6 +1,6 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { ToolShell } from "@/components/tools/ToolShell";
-import { RotateTool } from "@/components/tools/RotateTool";
+import { ToolMount } from "@/components/tools/ToolMount";
 import { toolMetadata } from "@/lib/seo";
 import { toolSchemas } from "@/lib/structured-data";
 import { JsonLd } from "@/components/seo/JsonLd";
@@ -19,7 +19,7 @@ export default async function RotatePage({
     <>
       <JsonLd data={toolSchemas("rotate-pdf")} />
       <ToolShell toolId="rotate" subtitle={t("subtitle")} related={["merge", "split", "compress"]}>
-        <RotateTool />
+        <ToolMount component="RotateTool" />
       </ToolShell>
     </>
   );

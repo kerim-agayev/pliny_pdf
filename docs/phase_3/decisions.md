@@ -1,5 +1,18 @@
 # Phase 3 — Decisions
 
+## 2026-06-02 — Wave 3G worker scope = raster ops only (user-chosen at gate)
+The ops that actually freeze the UI are the canvas/raster tools (Compress, Grayscale,
+PDF→JPG); pure pdf-lib ops (Merge/Split/Organize/Crop/Redact) are fast and don't freeze.
+So 3G-3 moves ONLY the raster ops into a shared worker via OffscreenCanvas (pdfjs run
+inline in the worker), with a main-thread fallback — rather than the full 7-op list in
+CLAUDE_3.md. Best value-to-risk; lets us relax the 3C caps once off-main-thread.
+
+## 2026-06-02 — Wave 3G-1 lazy-load via central ToolMount registry, ssr:false
+Tool widgets are client-only (no SEO content), so each is `next/dynamic(..., {ssr:false})`
+behind a skeleton — keeps their pdf-lib/pdfjs/canvas JS out of the initial route payload.
+One registry (`ToolMount`) instead of 28 per-page wrappers; pages pass a component key
+(+ props for CloudConvertTool). The server-rendered ToolShell (SEO) is unaffected.
+
 ## 2026-06-02 — Toast library = sonner
 User-approved. ~3KB, Next.js 16 + React 19 compatible, battle-tested. One `<Toaster/>`
 mounted in `app/[locale]/layout.tsx`; tools import `{ toast }` from `sonner` directly

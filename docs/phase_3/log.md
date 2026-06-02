@@ -57,6 +57,13 @@ auto-update via lib/blog.ts. Build green; old slug 404s; /en/blog shows new post
 
 ## [2026-06-02] Wave 3E gate passed → 019e10e (post body) + fcbd595 (delete) pushed.
 
+## [2026-06-02] Wave 3G-1 lazy-load built (pre-gate)
+Worker scope decided at gate: raster ops only (decisions.md). 3G-1: central `ToolMount`
+client registry (`next/dynamic` ssr:false + `ToolSkeleton` shimmer) lazy-loads each tool
+widget on demand; all 28 pages render `<ToolMount component="X" />` (26 via deleted codemod,
+2 CloudConvert hand-edited for props). SEO shell stays server-rendered. Build green (exit 0,
+138 pages), no MISSING_MESSAGE. Skeleton/perceived-load needs browser gate.
+
 ## [2026-06-02] Wave 3F-3 toast wiring built (pre-gate)
 Augment approach: toasts fired from shared SuccessPanel (success, `quietToast` opt-out) and
 ErrorBanner (error) on mount — one edit covers ~27 tools, existing panels kept. Stable toast

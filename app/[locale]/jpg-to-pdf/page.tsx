@@ -1,6 +1,6 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { ToolShell } from "@/components/tools/ToolShell";
-import { JpgToPdfTool } from "@/components/tools/JpgToPdfTool";
+import { ToolMount } from "@/components/tools/ToolMount";
 import { toolMetadata } from "@/lib/seo";
 import { toolSchemas } from "@/lib/structured-data";
 import { JsonLd } from "@/components/seo/JsonLd";
@@ -19,7 +19,7 @@ export default async function JpgToPdfPage({
     <>
       <JsonLd data={toolSchemas("jpg-to-pdf")} />
       <ToolShell toolId="jpg-to-pdf" subtitle={t("subtitle")} related={["pdf-to-jpg", "merge", "compress"]}>
-        <JpgToPdfTool />
+        <ToolMount component="JpgToPdfTool" />
       </ToolShell>
     </>
   );

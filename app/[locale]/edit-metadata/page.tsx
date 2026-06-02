@@ -1,6 +1,6 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { ToolShell } from "@/components/tools/ToolShell";
-import { EditMetadata } from "@/components/tools/EditMetadata";
+import { ToolMount } from "@/components/tools/ToolMount";
 import { toolMetadata } from "@/lib/seo";
 import { toolSchemas } from "@/lib/structured-data";
 import { JsonLd } from "@/components/seo/JsonLd";
@@ -19,7 +19,7 @@ export default async function EditMetadataPage({
     <>
       <JsonLd data={toolSchemas("edit-metadata")} />
       <ToolShell toolId="edit-metadata" subtitle={t("subtitle")} related={["remove-metadata", "edit", "flatten-pdf"]}>
-        <EditMetadata />
+        <ToolMount component="EditMetadata" />
       </ToolShell>
     </>
   );

@@ -1,6 +1,6 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { ToolShell } from "@/components/tools/ToolShell";
-import { DeletePages } from "@/components/tools/DeletePages";
+import { ToolMount } from "@/components/tools/ToolMount";
 import { toolMetadata } from "@/lib/seo";
 import { toolSchemas } from "@/lib/structured-data";
 import { JsonLd } from "@/components/seo/JsonLd";
@@ -19,7 +19,7 @@ export default async function DeletePagesPage({
     <>
       <JsonLd data={toolSchemas("delete-pages")} />
       <ToolShell toolId="delete-pages" subtitle={t("subtitle")} related={["extract-pages", "split", "rotate"]}>
-        <DeletePages />
+        <ToolMount component="DeletePages" />
       </ToolShell>
     </>
   );

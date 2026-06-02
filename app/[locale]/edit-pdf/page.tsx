@@ -1,6 +1,6 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { ToolShell } from "@/components/tools/ToolShell";
-import { EditorTool } from "@/components/tools/EditorTool";
+import { ToolMount } from "@/components/tools/ToolMount";
 import { toolMetadata } from "@/lib/seo";
 import { toolSchemas } from "@/lib/structured-data";
 import { JsonLd } from "@/components/seo/JsonLd";
@@ -19,7 +19,7 @@ export default async function EditorPage({
     <>
       <JsonLd data={toolSchemas("edit-pdf")} />
       <ToolShell toolId="edit" subtitle={t("subtitle")} fullWidth>
-        <EditorTool />
+        <ToolMount component="EditorTool" />
       </ToolShell>
     </>
   );

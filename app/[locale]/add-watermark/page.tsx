@@ -1,6 +1,6 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { ToolShell } from "@/components/tools/ToolShell";
-import { WatermarkTool } from "@/components/tools/WatermarkTool";
+import { ToolMount } from "@/components/tools/ToolMount";
 import { toolMetadata } from "@/lib/seo";
 import { toolSchemas } from "@/lib/structured-data";
 import { JsonLd } from "@/components/seo/JsonLd";
@@ -15,7 +15,7 @@ export default async function WatermarkPage({ params }: { params: Promise<{ loca
     <>
       <JsonLd data={toolSchemas("add-watermark")} />
       <ToolShell toolId="watermark" subtitle={t("subtitle")} fullWidth>
-        <WatermarkTool />
+        <ToolMount component="WatermarkTool" />
       </ToolShell>
     </>
   );

@@ -1,6 +1,6 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { ToolShell } from "@/components/tools/ToolShell";
-import { SummarizeTool } from "@/components/tools/SummarizeTool";
+import { ToolMount } from "@/components/tools/ToolMount";
 import { toolMetadata } from "@/lib/seo";
 import { toolSchemas } from "@/lib/structured-data";
 import { JsonLd } from "@/components/seo/JsonLd";
@@ -19,7 +19,7 @@ export default async function SummarizePage({
     <>
       <JsonLd data={toolSchemas("summarize")} />
       <ToolShell toolId="summarize" subtitle={t("subtitle")} related={["pdf-to-word", "merge", "compress"]}>
-        <SummarizeTool />
+        <ToolMount component="SummarizeTool" />
       </ToolShell>
     </>
   );

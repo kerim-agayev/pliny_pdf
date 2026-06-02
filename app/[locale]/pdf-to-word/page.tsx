@@ -1,6 +1,6 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { ToolShell } from "@/components/tools/ToolShell";
-import { CloudConvertTool } from "@/components/tools/CloudConvertTool";
+import { ToolMount } from "@/components/tools/ToolMount";
 import { toolMetadata } from "@/lib/seo";
 import { toolSchemas } from "@/lib/structured-data";
 import { JsonLd } from "@/components/seo/JsonLd";
@@ -19,11 +19,14 @@ export default async function PdfToWordPage({
     <>
       <JsonLd data={toolSchemas("pdf-to-word")} />
       <ToolShell toolId="pdf-to-word" subtitle={t("subtitle")} related={["word-to-pdf", "merge", "compress"]}>
-        <CloudConvertTool
-          namespace="ToolPages.pdfToWord"
-          accept="pdf"
-          endpoint="/api/convert/pdf-to-word"
-          outExt=".docx"
+        <ToolMount
+          component="CloudConvertTool"
+          props={{
+            namespace: "ToolPages.pdfToWord",
+            accept: "pdf",
+            endpoint: "/api/convert/pdf-to-word",
+            outExt: ".docx",
+          }}
         />
       </ToolShell>
     </>

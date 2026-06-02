@@ -1,6 +1,6 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { ToolShell } from "@/components/tools/ToolShell";
-import { MergeTool } from "@/components/tools/MergeTool";
+import { ToolMount } from "@/components/tools/ToolMount";
 import { toolMetadata } from "@/lib/seo";
 import { toolSchemas } from "@/lib/structured-data";
 import { JsonLd } from "@/components/seo/JsonLd";
@@ -19,7 +19,7 @@ export default async function MergePage({
     <>
       <JsonLd data={toolSchemas("merge-pdf")} />
       <ToolShell toolId="merge" subtitle={t("subtitle")} related={["split", "compress", "rotate"]}>
-        <MergeTool />
+        <ToolMount component="MergeTool" />
       </ToolShell>
     </>
   );

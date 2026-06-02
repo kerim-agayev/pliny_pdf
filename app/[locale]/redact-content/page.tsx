@@ -1,6 +1,6 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { ToolShell } from "@/components/tools/ToolShell";
-import { RedactContent } from "@/components/tools/RedactContent";
+import { ToolMount } from "@/components/tools/ToolMount";
 import { toolMetadata } from "@/lib/seo";
 import { toolSchemas } from "@/lib/structured-data";
 import { JsonLd } from "@/components/seo/JsonLd";
@@ -19,7 +19,7 @@ export default async function RedactContentPage({
     <>
       <JsonLd data={toolSchemas("redact-content")} />
       <ToolShell toolId="redact-content" subtitle={t("subtitle")} related={["edit", "sign-pdf", "protect"]} fullWidth>
-        <RedactContent />
+        <ToolMount component="RedactContent" />
       </ToolShell>
     </>
   );

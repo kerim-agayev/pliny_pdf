@@ -1,6 +1,6 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { ToolShell } from "@/components/tools/ToolShell";
-import { FlattenPdf } from "@/components/tools/FlattenPdf";
+import { ToolMount } from "@/components/tools/ToolMount";
 import { toolMetadata } from "@/lib/seo";
 import { toolSchemas } from "@/lib/structured-data";
 import { JsonLd } from "@/components/seo/JsonLd";
@@ -19,7 +19,7 @@ export default async function FlattenPdfPage({
     <>
       <JsonLd data={toolSchemas("flatten-pdf")} />
       <ToolShell toolId="flatten-pdf" subtitle={t("subtitle")} related={["edit", "remove-metadata", "compress"]}>
-        <FlattenPdf />
+        <ToolMount component="FlattenPdf" />
       </ToolShell>
     </>
   );

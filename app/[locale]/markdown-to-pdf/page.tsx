@@ -1,6 +1,6 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { ToolShell } from "@/components/tools/ToolShell";
-import { MarkdownToPdf } from "@/components/tools/MarkdownToPdf";
+import { ToolMount } from "@/components/tools/ToolMount";
 import { toolMetadata } from "@/lib/seo";
 import { toolSchemas } from "@/lib/structured-data";
 import { JsonLd } from "@/components/seo/JsonLd";
@@ -19,7 +19,7 @@ export default async function MarkdownToPdfPage({
     <>
       <JsonLd data={toolSchemas("markdown-to-pdf")} />
       <ToolShell toolId="markdown-to-pdf" subtitle={t("subtitle")} related={["text-to-pdf", "word-to-pdf", "jpg-to-pdf"]} fullWidth>
-        <MarkdownToPdf />
+        <ToolMount component="MarkdownToPdf" />
       </ToolShell>
     </>
   );

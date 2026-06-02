@@ -1,6 +1,6 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { ToolShell } from "@/components/tools/ToolShell";
-import { GrayscalePdf } from "@/components/tools/GrayscalePdf";
+import { ToolMount } from "@/components/tools/ToolMount";
 import { toolMetadata } from "@/lib/seo";
 import { toolSchemas } from "@/lib/structured-data";
 import { JsonLd } from "@/components/seo/JsonLd";
@@ -19,7 +19,7 @@ export default async function GrayscalePdfPage({
     <>
       <JsonLd data={toolSchemas("grayscale-pdf")} />
       <ToolShell toolId="grayscale-pdf" subtitle={t("subtitle")} related={["compress", "crop-pdf", "edit"]}>
-        <GrayscalePdf />
+        <ToolMount component="GrayscalePdf" />
       </ToolShell>
     </>
   );

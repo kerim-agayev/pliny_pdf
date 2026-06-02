@@ -1,6 +1,6 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { ToolShell } from "@/components/tools/ToolShell";
-import { OcrPdf } from "@/components/tools/OcrPdf";
+import { ToolMount } from "@/components/tools/ToolMount";
 import { toolMetadata } from "@/lib/seo";
 import { toolSchemas } from "@/lib/structured-data";
 import { JsonLd } from "@/components/seo/JsonLd";
@@ -19,7 +19,7 @@ export default async function OcrPdfPage({
     <>
       <JsonLd data={toolSchemas("ocr-pdf")} />
       <ToolShell toolId="ocr-pdf" subtitle={t("subtitle")} related={["pdf-to-word", "summarize", "compress"]}>
-        <OcrPdf />
+        <ToolMount component="OcrPdf" />
       </ToolShell>
     </>
   );

@@ -1,6 +1,6 @@
 import { setRequestLocale, getTranslations } from "next-intl/server";
 import { ToolShell } from "@/components/tools/ToolShell";
-import { ProtectTool } from "@/components/tools/ProtectTool";
+import { ToolMount } from "@/components/tools/ToolMount";
 import { toolMetadata } from "@/lib/seo";
 import { toolSchemas } from "@/lib/structured-data";
 import { JsonLd } from "@/components/seo/JsonLd";
@@ -19,7 +19,7 @@ export default async function ProtectPage({
     <>
       <JsonLd data={toolSchemas("password-protect")} />
       <ToolShell toolId="protect" subtitle={t("subtitle")} related={["unlock", "merge", "compress"]}>
-        <ProtectTool />
+        <ToolMount component="ProtectTool" />
       </ToolShell>
     </>
   );
