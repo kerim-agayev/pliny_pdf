@@ -45,3 +45,12 @@ request-a-tool mailto (feedback@plinypdf.com) added (no prior link). New /suppor
 (LegalShell) with support@plinypdf.com, 14-day guarantee + Lemonsqueezy order #; footer Support
 link + sitemap entry; Support namespace en/tr/ru. Build green, /support × 3 locales prerendered.
 Awaiting user gate before Wave 3E.
+
+## [2026-06-02] Wave 3D gate fix (6017cdc)
+Per gate feedback, moved request-a-tool from footer to the bottom of /tools (the existing
+"Missing a tool?" section's dead button → mailto:feedback@plinypdf.com). Removed footer line.
+
+## [2026-06-02] Wave 3E built (pre-gate)
+Deleted best-ilovepdf-alternatives-2026.md; wrote how-plinypdf-protects-your-privacy.md (965w,
+DevTools-verify angle, 24h-delete/no-training cloud note, localized internal links). Index/sitemap
+auto-update via lib/blog.ts. Build green; old slug 404s; /en/blog shows new post. Awaiting gate before 3F.
