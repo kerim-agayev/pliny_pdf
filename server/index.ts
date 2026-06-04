@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/bun";
 import { Elysia } from "elysia";
 import { cors } from "@elysiajs/cors";
 import { health } from "./routes/health";
@@ -5,6 +6,10 @@ import { convert } from "./routes/convert";
 import { ocr } from "./routes/ocr";
 import { ai } from "./routes/ai";
 import { billing } from "./routes/billing";
+
+// Error tracking. No-op when SENTRY_DSN is unset, so local dev is unaffected.
+const SENTRY_DSN = process.env.SENTRY_DSN;
+Sentry.init({ dsn: SENTRY_DSN, enabled: !!SENTRY_DSN, tracesSampleRate: 0.1 });
 
 /**
  * PlinyPDF backend (Bun + Elysia). Separate process from Next.js — it owns the
@@ -17,6 +22,12 @@ const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN ?? "http://localhost:3000";
 
 const app = new Elysia()
   .use(cors({ origin: FRONTEND_ORIGIN, credentials: true }))
+  .onError(({ error, code }) => {
+    // Don't report routine 404s / validation noise — only real failures.
+    if (code !== "NOT_FOUND" && code !== "VALIDATION") {
+      Sentry.captureException(error);
+    }
+  })
   .use(health)
   .use(convert)
   .use(ocr)
