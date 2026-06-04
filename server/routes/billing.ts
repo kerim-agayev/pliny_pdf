@@ -5,7 +5,11 @@ import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { users, subscriptions } from "@/lib/db/schema";
 
-const FRONTEND = process.env.FRONTEND_ORIGIN ?? "http://localhost:3000";
+// FRONTEND_ORIGIN may list multiple origins (apex + www). Use the first (canonical)
+// one for the post-checkout redirect — a comma-joined value is not a valid URL.
+const FRONTEND = (process.env.FRONTEND_ORIGIN ?? "http://localhost:3000")
+  .split(",")[0]
+  .trim();
 
 /** subscription_* statuses that grant Pro. Everything else falls back to free. */
 const PRO_STATUSES = new Set(["active", "on_trial"]);
