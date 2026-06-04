@@ -191,22 +191,27 @@ Use the existing `LEMONSQUEEZY_WEBHOOK_SECRET`. Subscribe to `subscription_*` ev
 
 ---
 
-## ⏸ Remaining when domain is purchased (BLOCKED — deferred)
+## ✅ Domain launch — DONE (2026-06-04)
 
-As of 2026-05-31, `plinypdf.com` is **not bought yet** (deferred until stakeholder approval).
-Phase B steps 1-6 are done and the backend is healthy at `http://49.13.119.27:8080` internally.
-The steps below are everything that still needs the domain. Resume here once it's purchased:
+`plinypdf.com` is purchased (Cloudflare) and **production is live**. All steps below are
+complete; GATE C (full e2e) passed. Kept here as the executed record.
 
-1. **Phase B step 7 — DNS:** in Cloudflare, add `A` record `api` → `49.13.119.27`,
-   **DNS only (grey cloud)**. Verify on the server: `dig +short api.plinypdf.com` → the IP.
-2. **Phase B step 8 — Caddy:** install Caddy, `cp deploy/Caddyfile /etc/caddy/Caddyfile`,
-   `systemctl reload caddy`, watch `journalctl -u caddy` for cert issuance.
-   → **GATE 1:** `curl https://api.plinypdf.com/api/health` from outside returns the health JSON.
-3. **Phase C — Vercel:** connect the repo, set env (NEXT_PUBLIC_API_URL, BETTER_AUTH_URL,
-   COOKIE_DOMAIN, TRUSTED_ORIGINS, DATABASE_URL, BETTER_AUTH_SECRET, GOOGLE_*), deploy, add the
-   custom domain `plinypdf.com` (+ www), point root DNS to Vercel. (Full detail in Phase C above.)
-4. **Google OAuth:** add redirect URI `https://plinypdf.com/api/auth/callback/google`.
-5. **Lemonsqueezy:** set webhook URL → `https://api.plinypdf.com/api/webhooks/lemonsqueezy`
-   (stay in **test mode** until launch).
-6. → **GATE 2:** full end-to-end on `https://plinypdf.com` (signup · PDF→Word · Watermark ·
-   checkout opens · test-card payment flips plan to Pro).
+1. ✅ **Phase B7 — DNS:** Cloudflare `A` record `api` → `49.13.119.27`, **DNS-only (grey cloud)**.
+2. ✅ **Phase B8 — Caddy:** installed on Hetzner, `deploy/Caddyfile` → `/etc/caddy/Caddyfile`,
+   reloaded; Let's Encrypt cert auto-issued.
+   → **GATE 1 passed:** `https://api.plinypdf.com/api/health` returns the health JSON.
+3. ✅ **Phase C — Vercel:** repo connected, Production env set (NEXT_PUBLIC_API_URL,
+   BETTER_AUTH_URL, COOKIE_DOMAIN, TRUSTED_ORIGINS, NEXT_PUBLIC_SITE_URL, PostHog +
+   Sentry keys), custom domains `plinypdf.com` + `www.plinypdf.com` added, root DNS → Vercel.
+4. ✅ **Hetzner prod env:** `/opt/pliny_pdf/.env.local` updated (FRONTEND_ORIGIN + TRUSTED_ORIGINS
+   apex+www, COOKIE_DOMAIN=.plinypdf.com, SENTRY_DSN), backend restarted.
+5. ✅ **Google OAuth:** redirect URI `https://plinypdf.com/api/auth/callback/google` + JS origin.
+6. ✅ **Lemonsqueezy:** webhook → `https://api.plinypdf.com/api/webhooks/lemonsqueezy`
+   (**still test mode** — switch to live before accepting real payments).
+7. ✅ **Analytics:** PostHog (EU region) + Sentry (frontend @sentry/nextjs + backend @sentry/bun).
+   → **GATE C passed:** full incognito e2e — home, local + cloud tools, email + Google auth,
+   AI Summarize, test-card Pro upgrade, /en /tr /ru, PostHog events, Sentry capture.
+
+**Note (multi-origin):** serving apex + www makes `FRONTEND_ORIGIN` a comma-separated list;
+the backend splits it (array → CORS, first origin → checkout redirect). A future 301 www→apex
+would let it collapse back to a single origin. See `docs/decisions.md`.

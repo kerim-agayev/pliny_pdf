@@ -4,29 +4,24 @@
 > Drill down to the relevant `sprints/sprint-XX.md` only when detail is needed.
 
 ## Current Status
-- Phase: 1 (Launch Prep)
-- Sprint 7-8: **PARTIALLY COMPLETE**
-- Completed: Tasks 1-6 (docs, content, SEO, analytics, mobile, launch)
-- BLOCKED: Domain purchase pending stakeholder approval
+- Phase: 1 — **COMPLETE** 🚀 (plinypdf.com is LIVE, 2026-06-04)
+- Sprint 7-8: **COMPLETE**
+- Production: `https://plinypdf.com` (Vercel) + `https://api.plinypdf.com` (Hetzner + Caddy SSL)
+- GATE C (full e2e) passed: home, local + cloud tools, email + Google auth, AI Summarize,
+  test-card Pro upgrade, /en /tr /ru, PostHog events, Sentry error capture — all green.
 
-### Next step (when domain purchased)
-1. Buy plinypdf.com from Cloudflare Registrar (~$10/yr)
-2. Cloudflare DNS: add `api.plinypdf.com` A record → `49.13.119.27` (DNS-only, grey cloud, NOT proxied)
-3. SSH to Hetzner: install Caddy, copy `deploy/Caddyfile`, reload
-4. Vercel: connect GitHub repo, set env vars, deploy, add custom domain `plinypdf.com`
-5. Google Console: add `https://plinypdf.com/api/auth/callback/google`
-6. Lemonsqueezy: update webhook URL to `https://api.plinypdf.com/api/webhooks/lemonsqueezy`
-7. Add `NEXT_PUBLIC_POSTHOG_KEY` to Vercel env (PostHog dormant until then)
-8. Add Sentry after domain is live (deferred — no production yet)
-9. GATE 2: full e2e test on `https://plinypdf.com` (incognito): signup, PDF→Word, Watermark, pricing checkout, test-card Pro upgrade, plan flip, /en /tr /ru
-
-Full runbook already in `deploy/README.md` under "Remaining when domain is purchased".
+### Next step
+- Phase 1 launch execution: ProductHunt + Show HN + Reddit (drafts in `deploy/LAUNCH.md`).
+- Lemonsqueezy is still in **test mode** — switch to live before accepting real payments
+  (see `docs/decisions.md` → "Lemonsqueezy stays in test mode").
+- Optional follow-up: 301-redirect `www` → apex for a single canonical host (both currently serve).
 
 ## Completed Sprints
 - Sprint 1-2: Foundation — Next.js 16 + Tailwind 4 + shadcn/ui + next-intl (en/tr/ru) + design tokens + docker-compose + placeholder shared UI — 2026-05-29
 - Sprint 3-4: Claude Design handoff (6 screens, dark/light theme toggle) + 10 local PDF tools (pdf-lib / pdfjs-dist / @cantoo/pdf-lib / fabric.js) + coming-soon placeholders; round of bug fixes from user testing — 2026-05-30
 - Sprint 5-6: Bun/Elysia backend (:8080) + Supabase/Drizzle + Better Auth (email + Google) + PDF↔Word (Gotenberg HTTP + docker-exec LibreOffice) + R2 + Gemini 2.5 Flash Summarize + Upstash rate limits + Lemonsqueezy billing (checkout + HMAC webhook) + dynamic auth-guarded Free/Pro dashboard with file-history cleanup — 2026-05-31
 - Sprint 7-8 (partial): deploy artifacts + cross-subdomain auth; Hetzner backend live (steps 1-6); real About/Privacy/Terms + 5 blog posts; SEO (sitemap/robots/OG/JSON-LD/canonicals); PostHog analytics; mobile Navbar menu; launch materials. Domain steps + Vercel deferred until plinypdf.com purchased — 2026-05-31
+- Sprint 7-8 (domain launch): plinypdf.com purchased (Cloudflare); Phase B7-8 (DNS + Caddy SSL on api.plinypdf.com) + Phase C (Vercel frontend, custom domains apex+www, Hetzner prod env, Google OAuth, Lemonsqueezy webhook); PostHog activated (EU region); Sentry added (frontend @sentry/nextjs + backend @sentry/bun, DSN-gated); fixed multi-origin CORS + checkout redirect (FRONTEND_ORIGIN now apex+www); GATE C full e2e green. **Phase 1 COMPLETE** — 2026-06-04
 
 ## Key Files
 - `CLAUDE.md` — working rules, tech stack, Phase 1 scope

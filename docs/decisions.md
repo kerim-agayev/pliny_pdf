@@ -150,3 +150,36 @@ Blog post bodies are English only. Only UI chrome (title/subtitle/"min read" lab
 Do NOT switch to live mode without explicit user confirmation.
 Test cards work: 4242 4242 4242 4242 (any future date, any CVV).
 Switch to live mode only at actual public launch.
+
+## Domain launch decisions (2026-06-04)
+
+> These supersede the "deferred" notes above — domain is purchased and prod is live.
+
+### Domain purchased — plinypdf.com on Cloudflare
+Bought and managed on Cloudflare. `api` is an A record → 49.13.119.27, **DNS-only (grey
+cloud)** so Caddy can complete the ACME challenge and own TLS; the apex + www records are
+proxied (orange) and point at Vercel, which terminates their TLS. Phase B7-8 + Phase C
+executed per `deploy/README.md`; GATE C (full e2e) passed.
+
+### PostHog — EU region
+`NEXT_PUBLIC_POSTHOG_HOST=https://eu.i.posthog.com` (key in Vercel). The provider defaults
+to the US host, so the EU host MUST be set explicitly. Chosen for EU data residency,
+consistent with the Sentry EU project.
+
+### Sentry — frontend + backend, manual config, EU project
+Added now that prod exists (was deferred). Frontend `@sentry/nextjs`, backend `@sentry/bun`.
+Configured **manually**, not via `npx @sentry/wizard`: the wizard is interactive and not
+reliable on Next.js 16 + Bun in this environment. All `Sentry.init` is DSN-gated
+(`enabled: !!dsn`) so local dev / CI builds stay no-op. Frontend DSN is
+`NEXT_PUBLIC_SENTRY_DSN` (inlined at build → redeploy without cache after changing it);
+backend DSN is `SENTRY_DSN`. One EU project covers both for Phase 1 (can split later).
+Gotcha learned: a `throw` typed in the DevTools console does not reach `window.onerror`,
+so it is NOT a valid Sentry test — use `Sentry.captureException/captureMessage` or a real
+in-app error.
+
+### Multi-origin CORS + checkout redirect (apex + www)
+Serving both apex and www made `FRONTEND_ORIGIN` a comma-separated list, which broke two
+single-string assumptions: `@elysiajs/cors` matched no Origin (dropped the CORS header),
+and the Lemonsqueezy `redirect_url` became an invalid comma-joined URL. Fix: backend splits
+`FRONTEND_ORIGIN` — array → cors, first (canonical) origin → checkout redirect. If we later
+301 www→apex, `FRONTEND_ORIGIN` can collapse back to a single origin (handling stays safe).

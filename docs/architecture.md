@@ -74,34 +74,57 @@ System architecture summary. Updated whenever a new architectural decision lands
   recent `file_history`, and live usage; purges old history (7d Free / 30d Pro) on load.
   Free and Pro variants branch on `plan`.
 
-## Production topology — Sprint 7-8 (partial)
+## Production topology — LIVE (since 2026-06-04)
 
-### What is live
-Hetzner CPX21 server (49.13.119.27, Falkenstein, Ubuntu 24.04):
+```
+                     Cloudflare DNS (plinypdf.com)
+  plinypdf.com / www ──(proxied)──► Vercel ─ Next.js frontend (own TLS)
+  api.plinypdf.com ──(A, DNS-only)─► Hetzner ─ Caddy :443 (Let's Encrypt)
+                                                 └► Bun/Elysia backend :8080
+                                                      └► Gotenberg 127.0.0.1:3001 (Docker)
+```
+
+### Frontend — Vercel
+- Project `pliny-pdf`, custom domains `plinypdf.com` + `www.plinypdf.com` (both serve;
+  301 www→apex is an optional future cleanup). Auto-deploys from `origin/main`.
+- Key env (Production): NEXT_PUBLIC_API_URL=https://api.plinypdf.com,
+  BETTER_AUTH_URL=https://plinypdf.com, COOKIE_DOMAIN=.plinypdf.com,
+  TRUSTED_ORIGINS=https://plinypdf.com,https://api.plinypdf.com,
+  NEXT_PUBLIC_SITE_URL=https://plinypdf.com,
+  NEXT_PUBLIC_POSTHOG_KEY + NEXT_PUBLIC_POSTHOG_HOST=https://eu.i.posthog.com,
+  NEXT_PUBLIC_SENTRY_DSN.
+  > `NEXT_PUBLIC_*` vars are inlined at build time — after changing one, redeploy
+  > **without build cache** or the bundle keeps the old (often undefined) value.
+
+### Backend — Hetzner CPX21 (49.13.119.27, Falkenstein, Ubuntu 24.04)
+- Caddy: reverse proxy on :443, auto-issued Let's Encrypt cert for api.plinypdf.com
+  (config from deploy/Caddyfile → /etc/caddy/Caddyfile). Proxies → localhost:8080.
 - Bun/Elysia backend: port 8080, systemd managed (auto-restart on crash/boot)
   - Service file: /etc/systemd/system/plinypdf-backend.service
-  - Working dir: /opt/pliny_pdf
-  - Env: /opt/pliny_pdf/.env.local
-  - Start: systemctl start plinypdf-backend
-  - Restart: systemctl restart plinypdf-backend
-  - Logs: journalctl -u plinypdf-backend -f
+  - Working dir: /opt/pliny_pdf · Env: /opt/pliny_pdf/.env.local
+  - Restart: systemctl restart plinypdf-backend · Logs: journalctl -u plinypdf-backend -f
+  - Prod env: FRONTEND_ORIGIN + TRUSTED_ORIGINS list apex+www; COOKIE_DOMAIN=.plinypdf.com;
+    SENTRY_DSN set (backend error capture via Elysia .onError).
 - Gotenberg: 127.0.0.1:3001 (Docker, localhost-only, LibreOffice + Chromium)
-  - Start: cd /opt/pliny_pdf && docker compose -f docker-compose.prod.yml up -d
-  - Health: curl http://localhost:3001/health
 - UFW firewall: 22/80/443 open, 8080/3001 internal only
 
-### What is NOT live (pending domain)
-- Caddy reverse proxy: NOT installed
-  - Config ready at deploy/Caddyfile
-  - Will proxy api.plinypdf.com → localhost:8080
-  - Will auto-issue Let's Encrypt SSL for api.plinypdf.com
-- Vercel frontend: NOT deployed
-- Custom domain plinypdf.com: NOT purchased
-
-### Cross-subdomain auth (how it works when domain is wired)
+### Cross-subdomain auth
 Cookie set on plinypdf.com with Domain=.plinypdf.com reaches api.plinypdf.com because they share eTLD+1.
 Config: COOKIE_DOMAIN=.plinypdf.com in both Vercel and Hetzner .env.local.
-Without this: auth breaks on Vercel URL (*.vercel.app ≠ api.plinypdf.com).
+Without this: auth breaks on the Vercel URL (*.vercel.app ≠ api.plinypdf.com).
+
+### CORS / redirects with multiple frontend origins
+FRONTEND_ORIGIN is a comma-separated list (apex + www). The backend splits it:
+`server/index.ts` passes the array to `@elysiajs/cors` (a single joined string matches
+no Origin and drops the CORS header); `server/routes/billing.ts` uses the first
+(canonical) origin for the Lemonsqueezy `redirect_url` (a joined string is not a valid URL).
+
+### Error tracking — Sentry (EU region)
+- Frontend: @sentry/nextjs — instrumentation.ts (server/edge register + onRequestError),
+  instrumentation-client.ts (browser init), sentry.{server,edge}.config.ts; next.config.ts
+  wrapped with withSentryConfig. DSN via NEXT_PUBLIC_SENTRY_DSN.
+- Backend: @sentry/bun — Sentry.init + Elysia .onError capture hook. DSN via SENTRY_DSN.
+- All init DSN-gated (enabled: !!dsn) → no-op locally. EU project (ingest.de.sentry.io).
 
 ### Blog system
 - Posts: content/blog/*.md (gray-matter frontmatter)
