@@ -18,10 +18,16 @@ Sentry.init({ dsn: SENTRY_DSN, enabled: !!SENTRY_DSN, tracesSampleRate: 0.1 });
  * credentials so the Better Auth cookie reaches us for session validation.
  */
 const PORT = Number(process.env.SERVER_PORT ?? 8080);
-const FRONTEND_ORIGIN = process.env.FRONTEND_ORIGIN ?? "http://localhost:3000";
+// FRONTEND_ORIGIN may be a comma-separated list (apex + www in prod). Split into
+// an array so @elysiajs/cors matches each allowed origin individually — a single
+// joined string never matches any request Origin and drops the CORS header.
+const FRONTEND_ORIGINS = (process.env.FRONTEND_ORIGIN ?? "http://localhost:3000")
+  .split(",")
+  .map((o) => o.trim())
+  .filter(Boolean);
 
 const app = new Elysia()
-  .use(cors({ origin: FRONTEND_ORIGIN, credentials: true }))
+  .use(cors({ origin: FRONTEND_ORIGINS, credentials: true }))
   .onError(({ error, code }) => {
     // Don't report routine 404s / validation noise — only real failures.
     if (code !== "NOT_FOUND" && code !== "VALIDATION") {
