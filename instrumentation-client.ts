@@ -20,4 +20,12 @@ Sentry.init({
   replaysOnErrorSampleRate: 0,
 });
 
+// TEMPORARY DIAGNOSTIC — fires on every page load. If this appears in Sentry
+// Issues, the DSN/transport/project path works end-to-end and the earlier
+// failure was the test method (console-thrown errors don't hit window.onerror).
+// Remove this block once confirmed.
+if (dsn) {
+  Sentry.captureMessage("Sentry test message (client init)", "error");
+}
+
 export const onRouterTransitionStart = Sentry.captureRouterTransitionStart;
