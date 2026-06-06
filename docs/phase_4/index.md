@@ -2,12 +2,12 @@
 
 ## Current Status
 - Phase: 4
-- Active wave: **4A — Backend: PyMuPDF service (Hetzner)**
-- Status: in progress
-- Next step: build the Python engine + Elysia routes, then run GATE 4A curl tests on Hetzner.
+- Active wave: **Wave 4A COMPLETE — awaiting design handoff for Wave 4B**
+- Status: Gate 4A passed 14/14 on Hetzner (2026-06-06)
+- Next step: provide the Claude Design handoff link → fetch to `.design-handoff/edit-pdf/` → build Wave 4B frontend.
 
 ## Waves
-- **4A — Backend** (PyMuPDF parse/render/edit via `execFileP`, Elysia routes) — IN PROGRESS
+- **4A — Backend** (PyMuPDF parse/render/edit via `execFileP`, Elysia routes) — ✅ COMPLETE (gate 14/14)
 - 4B — Frontend editor UI — BLOCKED on Claude Design handoff (`.design-handoff/edit-pdf/`)
 - 4C — Annotation features in new editor — pending
 - 4D — Polish & rename (`/pdf-editor` → "Annotate PDF", new `/edit-pdf`) — pending
