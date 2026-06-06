@@ -42,7 +42,7 @@ Equally, watch for tools that **force a watermark** onto free output, or require
 
 As with every PDF tool, ask where the work happens. An annotation editor has no technical reason to upload your file — everything it does can run in your browser. If a "free editor" insists on uploading your document to add a highlight, that's a privacy cost with no functional benefit.
 
-[PlinyPDF's PDF Editor](/pdf-editor) runs entirely in your browser. You can annotate, highlight, draw, add text and shapes, drop in images, use whiteout, and undo/redo — then save the annotated PDF directly. Nothing is uploaded, there's no watermark, and the download is free. (True in-place text editing isn't included — that's the genuinely hard problem above, and we'd rather not ship a version that wrecks your layout.)
+[PlinyPDF's Annotate PDF](/pdf-editor) runs entirely in your browser. You can annotate, highlight, draw, add text and shapes, drop in images, use whiteout, and undo/redo — then save the annotated PDF directly. Nothing is uploaded, there's no watermark, and the download is free. For real in-place text editing — rewriting the existing words, not just marking them up — see [Edit PDF](/edit-pdf), our cloud tool that edits the actual text server-side.
 
 ## How to choose
 
@@ -53,4 +53,4 @@ As with every PDF tool, ask where the work happens. An annotation editor has no 
 
 ## The bottom line
 
-The best free PDF editor in 2026 is the one that does the editing you actually need (almost always annotation), lets you download the result for free without a watermark, and keeps your file on your own machine. Try the [PDF Editor](/pdf-editor) and see how far in-browser annotation gets you — for most documents, it's everything.
+The best free PDF editor in 2026 is the one that does the editing you actually need (almost always annotation), lets you download the result for free without a watermark, and keeps your file on your own machine. Try [Annotate PDF](/pdf-editor) and see how far in-browser annotation gets you — for most documents, it's everything.

@@ -171,7 +171,7 @@
     "watermark": { "name": "Filigran Ekle", "desc": "Canlı önizleme ile metin filigranı ekleyin." },
     "protect": { "name": "Parola Koy", "desc": "PDF'yi bir parola ile şifreleyin." },
     "unlock": { "name": "Parolayı Kaldır", "desc": "Sahibiyseniz parolayı kaldırın." },
-    "edit": { "name": "PDF Düzenleyici", "desc": "Açıklama ekleyin, vurgulayın, çizin." },
+    "edit": { "name": "PDF'e Açıklama Ekle", "desc": "Açıklama ekleyin, vurgulayın, çizin." },
     "edit-pdf": { "name": "PDF Düzenle", "desc": "Gerçek metni düzenle, alanları beyazlat, bul ve değiştir — güvenli sunucuda işlenir." },
     "pdf-to-word": { "name": "PDF'den Word'e", "desc": "Yüksek doğrulukta DOCX dönüşümü." },
     "word-to-pdf": { "name": "Word'den PDF'ye", "desc": "DOCX girin, kusursuz PDF alın." },
@@ -740,7 +740,10 @@
       "matchOf": "{i} / {n}",
       "noMatches": "Eşleşme yok",
       "prevMatch": "Önceki eşleşme",
-      "nextMatch": "Sonraki eşleşme"
+      "nextMatch": "Sonraki eşleşme",
+      "expiredTitle": "Oturum sona erdi",
+      "expiredDesc": "Düzenleme oturumunuzun süresi doldu ve dosya sunucumuzdan silindi. Düzenlemeye devam etmek için PDF'i yeniden açın.",
+      "reopen": "PDF'i yeniden aç"
     },
     "pdfToWord": {
       "subtitle": "PDF'i düzenlenebilir bir Word belgesine dönüştürün. Sunucumuzda dönüştürülür, sonra silinir.",

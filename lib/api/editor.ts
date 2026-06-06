@@ -122,9 +122,6 @@ export async function saveEditor(
   changes: BlockChange[],
   annotations: AnnotationChange[] = [],
 ): Promise<Blob> {
-  if (process.env.NODE_ENV !== "production") {
-    console.debug(`[EditPdf] saveEditor → ${changes.length} edit(s), ${annotations.length} annotation(s)`, annotations);
-  }
   const res = await fetch(`${base}/save`, {
     method: "POST",
     headers: { "content-type": "application/json" },

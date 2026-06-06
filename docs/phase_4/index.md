@@ -1,16 +1,15 @@
 # Phase 4 — Index (Real PDF Editor)
 
 ## Current Status
-- Phase: 4
-- Active wave: **Wave 4D — polish & rename** (`/pdf-editor` → "Annotate PDF", tool-count/sitemap/blog, loading & error polish)
-- Status: **Wave 4C COMPLETE — GATE 4C passed 2026-06-07** (highlight/strike/draw/shapes/comment burn into the downloaded PDF, confirmed via `journalctl` burn logs).
-- Next step: Wave 4D — rename annotation tool to "Annotate PDF", bump tool counts (28 → 29), polish loading/error/session states.
+- Phase: 4 — **COMPLETE** 🎉 (all waves 4A–4D shipped; GATE 4D passed 2026-06-07)
+- Active wave: none. Phase 4 delivered the real cloud PDF editor ("Edit PDF") + renamed the local annotator ("Annotate PDF").
+- Next step: Phase 5 backlog (image editing, form filling — see CLAUDE_4 §10 out-of-scope).
 
 ## Waves
 - **4A — Backend** (PyMuPDF parse/render/edit via `execFileP`, Elysia routes) — ✅ COMPLETE (gate 14/14)
 - **4B — Frontend editor UI** — ✅ COMPLETE (GATE 4B passed 2026-06-06)
 - **4C — Annotations burned into PDF** (highlight=translucent fill, strike=line, draw=polyline, shapes incl. arrow, comment=sticky note; Link removed permanently, underline skipped) — ✅ COMPLETE (GATE 4C passed 2026-06-07)
-- 4D — Polish & rename (`/pdf-editor` → "Annotate PDF", new `/edit-pdf`) — pending
+- **4D — Polish & rename** (local tool "PDF Editor" → "Annotate PDF" at `/pdf-editor`; cloud "Edit PDF" at `/edit-pdf`; counts 28 → 29; session-expired modal; debug-log cleanup) — ✅ COMPLETE (GATE 4D passed 2026-06-07)
 
 ## Deferred to later (noted at GATE 4B)
 - New text block: no font/color/size picker at creation (uses toolbar defaults); not re-selectable/editable in the same session (baked into the page PNG on add).

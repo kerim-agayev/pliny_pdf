@@ -426,12 +426,6 @@ def cmd_apply(session_dir):
     try:
         for change in changes:
             ctype = change.get("type")
-            if ctype in ("highlight", "strike", "draw", "shape", "comment"):
-                sys.stderr.write(
-                    "[pdf-editor] burn %s page=%s x=%s y=%s w=%s h=%s shape=%s\n"
-                    % (ctype, change.get("pageNum"), change.get("x"), change.get("y"),
-                       change.get("w"), change.get("h"), change.get("shapeType"))
-                )
             if ctype == "edit":
                 _apply_edit(doc, geo, change, affected)
             elif ctype == "add-text":

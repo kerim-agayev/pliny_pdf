@@ -11,7 +11,7 @@ live and GATE 2 (full e2e on https://plinypdf.com) passes — see `deploy/README
 > Edit PDFs without uploading them
 
 **Description** (≤260 chars):
-> A privacy-first PDF toolkit. 24 of 28 tools run entirely in your browser — files never
+> A privacy-first PDF toolkit. 24 of 29 tools run entirely in your browser — files never
 > touch a server (verify in DevTools): merge, split, organize, sign, redact, crop, watermark,
 > edit. Plus server-side convert & OCR. No ads, no tracking, real free tier.
 
@@ -21,7 +21,7 @@ live and GATE 2 (full e2e on https://plinypdf.com) passes — see `deploy/README
 > Hi PH 👋 I built PlinyPDF because every "free online PDF tool" quietly uploads your
 > files to a server you don't control — contracts, IDs, medical records and all. PlinyPDF
 > does the opposite: merge, split, organize, sign, redact, crop, watermark, password, and edit
-> (24 of 28 tools) all run in your browser via WebAssembly. Open DevTools → Network and you'll
+> (24 of 29 tools) all run in your browser via WebAssembly. Open DevTools → Network and you'll
 > see zero upload traffic. The few things that genuinely need a server (PDF↔Word, OCR, AI
 > summary) are clearly marked, encrypted in transit, deleted within 24h, and never used for
 > training. Free tier is real (no watermark, no daily cap on local tools). Would love your
@@ -29,12 +29,13 @@ live and GATE 2 (full e2e on https://plinypdf.com) passes — see `deploy/README
 > the in-browser editor.
 
 **Gallery shot list** (1270×760 or 16:9):
-1. **Homepage hero** — headline "Edit PDFs without uploading them" + tool grid (now 28 tools).
+1. **Homepage hero** — headline "Edit PDFs without uploading them" + tool grid (now 29 tools).
 2. **Watermark live preview** — settings panel left, real-time PDF preview right (the hero shot).
 3. **Organize Pages** — the drag-and-drop page grid mid-drag (strong new hero candidate).
 4. **Sign PDF** — a drawn/typed signature placed on a page (Draw/Type/Upload tabs visible).
 5. **Redact Content** — black redaction boxes on a page + "permanent" messaging (privacy story).
-6. **PDF Editor** — a PDF with highlights, a sticky note, and freehand annotation visible.
+6. **Annotate PDF** — a PDF with highlights, a sticky note, and freehand annotation visible.
+6b. **Edit PDF (cloud)** — clicking real PDF text to edit it inline, with the cloud badge visible.
 7. **Pricing** — Free vs Pro cards, monthly/yearly toggle.
 8. **Dashboard** — Pro view with usage + recent activity.
 9. **DevTools proof** — a tool mid-run with the Network tab open showing no upload (the
@@ -54,9 +55,9 @@ the preview update live, then download. This is the single most "show, don't tel
 > Most online PDF tools upload your file to a server to do things that don't need a server —
 > merging, rotating, compressing, watermarking. I wanted one that just… didn't.
 >
-> PlinyPDF runs 24 of its 28 tools entirely in the browser using WebAssembly (pdf-lib +
+> PlinyPDF runs 24 of its 29 tools entirely in the browser using WebAssembly (pdf-lib +
 > pdf.js). Your file never leaves the tab — you can confirm it in DevTools → Network: no
-> upload request, no matter the file size. The four tools that genuinely need server compute
+> upload request, no matter the file size. The five tools that genuinely need server compute
 > (PDF→Word via LibreOffice, Word→PDF, OCR via Tesseract/ocrmypdf, and AI summarization) are
 > labeled as such, sent over TLS, deleted within 24 hours, and never used to train anything.
 >
@@ -82,7 +83,7 @@ respond fast in the thread. Post Tue–Thu, ~8–10am ET.
 **Title:** I built a PDF toolkit that processes files in your browser — verify "no upload" yourself in DevTools
 
 > Every time you use an online PDF tool, your document is usually uploaded to a server. For
-> a contract or an ID scan, that's a real exposure. PlinyPDF keeps 24 of its 28 tools
+> a contract or an ID scan, that's a real exposure. PlinyPDF keeps 24 of its 29 tools
 > (merge/split/organize/sign/redact/crop/watermark/password/edit) entirely in the browser via
 > WebAssembly — nothing is transmitted. Redaction even re-rasterizes the page so removed text
 > is truly gone, not just covered. You don't have to trust me: open DevTools → Network, run a
@@ -93,7 +94,7 @@ respond fast in the thread. Post Tue–Thu, ~8–10am ET.
 ### r/selfhosted
 **Title:** Privacy-first PDF toolkit — in-browser WASM for local tools, small Bun/Gotenberg backend for the rest
 
-> Sharing a project that might interest this crowd: PlinyPDF. 24 of 28 PDF ops (merge, split,
+> Sharing a project that might interest this crowd: PlinyPDF. 24 of 29 PDF ops (merge, split,
 > organize, sign, redact, crop, watermark, password, annotate) run client-side in WebAssembly —
 > no server round-trip. The only server piece is a small Bun/Elysia service + Gotenberg
 > (LibreOffice in Docker) for PDF↔Word, ocrmypdf for OCR, plus Postgres for accounts. It's designed so the backend is minimal

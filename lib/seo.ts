@@ -152,7 +152,7 @@ export const TOOL_SEO: Record<string, { title: string; description: string }> = 
     description: "Remove a password from a PDF you own, right in your browser.",
   },
   "pdf-editor": {
-    title: "PDF Editor — PlinyPDF",
+    title: "Annotate PDF — PlinyPDF",
     description: "Annotate, highlight, draw, and mark up PDFs in your browser.",
   },
   "edit-pdf": {

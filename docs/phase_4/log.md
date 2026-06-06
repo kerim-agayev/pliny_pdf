@@ -49,3 +49,12 @@ removed permanently; underline skipped. Save sends an annotations[] payload; sav
 is idempotent (drops prior edit+annotation changes, re-adds current set). First gate
 failed because only pdf-editor.py was redeployed (Bun route/service silently dropped the
 unknown annotations field) — fixed by deploying all three backend files.
+
+## [2026-06-07] Wave 4D — Polish & rename — GATE 4D PASSED → PHASE 4 COMPLETE 🎉
+Renamed the local annotation tool "PDF Editor" → "Annotate PDF" (keeps Local badge + /pdf-editor)
+so it no longer collides with the new cloud "Edit PDF" (/edit-pdf). String-only rename across
+tools.ts / seo.ts / Footer / blog / messages (en/tr/ru); H1/breadcrumb/tools-card + schema name
+all derive from those. LAUNCH.md tool count 28 → 29 (cloud now 5). Added a session-expired modal
+at 0:00 (re-open prompt) and removed the 4C debug logging. Blog now points readers from Annotate
+PDF to Edit PDF for real in-place text editing. No EditorTool.tsx logic touched.
+Phase 4 (real cloud PDF editor) is complete: 4A backend, 4B frontend, 4C annotation burn-in, 4D rename/polish.

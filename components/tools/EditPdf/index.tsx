@@ -12,7 +12,7 @@ import { isPdfEncrypted } from "@/lib/validation";
 import { analytics } from "@/lib/analytics";
 import { downloadBlob, baseName } from "@/lib/format";
 import {
-  PlinyMark, IconArrow, IconDownload, IconCloudUp, IconFile, IconAlert, IconRefresh, IconSparkle,
+  PlinyMark, IconArrow, IconDownload, IconCloudUp, IconFile, IconAlert, IconRefresh, IconSparkle, IconClock,
 } from "@/components/shared/icons";
 import { PasswordModal } from "@/components/shared/PasswordModal";
 import { Spinner } from "@/components/tools/Spinner";
@@ -85,7 +85,6 @@ export function EditPdf() {
 
   const handleSave = useCallback(async (download: boolean) => {
     if (!s.sessionId) return;
-    if (process.env.NODE_ENV !== "production") console.debug("[EditPdf] handleSave annotations:", s.annotations);
     try {
       const blob = await saveEditor(s.sessionId, changeList(), annotationList());
       s.markSaved();
@@ -152,6 +151,7 @@ export function EditPdf() {
   const pickFile = () => fileInput.current?.click();
   const remainingMs = s.sessionExpiresAt ? s.sessionExpiresAt - now : 0;
   const showWarning = s.phase === "active" && s.sessionExpiresAt !== null && remainingMs <= 5 * 60 * 1000 && remainingMs > 0 && !warnDismissed;
+  const expired = s.phase === "active" && s.sessionExpiresAt !== null && remainingMs <= 0;
 
   // ---------- header ----------
   const Header = (
@@ -330,6 +330,21 @@ export function EditPdf() {
               </button>
             </div>
             <p style={{ fontSize: 11.5, color: "var(--text-3)", textAlign: "center", marginTop: 14, lineHeight: 1.5 }}>{t("scannedNote")}</p>
+          </div>
+        </div>
+      )}
+
+      {expired && (
+        <div style={{ position: "absolute", inset: 0, zIndex: 70, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(2px)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div className="pp-card" style={{ width: 440, padding: 28 }}>
+            <div style={{ width: 48, height: 48, borderRadius: 12, background: "rgba(245,158,11,0.16)", color: "#FBBF24", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 18 }}>
+              <IconClock size={22} sw={1.7} />
+            </div>
+            <h3 style={{ fontSize: 20, letterSpacing: "-0.02em", marginBottom: 8 }}>{t("expiredTitle")}</h3>
+            <p style={{ fontSize: 14, color: "var(--text-2)", lineHeight: 1.6, marginBottom: 22 }}>{t("expiredDesc")}</p>
+            <button type="button" className="pp-btn pp-btn-lg" style={{ width: "100%", justifyContent: "center" }} onClick={() => s.reset()}>
+              <IconRefresh size={15} /> {t("reopen")}
+            </button>
           </div>
         </div>
       )}

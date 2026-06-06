@@ -78,7 +78,7 @@ export const TOOLS: Tool[] = [
   { id: "watermark", slug: "add-watermark", name: "Add Watermark", desc: "Stamp text with a live preview.", cat: "Edit", mode: "local", icon: IconWatermark, accent: "#F472B6", tag: "Live preview", available: true },
   { id: "protect", slug: "password-protect", name: "Password Protect", desc: "Encrypt a PDF with a password.", cat: "Secure", mode: "local", icon: IconLock, accent: "#34D399", available: true },
   { id: "unlock", slug: "remove-password", name: "Remove Password", desc: "Strip the password if you own the file.", cat: "Secure", mode: "local", icon: IconUnlock, accent: "#34D399", available: true },
-  { id: "edit", slug: "pdf-editor", name: "PDF Editor", desc: "Annotate, highlight, draw, and mark up.", cat: "Edit", mode: "local", icon: IconPen, accent: "#BFB5FF", available: true },
+  { id: "edit", slug: "pdf-editor", name: "Annotate PDF", desc: "Annotate, highlight, draw, and mark up.", cat: "Edit", mode: "local", icon: IconPen, accent: "#BFB5FF", available: true },
   { id: "edit-pdf", slug: "edit-pdf", name: "Edit PDF", desc: "Edit real text, whiteout, and find & replace — server-side.", cat: "Edit", mode: "cloud", icon: IconType, accent: "#6B5CE7", available: true },
   { id: "pdf-to-word", slug: "pdf-to-word", name: "PDF to Word", desc: "High-fidelity DOCX conversion.", cat: "Convert", mode: "cloud", icon: IconWord, accent: "#60A5FA", available: true },
   { id: "word-to-pdf", slug: "word-to-pdf", name: "Word to PDF", desc: "DOCX in, perfectly formatted PDF out.", cat: "Convert", mode: "cloud", icon: IconWord, accent: "#60A5FA", available: true },

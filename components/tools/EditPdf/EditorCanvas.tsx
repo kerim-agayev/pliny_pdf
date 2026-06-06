@@ -47,12 +47,9 @@ export function EditorCanvas() {
     if (!draft) { draftReady.current = false; return; }
     draftReady.current = false;
     draftInputRef.current?.focus();
-    if (process.env.NODE_ENV !== "production") {
-      console.debug("[EditPdf] draft box px =", { left: draft.x * (s.zoom / 100), top: draft.y * (s.zoom / 100) });
-    }
     const id = setTimeout(() => { draftReady.current = true; }, 250);
     return () => clearTimeout(id);
-  }, [draft, s.zoom]);
+  }, [draft]);
 
   const matches = useMemo(
     () => computeMatches(s.pages, s.findReplaceOpen ? s.findQuery : "", s.findCaseSensitive),
@@ -146,7 +143,6 @@ export function EditorCanvas() {
     }
     const p = toPt(e);
     if (tool === "text") {
-      if (process.env.NODE_ENV !== "production") console.debug("[EditPdf] text tool click → new draft at", p);
       setDraft(p);
       setDraftText("");
       return;
@@ -176,13 +172,10 @@ export function EditorCanvas() {
     setDraftText("");
     if (!at || !text || !s.sessionId) return;
     try {
-      if (process.env.NODE_ENV !== "production") console.debug("[EditPdf] addText →", { page: page.pageNum, x: at.x, y: at.y + s.fontSize, text });
-      const res = await apiAddText(s.sessionId, { pageNum: page.pageNum, x: at.x, y: at.y + s.fontSize, text, fontSize: s.fontSize, fontName: s.fontFamily, color: s.fontColor });
-      if (process.env.NODE_ENV !== "production") console.debug("[EditPdf] addText ok", res);
+      await apiAddText(s.sessionId, { pageNum: page.pageNum, x: at.x, y: at.y + s.fontSize, text, fontSize: s.fontSize, fontName: s.fontFamily, color: s.fontColor });
       s.bumpRender();
       analytics.editorTextEdited();
     } catch (e) {
-      if (process.env.NODE_ENV !== "production") console.error("[EditPdf] addText failed", e);
       toast.error(e instanceof Error ? e.message : t("saveFailed"));
     }
   }

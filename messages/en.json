@@ -171,7 +171,7 @@
     "watermark": { "name": "Add Watermark", "desc": "Stamp text with a live preview." },
     "protect": { "name": "Password Protect", "desc": "Encrypt a PDF with a password." },
     "unlock": { "name": "Remove Password", "desc": "Strip the password if you own the file." },
-    "edit": { "name": "PDF Editor", "desc": "Annotate, highlight, draw, and mark up." },
+    "edit": { "name": "Annotate PDF", "desc": "Annotate, highlight, draw, and mark up." },
     "edit-pdf": { "name": "Edit PDF", "desc": "Edit real text, whiteout areas, find & replace — processed securely on our server." },
     "pdf-to-word": { "name": "PDF to Word", "desc": "High-fidelity DOCX conversion." },
     "word-to-pdf": { "name": "Word to PDF", "desc": "DOCX in, perfectly formatted PDF out." },
@@ -740,7 +740,10 @@
       "matchOf": "{i} of {n}",
       "noMatches": "No matches",
       "prevMatch": "Previous match",
-      "nextMatch": "Next match"
+      "nextMatch": "Next match",
+      "expiredTitle": "Session expired",
+      "expiredDesc": "Your editing session timed out and the file was cleared from our server. Re-open your PDF to keep editing.",
+      "reopen": "Re-open a PDF"
     },
     "pdfToWord": {
       "subtitle": "Turn a PDF into an editable Word document. Converted on our server, then deleted.",
