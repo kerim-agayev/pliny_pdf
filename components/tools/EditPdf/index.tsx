@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Link } from "@/i18n/navigation";
 import { useSession } from "@/lib/auth/client";
 import { useEditorStore } from "@/lib/stores/editorStore";
-import { openEditor, saveEditor, closeEditor, EditorError, type BlockChange } from "@/lib/api/editor";
+import { openEditor, saveEditor, closeEditor, EditorError, type BlockChange, type AnnotationChange } from "@/lib/api/editor";
 import { editorMaxBytes, editorMaxMB } from "@/lib/limits";
 import { isPdfEncrypted } from "@/lib/validation";
 import { analytics } from "@/lib/analytics";
@@ -70,11 +70,24 @@ export function EditPdf() {
   }, []);
 
   const changeList = useCallback((): BlockChange[] => Array.from(s.changes.values()), [s.changes]);
+  // overlay annotations serialized for the server to burn into the PDF (Wave 4C)
+  const annotationList = useCallback(
+    (): AnnotationChange[] =>
+      s.annotations
+        .filter((a) => a.type !== "underline")
+        .map((a) => ({
+          type: a.type, pageNum: a.pageNum, x: a.x, y: a.y, w: a.w, h: a.h,
+          color: a.color, strokeWidth: a.strokeWidth, shapeType: a.shapeType,
+          path: a.path, x2: a.x2, y2: a.y2, text: a.text,
+        }) as AnnotationChange),
+    [s.annotations],
+  );
 
   const handleSave = useCallback(async (download: boolean) => {
     if (!s.sessionId) return;
+    if (process.env.NODE_ENV !== "production") console.debug("[EditPdf] handleSave annotations:", s.annotations);
     try {
-      const blob = await saveEditor(s.sessionId, changeList());
+      const blob = await saveEditor(s.sessionId, changeList(), annotationList());
       s.markSaved();
       analytics.editorSaved(s.changes.size);
       const name = `${baseName(s.fileName) || "edited"}.pdf`;
@@ -84,7 +97,7 @@ export function EditPdf() {
       if (e instanceof EditorError && e.status === 410) toast.error(t("sessionExpired"));
       else toast.error(e instanceof Error ? e.message : t("saveFailed"));
     }
-  }, [s, changeList, t]);
+  }, [s, changeList, annotationList, t]);
 
   // keyboard shortcuts
   useEffect(() => {

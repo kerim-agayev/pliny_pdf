@@ -43,6 +43,23 @@ export type BlockChange = {
   italic?: boolean;
 };
 
+/** A client overlay annotation serialized for the server to burn into the PDF (Wave 4C). */
+export type AnnotationChange = {
+  type: "highlight" | "strike" | "draw" | "shape" | "comment";
+  pageNum: number;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  color?: string;
+  strokeWidth?: number;
+  shapeType?: "rectangle" | "circle" | "arrow" | "line";
+  path?: string;
+  x2?: number;
+  y2?: number;
+  text?: string;
+};
+
 /** Error from an editor endpoint, carrying the HTTP status + backend error code. */
 export class EditorError extends Error {
   status: number;
@@ -99,12 +116,19 @@ export function pagePngUrl(sessionId: string, pageNum: number): string {
   return `${base}/page/${sessionId}/${pageNum}`;
 }
 
-/** Persist inline text edits and return the rebuilt PDF as a Blob. */
-export async function saveEditor(sessionId: string, changes: BlockChange[]): Promise<Blob> {
+/** Persist inline text edits + overlay annotations and return the rebuilt PDF as a Blob. */
+export async function saveEditor(
+  sessionId: string,
+  changes: BlockChange[],
+  annotations: AnnotationChange[] = [],
+): Promise<Blob> {
+  if (process.env.NODE_ENV !== "production") {
+    console.debug(`[EditPdf] saveEditor → ${changes.length} edit(s), ${annotations.length} annotation(s)`, annotations);
+  }
   const res = await fetch(`${base}/save`, {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ sessionId, changes }),
+    body: JSON.stringify({ sessionId, changes, annotations }),
     credentials: "include",
   });
   if (!res.ok) throw await asError(res);

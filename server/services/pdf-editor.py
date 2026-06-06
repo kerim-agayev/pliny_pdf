@@ -21,6 +21,7 @@ PNG_pixels = points * RENDER_DPI / 72.
 """
 
 import json
+import math
 import os
 import sys
 
@@ -309,6 +310,101 @@ def _apply_find_replace(doc, change, affected):
     return count
 
 
+# ── annotations (Wave 4C): burn client overlays into the PDF ─────────────────
+def _annot_page(doc, change, affected):
+    """Resolve + mark the target page for an annotation change, or None if invalid."""
+    page_num = change.get("pageNum", 0)
+    if page_num < 0 or page_num >= doc.page_count:
+        return None
+    affected.add(page_num)
+    return doc[page_num]
+
+
+def _apply_highlight(doc, change, affected):
+    page = _annot_page(doc, change, affected)
+    if page is None:
+        return
+    x, y = change.get("x", 0), change.get("y", 0)
+    w, h = change.get("w", 0), change.get("h", 0)
+    rgb = _hex_to_rgb01(change.get("color", "#FACC15"))
+    # translucent filled rect — matches the on-screen highlight overlay
+    page.draw_rect(pymupdf.Rect(x, y, x + w, y + h), color=None, fill=rgb, fill_opacity=0.35)
+
+
+def _apply_strike(doc, change, affected):
+    page = _annot_page(doc, change, affected)
+    if page is None:
+        return
+    x, y = change.get("x", 0), change.get("y", 0)
+    w, h = change.get("w", 0), change.get("h", 0)
+    rgb = _hex_to_rgb01(change.get("color", "#F43F5E"))
+    mid = y + h / 2.0
+    page.draw_line(pymupdf.Point(x, mid), pymupdf.Point(x + w, mid), color=rgb, width=2)
+
+
+def _parse_path(path):
+    """Parse a 'M x y L x y L …' freehand path (PDF points) into a list of Points."""
+    pts = []
+    tokens = path.replace("M", " ").replace("L", " ").split()
+    for i in range(0, len(tokens) - 1, 2):
+        try:
+            pts.append(pymupdf.Point(float(tokens[i]), float(tokens[i + 1])))
+        except ValueError:
+            continue
+    return pts
+
+
+def _apply_draw(doc, change, affected):
+    page = _annot_page(doc, change, affected)
+    if page is None:
+        return
+    pts = _parse_path(change.get("path", ""))
+    if len(pts) < 2:
+        return
+    rgb = _hex_to_rgb01(change.get("color", "#000000"))
+    width = change.get("strokeWidth") or 2
+    page.draw_polyline(pts, color=rgb, width=width)
+
+
+def _apply_shape(doc, change, affected):
+    page = _annot_page(doc, change, affected)
+    if page is None:
+        return
+    x, y = change.get("x", 0), change.get("y", 0)
+    w, h = change.get("w", 0), change.get("h", 0)
+    rgb = _hex_to_rgb01(change.get("color", "#000000"))
+    width = change.get("strokeWidth") or 2
+    shape = change.get("shapeType", "rectangle")
+    if shape == "rectangle":
+        page.draw_rect(pymupdf.Rect(x, y, x + w, y + h), color=rgb, width=width)
+    elif shape == "circle":
+        page.draw_oval(pymupdf.Rect(x, y, x + w, y + h), color=rgb, width=width)
+    else:  # line / arrow — use the true start→end points
+        x2 = change.get("x2", x + w)
+        y2 = change.get("y2", y + h)
+        end = pymupdf.Point(x2, y2)
+        page.draw_line(pymupdf.Point(x, y), end, color=rgb, width=width)
+        if shape == "arrow":
+            ang = math.atan2(y2 - y, x2 - x)
+            head = max(9, width * 3)
+            for off in (ang + math.pi - 0.5, ang + math.pi + 0.5):
+                barb = pymupdf.Point(x2 + head * math.cos(off), y2 + head * math.sin(off))
+                page.draw_line(end, barb, color=rgb, width=width)
+
+
+def _apply_comment(doc, change, affected):
+    page = _annot_page(doc, change, affected)
+    if page is None:
+        return
+    point = pymupdf.Point(change.get("x", 0), change.get("y", 0))
+    annot = page.add_text_annot(point, change.get("text") or "")
+    try:
+        annot.set_info(title="You")
+        annot.update()
+    except Exception:
+        pass
+
+
 def cmd_apply(session_dir):
     original = os.path.join(session_dir, "original.pdf")
     working = os.path.join(session_dir, "working.pdf")
@@ -323,9 +419,19 @@ def cmd_apply(session_dir):
     doc = pymupdf.open(original)
     affected = set()
     last_replacements = 0
+    # NB: stdout carries the JSON result — all diagnostics MUST go to stderr.
+    sys.stderr.write(
+        "[pdf-editor] apply: %d change(s): %r\n" % (len(changes), [c.get("type") for c in changes])
+    )
     try:
         for change in changes:
             ctype = change.get("type")
+            if ctype in ("highlight", "strike", "draw", "shape", "comment"):
+                sys.stderr.write(
+                    "[pdf-editor] burn %s page=%s x=%s y=%s w=%s h=%s shape=%s\n"
+                    % (ctype, change.get("pageNum"), change.get("x"), change.get("y"),
+                       change.get("w"), change.get("h"), change.get("shapeType"))
+                )
             if ctype == "edit":
                 _apply_edit(doc, geo, change, affected)
             elif ctype == "add-text":
@@ -334,6 +440,16 @@ def cmd_apply(session_dir):
                 _apply_whiteout(doc, change, affected)
             elif ctype == "find-replace":
                 last_replacements = _apply_find_replace(doc, change, affected)
+            elif ctype == "highlight":
+                _apply_highlight(doc, change, affected)
+            elif ctype == "strike":
+                _apply_strike(doc, change, affected)
+            elif ctype == "draw":
+                _apply_draw(doc, change, affected)
+            elif ctype == "shape":
+                _apply_shape(doc, change, affected)
+            elif ctype == "comment":
+                _apply_comment(doc, change, affected)
         doc.save(working, garbage=3, deflate=True)
         # Re-render only the pages the change set touched.
         for page_num in sorted(affected):

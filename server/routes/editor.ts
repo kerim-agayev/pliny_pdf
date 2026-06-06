@@ -128,8 +128,10 @@ export const editor = new Elysia({ prefix: "/api/editor" })
         bold: c.bold,
         italic: c.italic,
       }));
+      // Overlay annotations to burn into the PDF (Wave 4C); keyed by their own type.
+      const annotations: Change[] = (body.annotations ?? []).map((a) => ({ ...a }));
       try {
-        const pdf = await saveSession(body.sessionId, edits);
+        const pdf = await saveSession(body.sessionId, edits, annotations);
         return pdfResponse(pdf, "edited.pdf");
       } catch (e) {
         set.status = 502;
@@ -150,6 +152,25 @@ export const editor = new Elysia({ prefix: "/api/editor" })
             bold: t.Optional(t.Boolean()),
             italic: t.Optional(t.Boolean()),
           }),
+        ),
+        annotations: t.Optional(
+          t.Array(
+            t.Object({
+              type: t.String(),
+              pageNum: t.Number(),
+              x: t.Number(),
+              y: t.Number(),
+              w: t.Number(),
+              h: t.Number(),
+              color: t.Optional(t.String()),
+              strokeWidth: t.Optional(t.Number()),
+              shapeType: t.Optional(t.String()),
+              path: t.Optional(t.String()),
+              x2: t.Optional(t.Number()),
+              y2: t.Optional(t.Number()),
+              text: t.Optional(t.String()),
+            }),
+          ),
         ),
       }),
     },

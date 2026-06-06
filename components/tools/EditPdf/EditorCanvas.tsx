@@ -139,7 +139,7 @@ export function EditorCanvas() {
     if (e.button !== 0) return;
     setCtx(null);
     const tool = s.tool;
-    if (tool === "select" || tool === "link") {
+    if (tool === "select") {
       s.selectBlock(null);
       s.setEditing(null);
       return;
@@ -282,7 +282,7 @@ export function EditorCanvas() {
           if (a.type === "draw" || a.type === "shape")
             return <DrawingTool key={a.id} a={a} scale={scale} interactive={interactive} selected={false} onSelect={() => {}} />;
           if (a.type === "comment")
-            return <CommentTool key={a.id} a={a} scale={scale} interactive={interactive} open={openComment === a.id} onToggle={() => setOpenComment((v) => (v === a.id ? null : a.id))} onRemove={() => { s.removeAnnotation(a.id); setOpenComment(null); }} />;
+            return <CommentTool key={a.id} a={a} scale={scale} interactive={interactive} open={openComment === a.id} onToggle={() => setOpenComment((v) => (v === a.id ? null : a.id))} onChangeText={(text) => s.updateAnnotation(a.id, { text })} onRemove={() => { s.removeAnnotation(a.id); setOpenComment(null); }} />;
           return null;
         })}
 

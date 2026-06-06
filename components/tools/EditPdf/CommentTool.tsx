@@ -1,12 +1,12 @@
 "use client";
 
-import { useState } from "react";
 import type { Annotation } from "@/lib/stores/editorStore";
 import { IconMessage, IconX } from "@/components/shared/icons";
 
 /**
- * A sticky-note comment: an amber pin plus an expandable bubble. Client overlay in
- * Wave 4B (not persisted into the PDF yet — Wave 4C).
+ * A sticky-note comment: an amber pin plus an expandable bubble whose text is the
+ * comment body. The body is burned into the PDF as an interactive text annotation
+ * on save (Wave 4C).
  */
 export function CommentTool({
   a,
@@ -15,6 +15,7 @@ export function CommentTool({
   interactive,
   onToggle,
   onRemove,
+  onChangeText,
   authorInitials = "You",
 }: {
   a: Annotation;
@@ -23,9 +24,9 @@ export function CommentTool({
   interactive: boolean;
   onToggle: () => void;
   onRemove: () => void;
+  onChangeText: (text: string) => void;
   authorInitials?: string;
 }) {
-  const [reply, setReply] = useState("");
   const left = a.x * scale;
   const top = a.y * scale;
 
@@ -63,17 +64,15 @@ export function CommentTool({
               <IconX size={13} />
             </button>
           </div>
-          {a.text && <div style={{ fontSize: 12.5, color: "var(--text-2)", lineHeight: 1.5, marginBottom: 10 }}>{a.text}</div>}
-          <div style={{ display: "flex", gap: 8 }}>
-            <input
-              className="pp-input"
-              placeholder="Reply…"
-              value={reply}
-              onChange={(e) => setReply(e.target.value)}
-              style={{ fontSize: 12, padding: "7px 10px" }}
-            />
-            <button type="button" className="pp-btn" style={{ padding: "7px 12px", fontSize: 12 }}>Save</button>
-          </div>
+          <textarea
+            className="pp-input"
+            placeholder="Write a comment…"
+            value={a.text ?? ""}
+            autoFocus
+            onChange={(e) => onChangeText(e.target.value)}
+            rows={3}
+            style={{ fontSize: 12.5, padding: "7px 10px", resize: "vertical", width: "100%", lineHeight: 1.5 }}
+          />
         </div>
       )}
     </>

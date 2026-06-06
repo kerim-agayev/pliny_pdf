@@ -11,15 +11,14 @@ export type Tool =
   | "strike"
   | "draw"
   | "shapes"
-  | "comment"
-  | "link";
+  | "comment";
 export type ShapeType = "rectangle" | "circle" | "arrow" | "line";
 export type TextAlign = "left" | "center" | "right";
 
 /** Client-only overlay annotations (highlight/draw/etc). Burned into the PDF in Wave 4C. */
 export type Annotation = {
   id: string;
-  type: "highlight" | "strike" | "underline" | "draw" | "shape" | "comment" | "link";
+  type: "highlight" | "strike" | "underline" | "draw" | "shape" | "comment";
   pageNum: number;
   x: number;
   y: number;
@@ -132,6 +131,7 @@ interface EditorState {
   setStroke: (patch: Partial<Pick<EditorState, "strokeColor" | "strokeWidth">>) => void;
 
   addAnnotation: (a: Annotation) => void;
+  updateAnnotation: (id: string, patch: Partial<Annotation>) => void;
   removeAnnotation: (id: string) => void;
 
   replacePages: (pages: PageData[]) => void;
@@ -277,6 +277,11 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       undoStack: [...s.undoStack, snapshot(s)],
       redoStack: [],
       annotations: [...s.annotations, a],
+      hasUnsavedChanges: true,
+    })),
+  updateAnnotation: (id, patch) =>
+    set((s) => ({
+      annotations: s.annotations.map((a) => (a.id === id ? { ...a, ...patch } : a)),
       hasUnsavedChanges: true,
     })),
   removeAnnotation: (id) =>

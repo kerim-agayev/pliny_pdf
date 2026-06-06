@@ -40,3 +40,12 @@ undo/redo, zoom. Two browser-test bug-fix rounds (see decisions D4.13/D4.14); th
 critical Text+ fix was a focus-race blur clearing the draft box (ref-focus + ready guard).
 Temp anon-limit raise reverted to real values (anon 15 MB / 20 pages).
 Annotations remain client overlays — burned into the PDF in Wave 4C.
+
+## [2026-06-07] Wave 4C — Burn annotations into saved PDF — GATE 4C PASSED
+Highlight (translucent fill), strikethrough (mid-line), freehand (polyline), shapes
+(rect/circle/line + computed arrowhead), and comment (interactive sticky note) now burn
+into the downloaded PDF server-side via PyMuPDF. Comment returned to the toolbar; Link
+removed permanently; underline skipped. Save sends an annotations[] payload; saveSession
+is idempotent (drops prior edit+annotation changes, re-adds current set). First gate
+failed because only pdf-editor.py was redeployed (Bun route/service silently dropped the
+unknown annotations field) — fixed by deploying all three backend files.

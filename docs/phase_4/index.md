@@ -2,14 +2,14 @@
 
 ## Current Status
 - Phase: 4
-- Active wave: **Wave 4C — burn annotations into the saved PDF**
-- Status: **Wave 4B COMPLETE — GATE 4B passed 2026-06-06** (text+, whiteout, edit text, find&replace, save → correct PDF, all features verified after two bug-fix rounds).
-- Next step: Wave 4C — server-side burn-in of highlight/strike/underline/draw/shapes (+ comment/link return).
+- Active wave: **Wave 4D — polish & rename** (`/pdf-editor` → "Annotate PDF", tool-count/sitemap/blog, loading & error polish)
+- Status: **Wave 4C COMPLETE — GATE 4C passed 2026-06-07** (highlight/strike/draw/shapes/comment burn into the downloaded PDF, confirmed via `journalctl` burn logs).
+- Next step: Wave 4D — rename annotation tool to "Annotate PDF", bump tool counts (28 → 29), polish loading/error/session states.
 
 ## Waves
 - **4A — Backend** (PyMuPDF parse/render/edit via `execFileP`, Elysia routes) — ✅ COMPLETE (gate 14/14)
 - **4B — Frontend editor UI** — ✅ COMPLETE (GATE 4B passed 2026-06-06)
-- 4C — Annotation features burned into PDF (highlight/strike/underline/draw/shapes; re-add comment/link) — pending
+- **4C — Annotations burned into PDF** (highlight=translucent fill, strike=line, draw=polyline, shapes incl. arrow, comment=sticky note; Link removed permanently, underline skipped) — ✅ COMPLETE (GATE 4C passed 2026-06-07)
 - 4D — Polish & rename (`/pdf-editor` → "Annotate PDF", new `/edit-pdf`) — pending
 
 ## Deferred to later (noted at GATE 4B)

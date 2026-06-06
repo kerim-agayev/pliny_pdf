@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl";
 import { useEditorStore, type ShapeType } from "@/lib/stores/editorStore";
 import {
   IconCursor, IconTextPlus, IconWhiteout, IconHighlight, IconStrike, IconPen, IconShapes,
-  IconBold, IconItalic, IconUnderlineText, IconAlignLeft, IconAlignCenter,
+  IconMessage, IconBold, IconItalic, IconUnderlineText, IconAlignLeft, IconAlignCenter,
   IconAlignRight, IconTrash, IconUndo, IconRedo, IconSearch, IconChevron, IconX, IconPlus,
   IconRect, IconCircleShape, IconArrowDraw, IconLineShape, type IconProps,
 } from "@/components/shared/icons";
@@ -69,6 +69,7 @@ export function EditorToolbar() {
         <TBDiv />
         <TBtn icon={IconPen} label={t("toolDraw")} active={s.tool === "draw"} onClick={() => s.setTool("draw")} />
         <TBtn icon={IconShapes} label={t("toolShapes")} hasCaret active={s.tool === "shapes"} onClick={() => { s.setTool("shapes"); setShapesOpen((v) => !v); }} />
+        <TBtn icon={IconMessage} label={t("toolComment")} active={s.tool === "comment"} onClick={() => s.setTool("comment")} />
 
         {DRAW_TOOLS.has(s.tool) && (
           <>

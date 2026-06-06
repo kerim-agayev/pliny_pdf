@@ -145,3 +145,17 @@ Nine browser-test bugs fixed without touching Phase 1-3 code:
 - **Annotations**: highlight/strike/underline/draw/shapes stay client-only overlays until
   Wave 4C burns them into the output PDF. Comment + Link were removed from the toolbar and
   return in 4C when they can persist.
+
+## D4.16 — Wave 4C annotation burn-in
+- **Save payload**: annotations are sent alongside text edits on each Save and treated as
+  the full desired set. `saveSession` drops prior `edit` + annotation changes and re-adds the
+  current ones, so re-saves are idempotent (no duplicate burns) while live add-text/whiteout/
+  find-replace persist.
+- **Representations (user-approved)**: Highlight = translucent filled rect (`fill_opacity≈0.35`,
+  matches the overlay, works anywhere) over a real PDF highlight annot (text-only). Comment =
+  interactive `add_text_annot` sticky note (editable later, doesn't obscure content) over a
+  flattened box. Strike = thin mid-height line. Arrow stores true start→end (`x2,y2`) so the
+  burned arrowhead points correctly.
+- **No re-render after burn**: the on-screen page stays overlay-driven; only the downloaded PDF
+  is burned (no `bumpRender` on save) to avoid double-drawing.
+- **Link removed permanently**; underline skipped (type kept but unused).

@@ -157,15 +157,31 @@ async function apply(dir: string): Promise<ApplyResult> {
   return JSON.parse(stdout) as ApplyResult;
 }
 
+/** Annotation change types (Wave 4C) — burned into the PDF, replaced wholesale on each save. */
+const ANNOT_TYPES = new Set(["highlight", "strike", "draw", "shape", "comment"]);
+
 /**
- * Persist the batch of inline text edits and return the rebuilt PDF. Text edits
- * are keyed by blockId, so a re-save replaces the prior edit set while keeping
- * structural ops (add-text / whiteout / find-replace) that were applied live.
+ * Persist the batch of inline text edits + overlay annotations and return the rebuilt
+ * PDF. Text edits (keyed by blockId) and annotations are the full desired set sent on
+ * every save, so we drop the prior edit/annotation changes and re-add the current ones —
+ * keeping the save idempotent — while preserving structural ops (add-text / whiteout /
+ * find-replace) that were applied live.
  */
-export async function saveSession(sessionId: string, edits: Change[]): Promise<Uint8Array> {
+export async function saveSession(
+  sessionId: string,
+  edits: Change[],
+  annotations: Change[] = [],
+): Promise<Uint8Array> {
   const dir = sessionDir(sessionId);
-  const existing = (await readChanges(dir)).filter((c) => c.type !== "edit");
-  await writeChanges(dir, [...existing, ...edits.map((e) => ({ ...e, type: "edit" }))]);
+  const existing = (await readChanges(dir)).filter(
+    (c) => c.type !== "edit" && !ANNOT_TYPES.has(c.type),
+  );
+  const all = [...existing, ...edits.map((e) => ({ ...e, type: "edit" })), ...annotations];
+  console.log(
+    `[editor] saveSession ${sessionId}: ${edits.length} edit(s), ${annotations.length} annotation(s); ` +
+      `writing ${all.length} change(s): [${all.map((c) => c.type).join(", ")}]`,
+  );
+  await writeChanges(dir, all);
   await apply(dir);
   return new Uint8Array(await readFile(join(dir, "working.pdf")));
 }
