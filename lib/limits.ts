@@ -38,3 +38,41 @@ export function cloudMaxBytes(plan: Plan | null | undefined): number {
 export function bytesToMB(bytes: number): number {
   return Math.round((bytes / MB) * 10) / 10;
 }
+
+/**
+ * Edit-PDF (Phase 4) limits. The cloud editor has its own table (CLAUDE_4 §3) —
+ * stricter anon size than generic cloud tools, plus page-count and session-timeout
+ * caps. Accepts "anon" as well as a Plan so callers can pass the session's stored
+ * label directly.
+ */
+type EditorPlan = Plan | "anon" | null | undefined;
+
+export const EDITOR_MAX_MB = { anon: 15, free: 50, pro: 200 } as const;
+export const EDITOR_MAX_PAGES = { anon: 20, free: 100, pro: 500 } as const;
+const EDITOR_TTL_MIN = { anon: 15, free: 30, pro: 60 } as const;
+
+function editorTier(plan: EditorPlan): "anon" | "free" | "pro" {
+  if (plan === "pro") return "pro";
+  if (plan === "free") return "free";
+  return "anon";
+}
+
+/** Editor upload size limit (MB) for a plan. */
+export function editorMaxMB(plan: EditorPlan): number {
+  return EDITOR_MAX_MB[editorTier(plan)];
+}
+
+/** Editor upload size limit in bytes for a plan. */
+export function editorMaxBytes(plan: EditorPlan): number {
+  return editorMaxMB(plan) * MB;
+}
+
+/** Maximum page count the editor will open for a plan. */
+export function editorMaxPages(plan: EditorPlan): number {
+  return EDITOR_MAX_PAGES[editorTier(plan)];
+}
+
+/** Editor session timeout (ms) for a plan. */
+export function editorSessionTtlMs(plan: EditorPlan): number {
+  return EDITOR_TTL_MIN[editorTier(plan)] * 60 * 1000;
+}
