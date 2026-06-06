@@ -20,3 +20,23 @@ passed**:
 - Limits: 16 MB → 413, 25 pages → tooManyPages, anon 4th open → 429 ✅
 
 Wave 4A complete. Wave 4B (frontend) BLOCKED on the Claude Design handoff.
+
+## [2026-06-06] Wave 4B built — awaiting GATE 4B
+Fetched the Claude Design handoff (22 screens → `.design-handoff/edit-pdf/`).
+Resolved the route collision (annotation tool was already at `/edit-pdf`, not
+`/pdf-editor`): relocated annotation → `/pdf-editor`, built the new cloud editor at
+`/edit-pdf`. Built the editor: `lib/stores/editorStore.ts` (Zustand), `lib/api/editor.ts`
+(typed client for the 7 routes), 13 `components/tools/EditPdf/*` components matching the
+handoff's 17 states, 13 new editor icons, editor CSS, 3 PostHog events, i18n `editPdf`
+namespace in en/tr/ru. `bunx tsc --noEmit` clean; `bun run build` green (both new routes
+generated). Annotation export deferred to 4C. Awaiting user GATE 4B browser test.
+
+## [2026-06-06] Wave 4B — Real PDF editor frontend — GATE 4B PASSED
+New cloud "Edit PDF" tool at /edit-pdf (annotation editor relocated to /pdf-editor).
+Zustand store + typed /api/editor client + EditPdf component set (canvas, toolbar,
+thumbnails, status bar, text blocks, whiteout/highlight/draw/find-replace/context menu).
+Wired ops: open, page render, edit text, add-text, whiteout, find & replace, save,
+undo/redo, zoom. Two browser-test bug-fix rounds (see decisions D4.13/D4.14); the
+critical Text+ fix was a focus-race blur clearing the draft box (ref-focus + ready guard).
+Temp anon-limit raise reverted to real values (anon 15 MB / 20 pages).
+Annotations remain client overlays — burned into the PDF in Wave 4C.

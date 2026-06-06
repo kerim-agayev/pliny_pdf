@@ -26,6 +26,7 @@ const REGISTRY = {
   JpgToPdfTool: dynamic(() => import("./JpgToPdfTool").then((m) => m.JpgToPdfTool), { ssr: false, loading }),
   WatermarkTool: dynamic(() => import("./WatermarkTool").then((m) => m.WatermarkTool), { ssr: false, loading }),
   EditorTool: dynamic(() => import("./EditorTool").then((m) => m.EditorTool), { ssr: false, loading }),
+  EditPdf: dynamic(() => import("./EditPdf").then((m) => m.EditPdf), { ssr: false, loading }),
   ProtectTool: dynamic(() => import("./ProtectTool").then((m) => m.ProtectTool), { ssr: false, loading }),
   UnlockTool: dynamic(() => import("./UnlockTool").then((m) => m.UnlockTool), { ssr: false, loading }),
   DeletePages: dynamic(() => import("./DeletePages").then((m) => m.DeletePages), { ssr: false, loading }),

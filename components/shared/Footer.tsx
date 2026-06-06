@@ -29,7 +29,7 @@ export function Footer() {
         { label: "Merge PDF", href: "/merge-pdf" },
         { label: "Compress PDF", href: "/compress-pdf" },
         { label: "Add Watermark", href: "/add-watermark" },
-        { label: "PDF Editor", href: "/edit-pdf" },
+        { label: "PDF Editor", href: "/pdf-editor" },
       ],
     },
     {

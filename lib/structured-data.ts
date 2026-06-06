@@ -147,10 +147,16 @@ const TOOL_FAQ: Record<string, ToolSchemaCopy["faq"]> = {
     { q: "Do I need to know the password?", a: "Yes — you must know the current password. This removes protection from PDFs you own." },
     { q: "Is the file uploaded to remove the password?", a: "No — it is processed in your browser, locally." },
   ],
-  "edit-pdf": [
+  "pdf-editor": [
     PRIVACY_FAQ,
     { q: "What can I add to a PDF?", a: "Text, sticky notes, highlights, freehand drawing, shapes, and images." },
-    { q: "Can I edit the existing text in the PDF?", a: "This is an annotation editor — you add on top of the PDF. In-place text editing is on the roadmap." },
+    { q: "Can I edit the existing text in the PDF?", a: "This is an annotation editor — you add on top of the PDF. To edit real text in place, use the cloud Edit PDF tool." },
+  ],
+  "edit-pdf": [
+    CLOUD_PRIVACY_FAQ,
+    { q: "Can I edit the real text in my PDF?", a: "Yes — click any text block to edit it in place, change the font size and colour, add new text, or white out content. Changes are applied server-side with PyMuPDF." },
+    { q: "Why is this a cloud tool?", a: "Editing real PDF text needs a server-side PDF engine to re-flow and re-render the page. Your file is processed securely over an encrypted connection and deleted within 24 hours." },
+    { q: "What if my PDF is scanned?", a: "Image-only pages have no editable text. Run OCR first to make the text selectable, then edit it here." },
   ],
   "pdf-to-word": [
     CLOUD_PRIVACY_FAQ,

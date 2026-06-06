@@ -379,3 +379,44 @@ input[type="range"].pp-range::-moz-range-thumb {
   animation: ppshimmer 1.4s ease-in-out infinite;
 }
 @media (prefers-reduced-motion: reduce) { .pp-skeleton { animation: pppulse 1.6s ease-in-out infinite; } }
+
+/* =========================================================================
+   Edit PDF editor (Phase 4, Wave 4B) — full-screen cloud editor chrome.
+   ========================================================================= */
+/* toolbar button hover */
+.pp-edtool { transition: background 0.12s, border-color 0.12s, color 0.12s; }
+.pp-edtool:not(:disabled):hover { background: rgba(127, 127, 127, 0.08); }
+/* blinking text caret in an editing block */
+@keyframes ppblink { 50% { opacity: 0; } }
+.pp-caret { animation: ppblink 1s step-end infinite; }
+/* parsing skeleton (shimmer between card and card-hi) */
+.pp-skel {
+  background: linear-gradient(90deg, var(--card) 0px, var(--card-hi) 200px, var(--card) 400px);
+  background-size: 800px 100%;
+  animation: ppskel 1.4s infinite linear;
+}
+@keyframes ppskel { 0% { background-position: -400px 0; } 100% { background-position: 400px 0; } }
+@media (prefers-reduced-motion: reduce) { .pp-skel { animation: pppulse 1.6s ease-in-out infinite; } }
+/* mobile-only / hide-on-mobile helpers for the editor chrome */
+.pp-ed-mobileonly { display: none !important; }
+/* responsive collapse for narrow viewports (mobile editor, Wave 4B) */
+@media (max-width: 700px) {
+  /* thumbnails become an off-canvas drawer, toggled by the Pages button */
+  .pp-ed-sidebar { display: none !important; }
+  .pp-ed-sidebar.pp-ed-drawer-open {
+    display: flex !important;
+    position: fixed; left: 0; top: 56px; bottom: 40px; z-index: 70; width: 200px;
+    box-shadow: 0 0 50px -6px rgba(0, 0, 0, 0.6);
+  }
+  .pp-ed-drawer-backdrop { position: fixed; inset: 0; z-index: 69; background: rgba(0, 0, 0, 0.4); }
+  /* each toolbar row scrolls horizontally instead of wrapping into 3 tall rows */
+  .pp-ed-row { overflow-x: auto; overflow-y: hidden; scrollbar-width: none; gap: 2px; padding-left: 10px; padding-right: 10px; }
+  .pp-ed-row::-webkit-scrollbar { display: none; }
+  /* roomier tap targets (≈44px) on touch */
+  .pp-edtool { min-height: 40px; }
+  /* the page canvas fills the available width with minimal gutter */
+  .pp-ed-canvas { padding: 12px 10px !important; }
+  /* simplify the bottom bar — drop non-essential chips */
+  .pp-ed-hide-sm { display: none !important; }
+  .pp-ed-mobileonly { display: inline-flex !important; }
+}

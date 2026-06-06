@@ -184,6 +184,12 @@ def _redact_rect(page, rect):
 def cmd_parse(input_pdf, session_dir):
     os.makedirs(session_dir, exist_ok=True)
     doc = pymupdf.open(input_pdf)
+    # Encrypted PDFs can't be parsed/rendered until unlocked. Signal the caller so
+    # it can prompt for a password rather than reporting a generic open failure.
+    if doc.needs_pass:
+        doc.close()
+        print(json.dumps({"error": "passwordRequired"}))
+        return
     try:
         out = _doc_json(doc, session_dir, render=True)
     finally:

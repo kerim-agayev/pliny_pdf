@@ -66,6 +66,10 @@ export const editor = new Elysia({ prefix: "/api/editor" })
       try {
         result = await openSession(input, who?.plan ?? "anon");
       } catch (e) {
+        if (String(e).includes("passwordRequired")) {
+          set.status = 401;
+          return { error: "passwordRequired", message: "This PDF is password-protected. Unlock it to edit." };
+        }
         set.status = 502;
         return { error: "openFailed", message: "Couldn't open this PDF. Please try another file.", detail: String(e).slice(0, 200) };
       }

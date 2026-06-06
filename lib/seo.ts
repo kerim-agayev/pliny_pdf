@@ -151,9 +151,13 @@ export const TOOL_SEO: Record<string, { title: string; description: string }> = 
     title: "Remove PDF Password — PlinyPDF",
     description: "Remove a password from a PDF you own, right in your browser.",
   },
-  "edit-pdf": {
+  "pdf-editor": {
     title: "PDF Editor — PlinyPDF",
     description: "Annotate, highlight, draw, and mark up PDFs in your browser.",
+  },
+  "edit-pdf": {
+    title: "Edit PDF — PlinyPDF",
+    description: "Edit real PDF text, whiteout content, add text, and find & replace. Processed securely, deleted after.",
   },
   "pdf-to-word": {
     title: "PDF to Word — PlinyPDF",

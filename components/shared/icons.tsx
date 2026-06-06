@@ -311,6 +311,53 @@ export const IconZoomIn = (p: IconProps) => (
   <I {...p}><circle cx="11" cy="11" r="7" /><path d="M20 20l-3.5-3.5" /><path d="M11 8v6M8 11h6" /></I>
 );
 
+// === Edit PDF (Phase 4) icons ===
+export const IconTextPlus = (p: IconProps) => (
+  <I {...p}>
+    <path d="M4 6V4h11v2" /><path d="M9.5 4v13" /><path d="M7 17h5" />
+    <path d="M18 13v6M21 16h-6" />
+  </I>
+);
+export const IconShapes = (p: IconProps) => (
+  <I {...p}><rect x="3" y="13" width="8" height="8" rx="1" /><circle cx="17" cy="17" r="4" /><path d="M12 3l4 7H8z" /></I>
+);
+export const IconMessage = (p: IconProps) => (
+  <I {...p}><path d="M21 12a8 8 0 0 1-11.6 7.1L3 21l1.9-6.4A8 8 0 1 1 21 12z" /></I>
+);
+export const IconLink = (p: IconProps) => (
+  <I {...p}>
+    <path d="M10 14a4 4 0 0 0 5.66 0l3-3a4 4 0 0 0-5.66-5.66l-1.5 1.5" />
+    <path d="M14 10a4 4 0 0 0-5.66 0l-3 3a4 4 0 1 0 5.66 5.66l1.5-1.5" />
+  </I>
+);
+export const IconBold = (p: IconProps) => (
+  <I {...p} sw={p.sw ?? 2}><path d="M7 5h6a3.5 3.5 0 0 1 0 7H7z" /><path d="M7 12h7a3.5 3.5 0 0 1 0 7H7z" /></I>
+);
+export const IconItalic = (p: IconProps) => (
+  <I {...p} sw={p.sw ?? 2}><path d="M19 5h-6M11 19H5M15 5l-4 14" /></I>
+);
+export const IconUnderlineText = (p: IconProps) => (
+  <I {...p} sw={p.sw ?? 2}><path d="M7 5v6a5 5 0 0 0 10 0V5" /><path d="M5 20h14" /></I>
+);
+export const IconAlignLeft = (p: IconProps) => (
+  <I {...p}><path d="M4 6h16M4 12h10M4 18h13" /></I>
+);
+export const IconAlignCenter = (p: IconProps) => (
+  <I {...p}><path d="M4 6h16M7 12h10M5 18h14" /></I>
+);
+export const IconAlignRight = (p: IconProps) => (
+  <I {...p}><path d="M4 6h16M10 12h10M7 18h13" /></I>
+);
+export const IconScissors = (p: IconProps) => (
+  <I {...p}><circle cx="6" cy="6" r="3" /><circle cx="6" cy="18" r="3" /><path d="M8.5 8L20 18M8.5 16L20 6" /></I>
+);
+export const IconClipboard = (p: IconProps) => (
+  <I {...p}><rect x="5" y="4" width="14" height="17" rx="2" /><path d="M9 4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2H9z" /></I>
+);
+export const IconCloudUp = (p: IconProps) => (
+  <I {...p}><path d="M7 18a4 4 0 0 1-.5-7.97A6 6 0 0 1 18 9a3.5 3.5 0 0 1 0 9h-1" /><path d="M12 13v7M9 16l3-3 3 3" /></I>
+);
+
 // PlinyPDF P monogram — geometric, premium
 export const PlinyMark = ({
   size = 28,

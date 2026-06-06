@@ -1,5 +1,4 @@
-import { setRequestLocale, getTranslations } from "next-intl/server";
-import { ToolShell } from "@/components/tools/ToolShell";
+import { setRequestLocale } from "next-intl/server";
 import { ToolMount } from "@/components/tools/ToolMount";
 import { toolMetadata } from "@/lib/seo";
 import { toolSchemas } from "@/lib/structured-data";
@@ -7,20 +6,22 @@ import { JsonLd } from "@/components/seo/JsonLd";
 
 export const generateMetadata = toolMetadata("edit-pdf");
 
-export default async function EditorPage({
+/**
+ * Edit PDF — the cloud editor (Phase 4). Unlike every other tool it does NOT use
+ * ToolShell: the editor is a full-screen takeover (its own header/toolbars/sidebar),
+ * so the page just emits SEO/JSON-LD and mounts the client editor full-bleed.
+ */
+export default async function EditPdfPage({
   params,
 }: {
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const t = await getTranslations("ToolPages.editor");
   return (
     <>
       <JsonLd data={toolSchemas("edit-pdf")} />
-      <ToolShell toolId="edit" subtitle={t("subtitle")} fullWidth>
-        <ToolMount component="EditorTool" />
-      </ToolShell>
+      <ToolMount component="EditPdf" />
     </>
   );
 }

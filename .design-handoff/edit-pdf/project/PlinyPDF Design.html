@@ -1,0 +1,462 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>PlinyPDF — Design</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+<link rel="stylesheet" href="brand.css" />
+
+<style>
+  html, body { margin: 0; padding: 0; background: #f0eee9; }
+  body { font-family: 'Inter', system-ui, sans-serif; }
+  #root { min-height: 100vh; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel" src="icons.jsx"></script>
+<script type="text/babel" src="shared.jsx"></script>
+<script type="text/babel" src="screen-home.jsx"></script>
+<script type="text/babel" src="screen-tools.jsx"></script>
+<script type="text/babel" src="screen-pricing.jsx"></script>
+<script type="text/babel" src="screen-merge.jsx"></script>
+<script type="text/babel" src="screen-watermark.jsx"></script>
+<script type="text/babel" src="screen-dashboard.jsx"></script>
+<script type="text/babel" src="screen-mobile.jsx"></script>
+<script type="text/babel" src="screen-compress.jsx"></script>
+<script type="text/babel" src="screen-summarize.jsx"></script>
+<script type="text/babel" src="screen-auth.jsx"></script>
+<script type="text/babel" src="screen-states.jsx"></script>
+<script type="text/babel" src="screen-pro-dashboard.jsx"></script>
+<script type="text/babel" src="screen-mobile-375.jsx"></script>
+<script type="text/babel" src="screen-light.jsx"></script>
+<script type="text/babel" src="screen-editor.jsx"></script>
+<script type="text/babel" src="tool-kit.jsx"></script>
+<script type="text/babel" src="screen-add-page-numbers.jsx"></script>
+<script type="text/babel" src="screen-organize-pages.jsx"></script>
+<script type="text/babel" src="screen-crop-pdf.jsx"></script>
+<script type="text/babel" src="screen-header-footer.jsx"></script>
+<script type="text/babel" src="screen-sign-pdf.jsx"></script>
+<script type="text/babel" src="screen-redact-content.jsx"></script>
+<script type="text/babel" src="edit-pdf-parts.jsx"></script>
+<script type="text/babel" src="screen-edit-pdf.jsx"></script>
+
+<script type="text/babel" data-presets="env,react">
+  const App = () => (
+    <DesignCanvas>
+      <DCSection id="overview" title="PlinyPDF" subtitle="Privacy-first online PDF toolkit · dark theme · 6 screens + mobile">
+        <DCArtboard id="home" label="01 · Homepage" width={1440} height={3800}>
+          <Homepage />
+        </DCArtboard>
+        <DCArtboard id="tools" label="02 · All Tools" width={1440} height={1480}>
+          <ToolsPage />
+        </DCArtboard>
+        <DCArtboard id="merge" label="03 · Merge PDF (tool)" width={1440} height={1320}>
+          <MergePage />
+        </DCArtboard>
+        <DCArtboard id="watermark" label="04 · Watermark · live preview" width={1440} height={1180}>
+          <WatermarkPage />
+        </DCArtboard>
+        <DCArtboard id="pricing" label="05 · Pricing" width={1440} height={1720}>
+          <PricingPage />
+        </DCArtboard>
+        <DCArtboard id="dashboard" label="06 · Dashboard (PRO/FREE)" width={1440} height={920}>
+          <DashboardPage />
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="editor" title="PDF Editor" subtitle="Annotate · highlight · draw · mark up — full-width canvas, no sidebar">
+        <DCArtboard id="editor-active" label="PDF Editor · active (highlight tool)" width={1440} height={1340}>
+          <PDFEditorPage />
+        </DCArtboard>
+        <DCArtboard id="editor-empty" label="PDF Editor · empty / upload" width={1440} height={920}>
+          <PDFEditorEmptyPage />
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="p2-pagenumbers" title="Add Page Numbers" subtitle="9-position grid · 5 formats · live preview — empty / active / light / mobile">
+        <DCArtboard id="pn-empty" label="Page Numbers · empty" width={1440} height={920}>
+          <PageNumbersEmptyPage />
+        </DCArtboard>
+        <DCArtboard id="pn-active" label="Page Numbers · active" width={1440} height={1180}>
+          <PageNumbersPage />
+        </DCArtboard>
+        <DCArtboard id="pn-light" label="Page Numbers · light" width={1440} height={1180}>
+          <PageNumbersLightPage />
+        </DCArtboard>
+        <DCArtboard id="pn-mobile" label="Page Numbers · mobile 375" width={375} height={1240}>
+          <PageNumbersMobile />
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="p2-organize" title="Organize Pages" subtitle="Drag-reorder grid · multi-select · floating toolbar · change counter">
+        <DCArtboard id="org-empty" label="Organize · empty" width={1440} height={920}>
+          <OrganizeEmptyPage />
+        </DCArtboard>
+        <DCArtboard id="org-active" label="Organize · active (2 selected)" width={1440} height={1320}>
+          <OrganizePage />
+        </DCArtboard>
+        <DCArtboard id="org-light" label="Organize · light" width={1440} height={1320}>
+          <OrganizeLightPage />
+        </DCArtboard>
+        <DCArtboard id="org-mobile" label="Organize · mobile 375" width={375} height={1180}>
+          <OrganizeMobile />
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="p2-crop" title="Crop PDF" subtitle="Canvas crop overlay · 8 handles · presets · mm/in/px — empty / active / light / mobile">
+        <DCArtboard id="crop-empty" label="Crop · empty" width={1440} height={920}>
+          <CropEmptyPage />
+        </DCArtboard>
+        <DCArtboard id="crop-active" label="Crop · active" width={1440} height={1220}>
+          <CropPage />
+        </DCArtboard>
+        <DCArtboard id="crop-light" label="Crop · light" width={1440} height={1220}>
+          <CropLightPage />
+        </DCArtboard>
+        <DCArtboard id="crop-mobile" label="Crop · mobile 375" width={375} height={1180}>
+          <CropMobile />
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="p2-headerfooter" title="Header & Footer" subtitle="Dual text bands · {page}/{total}/{date}/{filename} tokens · live preview">
+        <DCArtboard id="hf-empty" label="Header/Footer · empty" width={1440} height={920}>
+          <HeaderFooterEmptyPage />
+        </DCArtboard>
+        <DCArtboard id="hf-active" label="Header/Footer · active" width={1440} height={1180}>
+          <HeaderFooterPage />
+        </DCArtboard>
+        <DCArtboard id="hf-light" label="Header/Footer · light" width={1440} height={1180}>
+          <HeaderFooterLightPage />
+        </DCArtboard>
+        <DCArtboard id="hf-mobile" label="Header/Footer · mobile 375" width={375} height={1280}>
+          <HeaderFooterMobile />
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="p2-sign" title="Sign PDF" subtitle="Draw / type / upload signature · saved sigs · drag to place · resize">
+        <DCArtboard id="sign-empty" label="Sign · empty" width={1440} height={920}>
+          <SignEmptyPage />
+        </DCArtboard>
+        <DCArtboard id="sign-active" label="Sign · active (draw + place)" width={1440} height={1280}>
+          <SignPage />
+        </DCArtboard>
+        <DCArtboard id="sign-light" label="Sign · light" width={1440} height={1280}>
+          <SignLightPage />
+        </DCArtboard>
+        <DCArtboard id="sign-mobile" label="Sign · mobile 375" width={375} height={1320}>
+          <SignMobile />
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="p2-redact" title="Redact Content" subtitle="Black boxes · search & redact · pattern auto-detect · permanent warning">
+        <DCArtboard id="red-empty" label="Redact · empty" width={1440} height={920}>
+          <RedactEmptyPage />
+        </DCArtboard>
+        <DCArtboard id="red-active" label="Redact · active" width={1440} height={1260}>
+          <RedactPage />
+        </DCArtboard>
+        <DCArtboard id="red-light" label="Redact · light" width={1440} height={1260}>
+          <RedactLightPage />
+        </DCArtboard>
+        <DCArtboard id="red-mobile" label="Redact · mobile 375" width={375} height={1200}>
+          <RedactMobile />
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="p4-edit-pdf" title="Edit PDF — Cloud editor (Phase 4)" subtitle="Sejda/pdfFiller-style real editor · 17 states · 3 toolbar rows · contract content">
+        <DCArtboard id="edit-empty" label="01 · Empty / upload" width={1280} height={940}>
+          <EditEmpty />
+        </DCArtboard>
+        <DCArtboard id="edit-loading" label="02 · Loading / parsing (skeleton)" width={1280} height={940}>
+          <EditLoading />
+        </DCArtboard>
+        <DCArtboard id="edit-active" label="03 · Editor active (nothing selected)" width={1280} height={940}>
+          <EditActive />
+        </DCArtboard>
+        <DCArtboard id="edit-selected" label="04 · Text block selected" width={1280} height={940}>
+          <EditSelected />
+        </DCArtboard>
+        <DCArtboard id="edit-editing" label="05 · Text editing mode" width={1280} height={940}>
+          <EditEditing />
+        </DCArtboard>
+        <DCArtboard id="edit-addtext" label="06 · Add text mode" width={1280} height={940}>
+          <EditAddText />
+        </DCArtboard>
+        <DCArtboard id="edit-whiteout" label="07 · Whiteout mode" width={1280} height={940}>
+          <EditWhiteout />
+        </DCArtboard>
+        <DCArtboard id="edit-highlight" label="08 · Highlight mode" width={1280} height={940}>
+          <EditHighlight />
+        </DCArtboard>
+        <DCArtboard id="edit-shapes" label="09 · Draw / shapes dropdown" width={1280} height={940}>
+          <EditShapes />
+        </DCArtboard>
+        <DCArtboard id="edit-comment" label="10 · Comment / sticky note" width={1280} height={940}>
+          <EditComment />
+        </DCArtboard>
+        <DCArtboard id="edit-find" label="11 · Find & Replace modal" width={1280} height={940}>
+          <EditFindReplace />
+        </DCArtboard>
+        <DCArtboard id="edit-context" label="12 · Context menu (right-click)" width={1280} height={940}>
+          <EditContextMenu />
+        </DCArtboard>
+        <DCArtboard id="edit-session" label="13 · Session expiry warning" width={1280} height={940}>
+          <EditSessionWarning />
+        </DCArtboard>
+        <DCArtboard id="edit-scanned" label="14 · Error · scanned PDF" width={1280} height={940}>
+          <EditScannedError />
+        </DCArtboard>
+        <DCArtboard id="edit-parse" label="15 · Error · parse failed" width={1280} height={940}>
+          <EditParseError />
+        </DCArtboard>
+        <DCArtboard id="edit-mobile" label="16 · Mobile (375)" width={375} height={760}>
+          <EditMobile />
+        </DCArtboard>
+        <DCArtboard id="edit-active-light" label="17a · Light mode · active" width={1280} height={940}>
+          <EditActive theme="light" />
+        </DCArtboard>
+        <DCArtboard id="edit-selected-light" label="17b · Light mode · selected" width={1280} height={940}>
+          <EditSelected theme="light" />
+        </DCArtboard>
+        <DCArtboard id="edit-empty-light" label="17c · Light mode · empty" width={1280} height={940}>
+          <EditEmpty theme="light" />
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="new-tools" title="New tool screens" subtitle="Compress PDF (settings → done) · AI Summary with tabs">
+        <DCArtboard id="compress" label="07 · Compress · settings" width={1440} height={1140}>
+          <CompressPage />
+        </DCArtboard>
+        <DCArtboard id="compress-done" label="08 · Compress · success" width={1440} height={1100}>
+          <CompressPageDone />
+        </DCArtboard>
+        <DCArtboard id="summarize" label="09 · AI Summary (Executive)" width={1440} height={1280}>
+          <SummarizePage />
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="auth" title="Auth" subtitle="Centered card, Google OAuth + email/password — sign in & sign up">
+        <DCArtboard id="signin" label="10 · Sign in" width={1440} height={920}>
+          <SignInPage />
+        </DCArtboard>
+        <DCArtboard id="signup" label="11 · Sign up" width={1440} height={920}>
+          <SignUpPage />
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="pro" title="Pro Dashboard" subtitle="No usage caps · 30-day history · Early access tool · monthly stats">
+        <DCArtboard id="pro-dash" label="12 · Dashboard · PRO" width={1440} height={1120}>
+          <ProDashboardPage />
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="light" title="Light mode variants" subtitle="Warm white · indigo accent unchanged · sun toggle active in navbar">
+        <DCArtboard id="home-light" label="Homepage · light" width={1440} height={2280}>
+          <HomepageLight />
+        </DCArtboard>
+        <DCArtboard id="merge-light" label="Merge PDF · light" width={1440} height={1320}>
+          <MergePageLight />
+        </DCArtboard>
+        <DCArtboard id="pricing-light" label="Pricing · light" width={1440} height={1720}>
+          <PricingPageLight />
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="mobile" title="Mobile (375 · iPhone 14)" subtitle="Homepage, merge with sticky bottom CTA, pricing stack">
+        <DCArtboard id="m-home" label="Mobile · Homepage" width={375} height={1760}>
+          <Mobile375Home />
+        </DCArtboard>
+        <DCArtboard id="m-merge" label="Mobile · Merge PDF (sticky CTA)" width={375} height={1080}>
+          <Mobile375Merge />
+        </DCArtboard>
+        <DCArtboard id="m-pricing" label="Mobile · Pricing (stacked)" width={375} height={1640}>
+          <Mobile375Pricing />
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="errors" title="Empty & error states" subtitle="File too large · wrong type · processing failed · success download">
+        <DCArtboard id="err-large" label="Error · file too large" width={640} height={360}>
+          <ErrorFileTooLarge />
+        </DCArtboard>
+        <DCArtboard id="err-type" label="Error · wrong file type" width={640} height={360}>
+          <ErrorWrongType />
+        </DCArtboard>
+        <DCArtboard id="err-process" label="Error · processing failed" width={640} height={360}>
+          <ErrorProcessing />
+        </DCArtboard>
+        <DCArtboard id="succ-download" label="Success · generic download" width={640} height={360}>
+          <SuccessDownload />
+        </DCArtboard>
+      </DCSection>
+
+      <DCSection id="states" title="Interaction states" subtitle="Drag-glow, processing, success, hover, tooltip">
+        <DCArtboard id="st-drop-glow" label="Drop · drag-over (indigo glow)" width={620} height={300}>
+          <DropGlowState />
+        </DCArtboard>
+        <DCArtboard id="st-processing" label="Merge · processing" width={620} height={300}>
+          <ProcessingState />
+        </DCArtboard>
+        <DCArtboard id="st-success" label="Merge · success" width={620} height={300}>
+          <SuccessState />
+        </DCArtboard>
+        <DCArtboard id="st-tooltip" label="Privacy badge · tooltip" width={420} height={260}>
+          <TooltipState />
+        </DCArtboard>
+        <DCArtboard id="st-hover" label="Tool card · default vs hover" width={620} height={260}>
+          <HoverState />
+        </DCArtboard>
+      </DCSection>
+    </DesignCanvas>
+  );
+
+  // Interaction-state vignettes
+  const DropGlowState = () => (
+    <div className="pp-board" style={{ width: 620, height: 300, padding: 28 }}>
+      <div className="pp-drop glow" style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: 0 }}>
+        <div style={{
+          width: 56, height: 56, borderRadius: 14,
+          background: 'rgba(107,92,231,0.2)',
+          border: '1px solid rgba(107,92,231,0.4)',
+          color: '#BFB5FF',
+          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+          marginBottom: 16,
+        }}>
+          <IconUpload size={22} sw={1.7} />
+        </div>
+        <div style={{ fontSize: 17, fontWeight: 500, marginBottom: 6 }}>Drop to add</div>
+        <div style={{ fontSize: 13, color: 'var(--text-2)' }}>3 PDFs detected</div>
+      </div>
+    </div>
+  );
+
+  const ProcessingState = () => (
+    <div className="pp-board" style={{ width: 620, height: 300, padding: 28 }}>
+      <div style={{ padding: 20, background: 'var(--bg-2)', border: '1px solid var(--line)', borderRadius: 14 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 14 }}>
+          <Spinner />
+          <div>
+            <div style={{ fontSize: 15, fontWeight: 500 }}>Stitching pages locally…</div>
+            <div className="pp-mono" style={{ fontSize: 11.5, color: 'var(--text-3)', marginTop: 2 }}>
+              4 files · 84 pages · WASM
+            </div>
+          </div>
+          <div className="pp-mono" style={{ fontSize: 12, color: 'var(--text-2)', marginLeft: 'auto' }}>62%</div>
+        </div>
+        <div className="pp-progress"><span style={{ width: '62%' }} /></div>
+        <div style={{ marginTop: 14, fontSize: 12, color: 'var(--text-3)', display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span className="pp-dot" style={{ color: '#34D399' }} />
+          pdf-lib 1.17 · zero network requests this session
+          <span style={{ marginLeft: 'auto' }}>~0.8s remaining</span>
+        </div>
+      </div>
+    </div>
+  );
+
+  const SuccessState = () => (
+    <div className="pp-board" style={{ width: 620, height: 300, padding: 28 }}>
+      <div style={{
+        padding: 24,
+        background: 'linear-gradient(180deg, rgba(16,185,129,0.1), rgba(16,185,129,0.02))',
+        border: '1px solid rgba(16,185,129,0.24)',
+        borderRadius: 14,
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <div style={{
+            width: 48, height: 48, borderRadius: 12,
+            background: 'rgba(16,185,129,0.18)', color: '#34D399',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          }}>
+            <IconCheck size={22} sw={2.4} />
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 17, fontWeight: 600, marginBottom: 2 }}>Merged successfully.</div>
+            <div className="pp-mono" style={{ fontSize: 11.5, color: 'var(--text-2)' }}>
+              merged-2026-05-21.pdf · 84 pages · 7.2 MB
+            </div>
+          </div>
+          <button className="pp-btn" style={{ background: 'var(--emerald)', boxShadow: '0 8px 20px -10px rgba(16,185,129,0.6)' }}>
+            <IconDownload size={14} /> Download
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+
+  const TooltipState = () => (
+    <div className="pp-board" style={{ width: 420, height: 260, padding: 28, position: 'relative', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+      <div style={{ position: 'relative' }}>
+        <PrivacyBadge mode="local" big />
+        <div style={{
+          position: 'absolute', bottom: '100%', left: '50%',
+          transform: 'translate(-50%, -10px)',
+          width: 260, padding: 14,
+          background: 'var(--card-hi)', border: '1px solid var(--line-2)',
+          borderRadius: 10, boxShadow: 'var(--shadow-md)',
+        }}>
+          <div style={{ fontSize: 12.5, color: 'var(--text)', lineHeight: 1.5, marginBottom: 8 }}>
+            This tool runs entirely in your browser using <span className="pp-mono" style={{ color: '#BFB5FF' }}>WebAssembly</span>. We never see your file.
+          </div>
+          <a className="pp-mono" style={{ fontSize: 11, color: '#BFB5FF' }}>View source on GitHub →</a>
+          <div style={{
+            position: 'absolute', top: '100%', left: '50%', transform: 'translateX(-50%)',
+            width: 0, height: 0,
+            borderLeft: '6px solid transparent', borderRight: '6px solid transparent',
+            borderTop: '6px solid var(--card-hi)',
+          }} />
+        </div>
+      </div>
+    </div>
+  );
+
+  const HoverState = () => {
+    const merge = TOOLS.find(t => t.id === 'merge');
+    return (
+      <div className="pp-board" style={{ width: 620, height: 260, padding: 28, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+        <div>
+          <div className="pp-mono" style={{ fontSize: 10.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--text-3)', marginBottom: 8 }}>Default</div>
+          <ToolCard tool={merge} />
+        </div>
+        <div>
+          <div className="pp-mono" style={{ fontSize: 10.5, letterSpacing: '0.12em', textTransform: 'uppercase', color: '#BFB5FF', marginBottom: 8 }}>Hover (lifted + arrow)</div>
+          <div className="pp-tool" style={{
+            transform: 'translateY(-2px)',
+            borderColor: 'var(--line-2)',
+            background: 'var(--card-hi)',
+          }}>
+            <div style={{ position: 'absolute', right: 16, top: 20, color: 'var(--text)' }}><IconArrow size={16} /></div>
+            <div style={{
+              width: 40, height: 40, borderRadius: 10,
+              background: 'rgba(255,255,255,0.04)',
+              border: '1px solid var(--line)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: merge.accent, marginBottom: 18,
+            }}>
+              <IconMerge size={20} sw={1.6} />
+            </div>
+            <h3 style={{ fontSize: 16, fontWeight: 600, marginBottom: 6 }}>{merge.name}</h3>
+            <p style={{ fontSize: 13, color: 'var(--text-2)', marginBottom: 14 }}>{merge.desc}</p>
+            <PrivacyBadge mode="local" />
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  Object.assign(window, { DropGlowState, ProcessingState, SuccessState, TooltipState, HoverState });
+
+  ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

@@ -134,7 +134,11 @@ export async function openSession(
   await writeChanges(dir, []);
 
   const stdout = await runPython(["parse", original, dir]);
-  const parsed = JSON.parse(stdout) as ParseResult;
+  const parsed = JSON.parse(stdout) as ParseResult & { error?: string };
+  if (parsed.error === "passwordRequired") {
+    await rm(dir, { recursive: true, force: true });
+    throw new Error("passwordRequired");
+  }
 
   const meta: Meta = { createdAt: Date.now(), plan, pageCount: parsed.pageCount };
   await writeFile(join(dir, "meta.json"), JSON.stringify(meta));

@@ -29,4 +29,12 @@ export const analytics = {
   signupCompleted: (method: "email" | "google") => capture("signup_completed", { method }),
   upgradeClicked: (plan: "monthly" | "yearly") => capture("upgrade_clicked", { plan }),
   checkoutOpened: () => capture("checkout_opened"),
+  /** Edit PDF (cloud editor) — a session was opened from an uploaded PDF. */
+  editorOpened: (pageCount: number) =>
+    capture("editor_opened", { locale: currentLocale(), page_count: pageCount }),
+  /** Edit PDF — the edited PDF was saved/downloaded. */
+  editorSaved: (changeCount: number) =>
+    capture("editor_saved", { locale: currentLocale(), change_count: changeCount }),
+  /** Edit PDF — a text block was edited inline. */
+  editorTextEdited: () => capture("editor_text_edited", { locale: currentLocale() }),
 };
