@@ -2,13 +2,13 @@
 
 ## Current Status
 - Phase: 5 (Performance, Cloud Migration & Polish)
-- Active wave: **5B — Cloud migration** — code complete, build + typecheck green; ⏳ GATE 5B functional checks pending Hetzner deploy.
-- Next step: deploy `server/` to Hetzner, run the GATE 5B real-file checks, then start Wave 5C.
+- Active wave: **5C — Local optimizations** — ✅ GATE 5C passed (2026-06-07); committed + pushed (Vercel auto-deploy).
+- Next step: Wave 5D — mobile touch (Annotate PDF + Edit PDF).
 
 ## Waves
 - **5A** — Global fixes + limit enforcement — *complete (GATE 5A passed 2026-06-07)* ✅
-- **5B** — Cloud migration (Compress, Grayscale, PDF→JPG, Merge) — *code complete; functional GATE pending deploy*
-- 5C — Local optimizations (Header/Footer, Extract, Sign, lazy thumbnails, Web Workers) — not started
+- **5B** — Cloud migration (Compress, Grayscale, PDF→JPG, Merge) — *shipped; GATE 5B bug-fixes pushed (39ba4e9). Backend deploy: git reset --hard origin/main + restart plinypdf-backend on Hetzner.*
+- **5C** — Local optimizations (Header/Footer, Extract, Sign, lazy thumbnails, Web Workers, JPG→PDF cap) — *complete (GATE 5C passed 2026-06-07)* ✅
 - 5D — Mobile touch (Annotate PDF + Edit PDF) — not started
 - 5E — Edit PDF improvements — not started
 

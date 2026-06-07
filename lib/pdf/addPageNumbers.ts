@@ -1,4 +1,5 @@
 import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
+import type { ProgressFn } from "@/lib/workers/pdfOpsClient";
 
 export type PageNumPosition =
   | "TL" | "TC" | "TR"
@@ -68,39 +69,54 @@ function hexToRgb(hex: string) {
   return rgb(r, g, b);
 }
 
-/** Stamp a page number on every (eligible) page, returning a new PDF. */
-export async function addPageNumbers(file: File, opts: PageNumberOptions): Promise<Blob> {
-  const doc = await PDFDocument.load(await file.arrayBuffer(), { ignoreEncryption: true });
+/**
+ * Core (Phase 5C): bytes in → bytes out, so it can run in the pdf-lib Web Worker
+ * or as the main-thread fallback.
+ */
+export async function addPageNumbersCore(
+  bytes: ArrayBuffer | Uint8Array,
+  opts: PageNumberOptions,
+  onProgress?: ProgressFn,
+): Promise<Uint8Array> {
+  const doc = await PDFDocument.load(bytes, { ignoreEncryption: true });
   const font = await doc.embedFont(StandardFonts.Helvetica);
   const color = hexToRgb(opts.color);
   const pages = doc.getPages();
   const total = pages.length;
   const vert = opts.position[0]; // T | M | B
   const horiz = opts.position[1]; // L | C | R
+  const step = Math.max(1, Math.floor(total / 100));
 
   pages.forEach((page, i) => {
     const human = i + 1;
-    if (opts.skipFirst && i === 0) return;
-    if (human < opts.startPage) return;
-    const num = opts.startNum + (human - opts.startPage);
-    const label = formatPageNumber(opts.format, num, total);
-    const { width, height } = page.getSize();
-    const textWidth = font.widthOfTextAtSize(label, opts.size);
-    const textHeight = font.heightAtSize(opts.size);
+    const eligible = !(opts.skipFirst && i === 0) && human >= opts.startPage;
+    if (eligible) {
+      const num = opts.startNum + (human - opts.startPage);
+      const label = formatPageNumber(opts.format, num, total);
+      const { width, height } = page.getSize();
+      const textWidth = font.widthOfTextAtSize(label, opts.size);
+      const textHeight = font.heightAtSize(opts.size);
 
-    let x: number;
-    if (horiz === "L") x = opts.margin;
-    else if (horiz === "R") x = width - opts.margin - textWidth;
-    else x = (width - textWidth) / 2;
+      let x: number;
+      if (horiz === "L") x = opts.margin;
+      else if (horiz === "R") x = width - opts.margin - textWidth;
+      else x = (width - textWidth) / 2;
 
-    let y: number;
-    if (vert === "T") y = height - opts.margin - textHeight;
-    else if (vert === "B") y = opts.margin;
-    else y = (height - textHeight) / 2;
+      let y: number;
+      if (vert === "T") y = height - opts.margin - textHeight;
+      else if (vert === "B") y = opts.margin;
+      else y = (height - textHeight) / 2;
 
-    page.drawText(label, { x, y, size: opts.size, font, color });
+      page.drawText(label, { x, y, size: opts.size, font, color });
+    }
+    if (onProgress && (i % step === 0 || i === total - 1)) onProgress(i + 1, total);
   });
 
-  const data = await doc.save();
+  return doc.save();
+}
+
+/** Stamp a page number on every (eligible) page, returning a new PDF. */
+export async function addPageNumbers(file: File, opts: PageNumberOptions): Promise<Blob> {
+  const data = await addPageNumbersCore(await file.arrayBuffer(), opts);
   return new Blob([data as BlobPart], { type: "application/pdf" });
 }

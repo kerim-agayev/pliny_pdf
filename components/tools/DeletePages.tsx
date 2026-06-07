@@ -1,14 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { FileDropzone } from "./FileDropzone";
 import { FileInfoBar } from "./FileInfoBar";
 import { SuccessPanel, ErrorBanner } from "./ResultPanels";
 import { Spinner } from "./Spinner";
+import { LazyThumb } from "./LazyThumb";
 import { IconArrow, IconTrash, IconX } from "@/components/shared/icons";
 import { deletePages } from "@/lib/pdf/delete";
-import { renderThumbnails, type Thumb } from "@/lib/pdf/thumbnails";
+import { createThumbLoader, type ThumbLoader } from "@/lib/pdf/thumbnailLoader";
 import { isPdf } from "@/lib/pdf/common";
 import { downloadBlob, baseName, MAX_FILE_BYTES } from "@/lib/format";
 import { analytics } from "@/lib/analytics";
@@ -19,11 +20,14 @@ export function DeletePages() {
   const t = useTranslations("ToolUI");
   const tp = useTranslations("ToolPages.deletePages");
   const [file, setFile] = useState<File | null>(null);
-  const [thumbs, setThumbs] = useState<Thumb[]>([]);
+  const loaderRef = useRef<ThumbLoader | null>(null);
+  const [pageCount, setPageCount] = useState(0);
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [status, setStatus] = useState<Status>("idle");
   const [result, setResult] = useState<Blob | null>(null);
   const [errorMsg, setErrorMsg] = useState<string>();
+
+  const loadPage = useCallback((i: number) => loaderRef.current!.renderPage(i, 0.4), []);
 
   async function onFiles(files: File[]) {
     const f = files[0];
@@ -38,9 +42,11 @@ export function DeletePages() {
     setErrorMsg(undefined);
     setFile(f);
     setStatus("loading");
+    loaderRef.current?.destroy();
+    const loader = createThumbLoader(f);
+    loaderRef.current = loader;
     try {
-      const th = await renderThumbnails(f);
-      setThumbs(th);
+      setPageCount(await loader.pageCount());
       setSelected(new Set());
       setStatus("ready");
     } catch {
@@ -58,7 +64,7 @@ export function DeletePages() {
   }
 
   async function run() {
-    if (!file || selected.size === 0 || selected.size >= thumbs.length) return;
+    if (!file || selected.size === 0 || selected.size >= pageCount) return;
     setStatus("processing");
     try {
       setResult(await deletePages(file, selected));
@@ -70,8 +76,10 @@ export function DeletePages() {
   }
 
   function reset() {
+    loaderRef.current?.destroy();
+    loaderRef.current = null;
     setFile(null);
-    setThumbs([]);
+    setPageCount(0);
     setSelected(new Set());
     setResult(null);
     setStatus("idle");
@@ -102,11 +110,11 @@ export function DeletePages() {
     );
   }
 
-  const allSelected = thumbs.length > 0 && selected.size >= thumbs.length;
+  const allSelected = pageCount > 0 && selected.size >= pageCount;
 
   return (
     <div className="flex flex-col gap-5">
-      <FileInfoBar file={file} pages={thumbs.length || undefined} onRemove={reset} />
+      <FileInfoBar file={file} pages={pageCount || undefined} onRemove={reset} />
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <span className="text-[12.5px]" style={{ color: "var(--text-3)" }}>
@@ -123,7 +131,7 @@ export function DeletePages() {
           className="grid max-h-[60vh] gap-3 overflow-auto rounded-xl p-4"
           style={{ gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", background: "var(--bg-2)", border: "1px solid var(--line)" }}
         >
-          {thumbs.map((th, i) => {
+          {Array.from({ length: pageCount }, (_, i) => {
             const isSel = selected.has(i);
             return (
               <button
@@ -141,12 +149,12 @@ export function DeletePages() {
                     <IconX size={10} sw={3} />
                   </span>
                 )}
-                <img
-                  src={th.url}
+                <LazyThumb
+                  index={i}
+                  load={loadPage}
                   alt={`page ${i + 1}`}
-                  className="max-h-[150px] w-auto rounded shadow-sm transition-opacity"
-                  style={{ opacity: isSel ? 0.5 : 1 }}
-                  draggable={false}
+                  className="flex w-full justify-center"
+                  imgStyle={{ maxHeight: 150, width: "auto", borderRadius: 4, opacity: isSel ? 0.5 : 1 }}
                 />
                 <span className="pp-mono text-[11px]" style={{ color: "var(--text-3)" }}>{i + 1}</span>
               </button>

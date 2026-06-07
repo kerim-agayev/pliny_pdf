@@ -1,14 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { FileDropzone } from "./FileDropzone";
 import { FileInfoBar } from "./FileInfoBar";
 import { SuccessPanel, ErrorBanner } from "./ResultPanels";
 import { Spinner } from "./Spinner";
+import { LazyThumb } from "./LazyThumb";
+import { ProgressPanel } from "./ProgressPanel";
 import { IconArrow, IconRotate, IconCheck } from "@/components/shared/icons";
-import { rotatePages } from "@/lib/pdf/rotate";
-import { renderThumbnails, type Thumb } from "@/lib/pdf/thumbnails";
+import { createThumbLoader, type ThumbLoader } from "@/lib/pdf/thumbnailLoader";
+import { runPdfOp } from "@/lib/workers/pdfOpsClient";
 import { isPdf } from "@/lib/pdf/common";
 import { downloadBlob, baseName } from "@/lib/format";
 import { analytics } from "@/lib/analytics";
@@ -19,12 +21,16 @@ export function RotateTool() {
   const t = useTranslations("ToolUI");
   const tp = useTranslations("ToolPages.rotate");
   const [file, setFile] = useState<File | null>(null);
-  const [thumbs, setThumbs] = useState<Thumb[]>([]);
+  const loaderRef = useRef<ThumbLoader | null>(null);
+  const [pageCount, setPageCount] = useState(0);
   const [rotations, setRotations] = useState<Record<number, number>>({});
   const [selected, setSelected] = useState<Set<number>>(new Set());
   const [status, setStatus] = useState<Status>("idle");
   const [result, setResult] = useState<Blob | null>(null);
   const [errorMsg, setErrorMsg] = useState<string>();
+  const [progress, setProgress] = useState({ page: 0, total: 0 });
+
+  const loadPage = useCallback((i: number) => loaderRef.current!.renderPage(i, 0.4), []);
 
   async function onFiles(files: File[]) {
     const f = files[0];
@@ -35,9 +41,11 @@ export function RotateTool() {
     setErrorMsg(undefined);
     setFile(f);
     setStatus("loading");
+    loaderRef.current?.destroy();
+    const loader = createThumbLoader(f);
+    loaderRef.current = loader;
     try {
-      const th = await renderThumbnails(f);
-      setThumbs(th);
+      setPageCount(await loader.pageCount());
       setRotations({});
       setSelected(new Set());
       setStatus("ready");
@@ -61,7 +69,7 @@ export function RotateTool() {
   }
 
   function applyDelta(delta: number) {
-    const targets = selected.size > 0 ? [...selected] : thumbs.map((_, i) => i);
+    const targets = selected.size > 0 ? [...selected] : Array.from({ length: pageCount }, (_, i) => i);
     setRotations((prev) => {
       const next = { ...prev };
       for (const i of targets) next[i] = (((next[i] ?? 0) + delta) % 360 + 360) % 360;
@@ -72,8 +80,9 @@ export function RotateTool() {
   async function run() {
     if (!file) return;
     setStatus("processing");
+    setProgress({ page: 0, total: 0 });
     try {
-      setResult(await rotatePages(file, rotations));
+      setResult(await runPdfOp("rotate", file, { rotations }, (page, t2) => setProgress({ page, total: t2 })));
       setStatus("done");
       analytics.toolUsed("rotate-pdf");
     } catch {
@@ -82,8 +91,10 @@ export function RotateTool() {
   }
 
   function reset() {
+    loaderRef.current?.destroy();
+    loaderRef.current = null;
     setFile(null);
-    setThumbs([]);
+    setPageCount(0);
     setRotations({});
     setSelected(new Set());
     setResult(null);
@@ -115,7 +126,7 @@ export function RotateTool() {
 
   return (
     <div className="flex flex-col gap-5">
-      <FileInfoBar file={file} pages={thumbs.length || undefined} onRemove={reset} />
+      <FileInfoBar file={file} pages={pageCount || undefined} onRemove={reset} />
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex gap-2">
@@ -135,7 +146,7 @@ export function RotateTool() {
           className="grid max-h-[60vh] gap-3 overflow-auto rounded-xl p-4"
           style={{ gridTemplateColumns: "repeat(auto-fill, minmax(120px, 1fr))", background: "var(--bg-2)", border: "1px solid var(--line)" }}
         >
-          {thumbs.map((th, i) => {
+          {Array.from({ length: pageCount }, (_, i) => {
             const isSel = selected.has(i);
             const rot = rotations[i] ?? 0;
             return (
@@ -151,13 +162,12 @@ export function RotateTool() {
                     <IconCheck size={10} sw={3} />
                   </span>
                 )}
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={th.url}
+                <LazyThumb
+                  index={i}
+                  load={loadPage}
                   alt={`page ${i + 1}`}
-                  className="max-h-[150px] w-auto rounded shadow-sm transition-transform"
-                  style={{ transform: `rotate(${rot}deg)` }}
-                  draggable={false}
+                  className="flex w-full justify-center"
+                  imgStyle={{ maxHeight: 150, width: "auto", borderRadius: 4, transform: `rotate(${rot}deg)`, transition: "transform 0.2s" }}
                 />
                 <span className="pp-mono text-[11px]" style={{ color: "var(--text-3)" }}>{i + 1}</span>
               </button>
@@ -174,6 +184,8 @@ export function RotateTool() {
           {status === "processing" ? <><Spinner /> {t("processing")}</> : <>{tp("action")} <IconArrow size={15} /></>}
         </button>
       </div>
+
+      {status === "processing" && <ProgressPanel page={progress.page} total={progress.total} />}
 
       {status === "error" && <ErrorBanner onRetry={() => setStatus("ready")} />}
     </div>

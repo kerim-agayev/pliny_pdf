@@ -235,6 +235,7 @@
   "Errors": {
     "fileTooLarge": "This file is too large. Maximum is {limitMB} MB (your file is {fileMB} MB).",
     "tooManyPagesLocal": "This PDF has {pages} pages. Your plan allows up to {limit} pages.",
+    "tooManyImages": "You can add up to {max} images on your plan.",
     "fileTooLargeGrayscale": "This file is too large for grayscale conversion. Please use a PDF under {mb} MB and {pages} pages.",
     "fileTooLargeCompress": "This file is too large for compression. Please use a PDF under {mb} MB and {pages} pages. Tip: Split your PDF first, then compress each part.",
     "wrongType": "That file type isn't supported here.",
@@ -303,6 +304,8 @@
     "pagesCount": "{count, plural, one {# page} other {# pages}}",
     "dropWordTitle": "Drop a Word document here",
     "converting": "Converting…",
+    "processingPage": "Processing page {n} of {total}…",
+    "imagesCount": "{count} / {max} images",
     "cloudProcessing": "Converting on our server…",
     "cloudPatience": "Large or complex files can take a minute or two — please keep this tab open.",
     "cloudPatienceLong": "Still converting… large documents take a little longer. Almost there — please don't close this tab.",
@@ -380,6 +383,7 @@
       "rangeLabel": "Pages to extract",
       "rangePlaceholder": "e.g. 1-5, 8, 11-13",
       "invalidRange": "Enter valid page numbers within 1–{count}.",
+      "ofPages": "of {count} pages",
       "action": "Extract {count} pages",
       "successTitle": "Pages extracted."
     },

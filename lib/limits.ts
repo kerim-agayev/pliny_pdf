@@ -21,6 +21,9 @@ export const CLOUD_MAX_PAGES = { anon: 50, free: 300, pro: 1000 } as const;
 // a tighter page cap to stay fast (~<30s). Size still uses CLOUD_MAX_MB. (Wave 5B)
 export const PDF_TO_JPG_MAX_PAGES = { anon: 20, free: 50, pro: 200 } as const;
 
+// JPG→PDF is local but embeds each image; cap the count per plan. (Wave 5C)
+export const JPG_TO_PDF_MAX_IMAGES = { anon: 50, free: 100, pro: 200 } as const;
+
 const MB = 1024 * 1024;
 
 /** Resolve a plan to a tier key; `null`/`undefined` ⇒ anonymous. */
@@ -63,6 +66,11 @@ export function cloudMaxPages(plan: Plan | null | undefined): number {
 /** Maximum page count for PDF→JPG (tighter — every page is rendered). */
 export function pdfToJpgMaxPages(plan: Plan | null | undefined): number {
   return PDF_TO_JPG_MAX_PAGES[tier(plan)];
+}
+
+/** Maximum number of images JPG→PDF will combine for a plan. */
+export function jpgToPdfMaxImages(plan: Plan | null | undefined): number {
+  return JPG_TO_PDF_MAX_IMAGES[tier(plan)];
 }
 
 /** Round a byte count to one-decimal MB for display in error messages. */

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import {
   DndContext,
@@ -17,7 +17,7 @@ import { ErrorBanner } from "./ResultPanels";
 import { Spinner } from "./Spinner";
 import { IconCopy, IconRotate, IconCheck, IconX, IconUndo, IconDownload, IconGrip } from "@/components/shared/icons";
 import { organizePages } from "@/lib/pdf/organizePages";
-import { renderThumbnails, type Thumb } from "@/lib/pdf/thumbnails";
+import { createThumbLoader, type Thumb, type ThumbLoader } from "@/lib/pdf/thumbnailLoader";
 import { isPdf } from "@/lib/pdf/common";
 import { downloadBlob, baseName, MAX_FILE_BYTES } from "@/lib/format";
 import { analytics } from "@/lib/analytics";
@@ -32,18 +32,38 @@ interface WorkItem {
 
 function SortableThumb({
   item,
-  thumb,
+  load,
   displayN,
   selected,
   onSelect,
 }: {
   item: WorkItem;
-  thumb: Thumb | undefined;
+  load: (src: number) => Promise<Thumb>;
   displayN: number;
   selected: boolean;
   onSelect: (e: React.MouseEvent) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: item.uid });
+  const boxRef = useRef<HTMLDivElement>(null);
+  const [thumb, setThumb] = useState<Thumb | null>(null);
+
+  // Lazy-load this page's thumbnail once it scrolls near the viewport.
+  useEffect(() => {
+    const el = boxRef.current;
+    if (!el || thumb) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) {
+          io.disconnect();
+          load(item.src).then(setThumb).catch(() => {});
+        }
+      },
+      { rootMargin: "300px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [thumb, item.src, load]);
+
   const w = 150;
   const h = thumb ? (thumb.h * w) / thumb.w : w * 1.3;
   return (
@@ -61,12 +81,14 @@ function SortableThumb({
         style={{ width: w }}
       >
         <div
+          ref={boxRef}
           className="overflow-hidden rounded-md"
           style={{
             width: w,
             height: h,
             border: selected ? "2px solid var(--indigo)" : "1px solid var(--line-2)",
             boxShadow: selected ? "0 0 0 4px rgba(107,92,231,0.16), 0 12px 28px -12px rgba(0,0,0,0.6)" : "0 6px 16px -8px rgba(0,0,0,0.5)",
+            background: "var(--bg-2)",
           }}
         >
           {thumb && (
@@ -109,7 +131,8 @@ export function OrganizePages() {
   const t = useTranslations("ToolUI");
   const tp = useTranslations("ToolPages.organizePages");
   const [file, setFile] = useState<File | null>(null);
-  const [thumbs, setThumbs] = useState<Thumb[]>([]);
+  const loaderRef = useRef<ThumbLoader | null>(null);
+  const [pageCount, setPageCount] = useState(0);
   const [status, setStatus] = useState<Status>("idle");
   const [errorMsg, setErrorMsg] = useState<string>();
   const [saving, setSaving] = useState(false);
@@ -120,6 +143,7 @@ export function OrganizePages() {
   const initial = useRef<WorkItem[]>([]);
 
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 5 } }));
+  const loadPage = useCallback((src: number) => loaderRef.current!.renderPage(src, 0.5), []);
 
   async function onFiles(files: File[]) {
     const f = files[0];
@@ -134,11 +158,14 @@ export function OrganizePages() {
     setErrorMsg(undefined);
     setFile(f);
     setStatus("loading");
+    loaderRef.current?.destroy();
+    const loader = createThumbLoader(f);
+    loaderRef.current = loader;
     try {
-      const th = await renderThumbnails(f, 0.5);
-      const init = th.map((_, i) => ({ uid: `o${i}`, src: i, rot: 0 }));
-      uidCounter.current = th.length;
-      setThumbs(th);
+      const n = await loader.pageCount();
+      const init = Array.from({ length: n }, (_, i) => ({ uid: `o${i}`, src: i, rot: 0 }));
+      uidCounter.current = n;
+      setPageCount(n);
       setItems(init);
       initial.current = init;
       setSelected(new Set());
@@ -229,8 +256,10 @@ export function OrganizePages() {
   }
 
   function reset() {
+    loaderRef.current?.destroy();
+    loaderRef.current = null;
     setFile(null);
-    setThumbs([]);
+    setPageCount(0);
     setItems([]);
     setSelected(new Set());
     setStatus("idle");
@@ -259,7 +288,7 @@ export function OrganizePages() {
   }
 
   const distinct = new Set(items.map((i) => i.src)).size;
-  const deleted = thumbs.length - distinct;
+  const deleted = pageCount - distinct;
   const duplicated = items.length - distinct;
   const rotated = items.filter((i) => i.rot % 360 !== 0).length;
 
@@ -324,7 +353,7 @@ export function OrganizePages() {
               <SortableThumb
                 key={it.uid}
                 item={it}
-                thumb={thumbs[it.src]}
+                load={loadPage}
                 displayN={i + 1}
                 selected={selected.has(it.uid)}
                 onSelect={(e) => onSelect(i, e)}

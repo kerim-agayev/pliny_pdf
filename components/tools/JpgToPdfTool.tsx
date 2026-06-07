@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 import { FileDropzone } from "./FileDropzone";
 import { SuccessPanel, ErrorBanner } from "./ResultPanels";
 import { Spinner } from "./Spinner";
@@ -10,13 +11,18 @@ import { jpgToPdf, jpgToPdfSeparate } from "@/lib/pdf/jpgToPdf";
 import { isImage } from "@/lib/pdf/common";
 import { downloadBlob, formatBytes } from "@/lib/format";
 import { analytics } from "@/lib/analytics";
+import { useSession } from "@/lib/auth/client";
+import { jpgToPdfMaxImages } from "@/lib/limits";
 
 type Status = "idle" | "processing" | "done" | "error";
 type Mode = "combine" | "separate";
 
 export function JpgToPdfTool() {
   const t = useTranslations("ToolUI");
+  const te = useTranslations("Errors");
   const tp = useTranslations("ToolPages.jpgToPdf");
+  const { data: session } = useSession();
+  const maxImages = jpgToPdfMaxImages((session?.user as { plan?: "free" | "pro" })?.plan ?? null);
   const [files, setFiles] = useState<File[]>([]);
   const [mode, setMode] = useState<Mode>("combine");
   const [status, setStatus] = useState<Status>("idle");
@@ -27,7 +33,11 @@ export function JpgToPdfTool() {
     const imgs = incoming.filter(isImage);
     if (imgs.length !== incoming.length) setErrorMsg(t("wrongTypeImage"));
     else setErrorMsg(undefined);
-    setFiles((prev) => [...prev, ...imgs]);
+    setFiles((prev) => {
+      const room = Math.max(0, maxImages - prev.length);
+      if (imgs.length > room) toast.error(te("tooManyImages", { max: maxImages }));
+      return [...prev, ...imgs.slice(0, room)];
+    });
   }
 
   async function run() {
@@ -73,6 +83,9 @@ export function JpgToPdfTool() {
 
       {files.length > 0 && (
         <>
+          <div className="flex items-center gap-1.5 text-[12.5px]" style={{ color: "var(--text-3)" }}>
+            <IconImage size={14} /> {t("imagesCount", { count: files.length, max: maxImages })}
+          </div>
           <div className="grid grid-cols-2 gap-1 rounded-[10px] p-1 sm:max-w-md" style={{ background: "var(--bg-2)", border: "1px solid var(--line)" }}>
             {([
               { k: "combine", label: tp("combineOne") },

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { FileDropzone } from "./FileDropzone";
 import { FileInfoBar } from "./FileInfoBar";
@@ -15,7 +15,7 @@ import {
   type Band,
   type BandAlign,
 } from "@/lib/pdf/headerFooter";
-import { renderThumbnails, type Thumb } from "@/lib/pdf/thumbnails";
+import { createThumbLoader, type Thumb, type ThumbLoader } from "@/lib/pdf/thumbnailLoader";
 import { isPdf } from "@/lib/pdf/common";
 import { downloadBlob, baseName, MAX_FILE_BYTES } from "@/lib/format";
 import { analytics } from "@/lib/analytics";
@@ -118,7 +118,9 @@ export function HeaderFooter() {
   const t = useTranslations("ToolUI");
   const tp = useTranslations("ToolPages.headerFooter");
   const [file, setFile] = useState<File | null>(null);
-  const [thumbs, setThumbs] = useState<Thumb[]>([]);
+  const loaderRef = useRef<ThumbLoader | null>(null);
+  const [total, setTotal] = useState(0);
+  const [thumb, setThumb] = useState<Thumb | null>(null);
   const [status, setStatus] = useState<Status>("idle");
   const [result, setResult] = useState<Blob | null>(null);
   const [errorMsg, setErrorMsg] = useState<string>();
@@ -127,8 +129,23 @@ export function HeaderFooter() {
   const [header, setHeader] = useState<Band>({ text: "CONFIDENTIAL — {filename}", align: "left", size: 10, color: "#F43F5E" });
   const [footer, setFooter] = useState<Band>({ text: "Page {page} of {total}", align: "center", size: 10, color: "#6B7280" });
 
-  const total = thumbs.length;
   const today = formatTokenDate(new Date());
+
+  // Render only the selected preview page, on demand (the loader caches each page).
+  useEffect(() => {
+    const loader = loaderRef.current;
+    if (!loader || status === "idle" || total === 0) return;
+    let cancelled = false;
+    loader
+      .renderPage(previewPage - 1, PREVIEW_SCALE)
+      .then((th) => {
+        if (!cancelled) setThumb(th);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [previewPage, total, status]);
 
   async function onFiles(files: File[]) {
     const f = files[0];
@@ -143,9 +160,13 @@ export function HeaderFooter() {
     setErrorMsg(undefined);
     setFile(f);
     setStatus("loading");
+    setThumb(null);
+    loaderRef.current?.destroy();
+    const loader = createThumbLoader(f);
+    loaderRef.current = loader;
     try {
-      const th = await renderThumbnails(f, PREVIEW_SCALE);
-      setThumbs(th);
+      const n = await loader.pageCount();
+      setTotal(n);
       setPreviewPage(1);
       setStatus("ready");
     } catch {
@@ -166,8 +187,11 @@ export function HeaderFooter() {
   }
 
   function reset() {
+    loaderRef.current?.destroy();
+    loaderRef.current = null;
     setFile(null);
-    setThumbs([]);
+    setTotal(0);
+    setThumb(null);
     setResult(null);
     setStatus("idle");
     setErrorMsg(undefined);
@@ -198,7 +222,6 @@ export function HeaderFooter() {
     );
   }
 
-  const thumb = thumbs[previewPage - 1];
   const ctx = { page: previewPage, total, date: today, filename: file.name };
   const skipped = skipFirst && previewPage === 1;
 

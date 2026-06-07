@@ -1,4 +1,5 @@
 import { PDFDocument } from "pdf-lib";
+import type { ProgressFn } from "@/lib/workers/pdfOpsClient";
 
 /** Crop insets as a percentage (0–100) of the page, measured from each edge. */
 export interface CropInsets {
@@ -90,27 +91,44 @@ function targetIndices(scope: CropScope, total: number): Set<number> {
   return new Set(scope.indices);
 }
 
-/** Apply the crop (as a new MediaBox + CropBox) to the targeted pages. */
-export async function cropPdf(file: File, insets: CropInsets, scope: CropScope): Promise<Blob> {
-  const doc = await PDFDocument.load(await file.arrayBuffer(), { ignoreEncryption: true });
+/**
+ * Core crop (Phase 5C): bytes in → bytes out, so it can run in the pdf-lib Web
+ * Worker or as the main-thread fallback.
+ */
+export async function cropPdfCore(
+  bytes: ArrayBuffer | Uint8Array,
+  insets: CropInsets,
+  scope: CropScope,
+  onProgress?: ProgressFn,
+): Promise<Uint8Array> {
+  const doc = await PDFDocument.load(bytes, { ignoreEncryption: true });
   const pages = doc.getPages();
-  const targets = targetIndices(scope, pages.length);
+  const total = pages.length;
+  const targets = targetIndices(scope, total);
+  const step = Math.max(1, Math.floor(total / 100));
 
   pages.forEach((page, i) => {
-    if (!targets.has(i)) return;
-    const box = page.getMediaBox();
-    const lp = (insets.left / 100) * box.width;
-    const rp = (insets.right / 100) * box.width;
-    const tp = (insets.top / 100) * box.height;
-    const bp = (insets.bottom / 100) * box.height;
-    const newW = Math.max(1, box.width - lp - rp);
-    const newH = Math.max(1, box.height - tp - bp);
-    const newX = box.x + lp;
-    const newY = box.y + bp;
-    page.setMediaBox(newX, newY, newW, newH);
-    page.setCropBox(newX, newY, newW, newH);
+    if (targets.has(i)) {
+      const box = page.getMediaBox();
+      const lp = (insets.left / 100) * box.width;
+      const rp = (insets.right / 100) * box.width;
+      const tp = (insets.top / 100) * box.height;
+      const bp = (insets.bottom / 100) * box.height;
+      const newW = Math.max(1, box.width - lp - rp);
+      const newH = Math.max(1, box.height - tp - bp);
+      const newX = box.x + lp;
+      const newY = box.y + bp;
+      page.setMediaBox(newX, newY, newW, newH);
+      page.setCropBox(newX, newY, newW, newH);
+    }
+    if (onProgress && (i % step === 0 || i === total - 1)) onProgress(i + 1, total);
   });
 
-  const data = await doc.save();
+  return doc.save();
+}
+
+/** Apply the crop (as a new MediaBox + CropBox) to the targeted pages. */
+export async function cropPdf(file: File, insets: CropInsets, scope: CropScope): Promise<Blob> {
+  const data = await cropPdfCore(await file.arrayBuffer(), insets, scope);
   return new Blob([data as BlobPart], { type: "application/pdf" });
 }

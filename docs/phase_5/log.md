@@ -37,3 +37,28 @@
   PDF→JPG 200 pg zip + 1 pg jpg; merge 3 large; 413/429 toasts). Not runnable from
   the dev box (no local PyMuPDF; frontend targets api.plinypdf.com).
 
+## [2026-06-07] GATE 5C passed — local tool optimizations (no cloud)
+- New infra: `lib/pdf/thumbnailLoader.ts` (`createThumbLoader` — open pdfjs doc once,
+  render pages on demand, cached, concurrency-queued); `components/tools/LazyThumb.tsx`
+  (IntersectionObserver placeholder→render, rootMargin 300px);
+  `components/tools/ProgressPanel.tsx` (determinate "Processing page X of Y");
+  `lib/workers/pdfops.worker.ts` + `lib/workers/pdfOpsClient.ts` (`runPdfOp`
+  rotate/crop/pageNumbers; transfers bytes; main-thread fallback when worker
+  unsupported/errors). Cores added to `lib/pdf/{rotate,crop,addPageNumbers}.ts`
+  (`*Core(bytes, params, onProgress)`); File wrappers call them.
+- 5C-1 Header/Footer: single-page preview via loader (no full-doc render).
+- 5C-2 Extract Pages: thumbnails removed → ranges text input + `readPageCount` +
+  "of N pages" hint; instant.
+- 5C-3 Sign PDF: only the selected page renders on demand.
+- 5C-4 Delete + Organize Pages: lazy `LazyThumb` grids (Organize lazy-loads inside
+  `SortableThumb`); select/reorder/rotate/delete unchanged.
+- 5C-5 Rotate (lazy grid) + Crop (single-page preview) + Page Numbers (single-page
+  preview) save via `runPdfOp` worker + `ProgressPanel`. **Redact left on main thread
+  (decision)** — `renderThumbnails` kept (still used by Redact).
+- 5C-6 JPG→PDF: `JPG_TO_PDF_MAX_IMAGES` {anon 50, free 100, pro 200} +
+  `jpgToPdfMaxImages`; cap + `tooManyImages` toast + "X / N images" counter.
+- i18n (en/tr/ru): `ToolUI.processingPage`, `ToolUI.imagesCount`, `Errors.tooManyImages`,
+  `ToolPages.extractPages.ofPages`.
+- Verified: `tsc --noEmit` 0 errors; `bun run build` green (141/141, no MISSING_MESSAGE).
+- Frontend-only → Vercel auto-deploys on push.
+

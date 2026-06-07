@@ -9,7 +9,7 @@ import { ErrorBanner } from "./ResultPanels";
 import { Spinner } from "./Spinner";
 import { IconPen, IconType, IconImage, IconUpload, IconX, IconCheck, IconDownload, IconGrip, IconChevron } from "@/components/shared/icons";
 import { signPdf, typedSignatureToPng, type SignPlacement } from "@/lib/pdf/signPdf";
-import { renderThumbnails, type Thumb } from "@/lib/pdf/thumbnails";
+import { createThumbLoader, type Thumb, type ThumbLoader } from "@/lib/pdf/thumbnailLoader";
 import { isPdf } from "@/lib/pdf/common";
 import { downloadBlob, baseName, MAX_FILE_BYTES } from "@/lib/format";
 import { analytics } from "@/lib/analytics";
@@ -29,7 +29,9 @@ export function SignPdf() {
   const t = useTranslations("ToolUI");
   const tp = useTranslations("ToolPages.signPdf");
   const [file, setFile] = useState<File | null>(null);
-  const [thumbs, setThumbs] = useState<Thumb[]>([]);
+  const loaderRef = useRef<ThumbLoader | null>(null);
+  const [total, setTotal] = useState(0);
+  const [thumb, setThumb] = useState<Thumb | null>(null);
   const [status, setStatus] = useState<Status>("idle");
   const [errorMsg, setErrorMsg] = useState<string>();
   const [saving, setSaving] = useState(false);
@@ -83,6 +85,22 @@ export function SignPdf() {
     if (fc?.freeDrawingBrush) fc.freeDrawingBrush.color = ink;
   }, [ink]);
 
+  // Render only the selected page for signature placement, on demand (cached).
+  useEffect(() => {
+    const loader = loaderRef.current;
+    if (!loader || status === "idle" || total === 0) return;
+    let cancelled = false;
+    loader
+      .renderPage(previewPage - 1, 0.8)
+      .then((th) => {
+        if (!cancelled) setThumb(th);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [previewPage, total, status]);
+
   async function onFiles(files: File[]) {
     const f = files[0];
     if (!f || !isPdf(f)) {
@@ -96,9 +114,13 @@ export function SignPdf() {
     setErrorMsg(undefined);
     setFile(f);
     setStatus("loading");
+    setThumb(null);
+    loaderRef.current?.destroy();
+    const loader = createThumbLoader(f);
+    loaderRef.current = loader;
     try {
-      const th = await renderThumbnails(f, 0.8);
-      setThumbs(th);
+      const n = await loader.pageCount();
+      setTotal(n);
       setPreviewPage(1);
       setStatus("ready");
     } catch {
@@ -188,8 +210,11 @@ export function SignPdf() {
   }
 
   function reset() {
+    loaderRef.current?.destroy();
+    loaderRef.current = null;
     setFile(null);
-    setThumbs([]);
+    setTotal(0);
+    setThumb(null);
     setSig(null);
     setStatus("idle");
     setErrorMsg(undefined);
@@ -209,7 +234,6 @@ export function SignPdf() {
     );
   }
 
-  const thumb = thumbs[previewPage - 1];
   const tabs: { id: Tab; label: string; icon: typeof IconPen }[] = [
     { id: "draw", label: tp("tabDraw"), icon: IconPen },
     { id: "type", label: tp("tabType"), icon: IconType },
@@ -220,7 +244,7 @@ export function SignPdf() {
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-[420px_1fr]">
       {/* Step 1 — create signature */}
       <div className="flex flex-col gap-4">
-        <FileInfoBar file={file} pages={thumbs.length || undefined} onRemove={reset} />
+        <FileInfoBar file={file} pages={total || undefined} onRemove={reset} />
         <div className="pp-card" style={{ padding: 24 }}>
           <div className="mb-4 flex items-center gap-2">
             <span className="flex size-[22px] items-center justify-center rounded-md text-[11px] font-semibold text-white" style={{ background: "var(--indigo)" }}>1</span>
@@ -386,8 +410,8 @@ export function SignPdf() {
                 <button type="button" onClick={() => setPreviewPage((p) => Math.max(1, p - 1))} className="flex rounded-lg p-2" style={{ background: "var(--card)", border: "1px solid var(--line)", color: "var(--text-2)" }} aria-label="previous page">
                   <IconChevron size={14} style={{ transform: "rotate(180deg)" }} />
                 </button>
-                <span className="pp-mono text-[12.5px]">{previewPage} <span style={{ color: "var(--text-3)" }}>/ {thumbs.length}</span></span>
-                <button type="button" onClick={() => setPreviewPage((p) => Math.min(thumbs.length, p + 1))} className="flex rounded-lg p-2" style={{ background: "var(--card)", border: "1px solid var(--line)", color: "var(--text-2)" }} aria-label="next page">
+                <span className="pp-mono text-[12.5px]">{previewPage} <span style={{ color: "var(--text-3)" }}>/ {total}</span></span>
+                <button type="button" onClick={() => setPreviewPage((p) => Math.min(total, p + 1))} className="flex rounded-lg p-2" style={{ background: "var(--card)", border: "1px solid var(--line)", color: "var(--text-2)" }} aria-label="next page">
                   <IconChevron size={14} />
                 </button>
               </div>

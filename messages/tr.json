@@ -235,6 +235,7 @@
   "Errors": {
     "fileTooLarge": "Bu dosya çok büyük. En fazla {limitMB} MB olabilir (dosyanız {fileMB} MB).",
     "tooManyPagesLocal": "Bu PDF {pages} sayfa içeriyor. Planınız en fazla {limit} sayfaya izin veriyor.",
+    "tooManyImages": "Planınızda en fazla {max} görsel ekleyebilirsiniz.",
     "fileTooLargeGrayscale": "Bu dosya gri tonlama dönüşümü için çok büyük. Lütfen {mb} MB ve {pages} sayfanın altında bir PDF kullanın.",
     "fileTooLargeCompress": "Bu dosya sıkıştırma için çok büyük. Lütfen {mb} MB ve {pages} sayfanın altında bir PDF kullanın. İpucu: Önce PDF'nizi bölün, sonra her parçayı sıkıştırın.",
     "wrongType": "Bu dosya türü burada desteklenmiyor.",
@@ -303,6 +304,8 @@
     "pagesCount": "{count, plural, one {# sayfa} other {# sayfa}}",
     "dropWordTitle": "Word belgesini buraya bırakın",
     "converting": "Dönüştürülüyor…",
+    "processingPage": "{total} sayfadan {n}. işleniyor…",
+    "imagesCount": "{count} / {max} görsel",
     "cloudProcessing": "Sunucumuzda dönüştürülüyor…",
     "cloudPatience": "Büyük veya karmaşık dosyalar bir iki dakika sürebilir — lütfen bu sekmeyi açık tutun.",
     "cloudPatienceLong": "Hâlâ dönüştürülüyor… büyük belgeler biraz daha uzun sürer. Az kaldı — lütfen sekmeyi kapatmayın.",
@@ -380,6 +383,7 @@
       "rangeLabel": "Çıkarılacak sayfalar",
       "rangePlaceholder": "örn. 1-5, 8, 11-13",
       "invalidRange": "1–{count} aralığında geçerli sayfa numaraları girin.",
+      "ofPages": "/ {count} sayfa",
       "action": "{count} sayfayı çıkar",
       "successTitle": "Sayfalar çıkarıldı."
     },

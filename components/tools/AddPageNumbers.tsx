@@ -1,21 +1,22 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { FileDropzone } from "./FileDropzone";
 import { FileInfoBar } from "./FileInfoBar";
 import { SuccessPanel, ErrorBanner } from "./ResultPanels";
 import { Spinner } from "./Spinner";
+import { ProgressPanel } from "./ProgressPanel";
 import { ScaledPreview } from "./ScaledPreview";
-import { IconType, IconCheck, IconChevron, IconArrow } from "@/components/shared/icons";
+import { IconCheck, IconChevron } from "@/components/shared/icons";
 import {
-  addPageNumbers,
   formatPageNumber,
   type PageNumPosition,
   type PageNumFormat,
   type PageNumberOptions,
 } from "@/lib/pdf/addPageNumbers";
-import { renderThumbnails, type Thumb } from "@/lib/pdf/thumbnails";
+import { createThumbLoader, type Thumb, type ThumbLoader } from "@/lib/pdf/thumbnailLoader";
+import { runPdfOp } from "@/lib/workers/pdfOpsClient";
 import { isPdf } from "@/lib/pdf/common";
 import { downloadBlob, baseName, MAX_FILE_BYTES } from "@/lib/format";
 import { analytics } from "@/lib/analytics";
@@ -37,12 +38,15 @@ export function AddPageNumbers() {
   const t = useTranslations("ToolUI");
   const tp = useTranslations("ToolPages.addPageNumbers");
   const [file, setFile] = useState<File | null>(null);
-  const [thumbs, setThumbs] = useState<Thumb[]>([]);
+  const loaderRef = useRef<ThumbLoader | null>(null);
+  const [total, setTotal] = useState(0);
+  const [thumb, setThumb] = useState<Thumb | null>(null);
   const [status, setStatus] = useState<Status>("idle");
   const [result, setResult] = useState<Blob | null>(null);
   const [errorMsg, setErrorMsg] = useState<string>();
   const [fmtOpen, setFmtOpen] = useState(false);
   const [previewPage, setPreviewPage] = useState(1);
+  const [progress, setProgress] = useState({ page: 0, total: 0 });
 
   const [opts, setOpts] = useState<PageNumberOptions>({
     position: "BC",
@@ -57,13 +61,28 @@ export function AddPageNumbers() {
   const set = <K extends keyof PageNumberOptions>(k: K, v: PageNumberOptions[K]) =>
     setOpts((p) => ({ ...p, [k]: v }));
 
-  const total = thumbs.length;
   const previewLabel = useMemo(() => {
     if (opts.skipFirst && previewPage === 1) return null;
     if (previewPage < opts.startPage) return null;
     const num = opts.startNum + (previewPage - opts.startPage);
     return formatPageNumber(opts.format, num, total);
   }, [opts, previewPage, total]);
+
+  // Render only the selected preview page, on demand (cached by the loader).
+  useEffect(() => {
+    const loader = loaderRef.current;
+    if (!loader || status === "idle" || total === 0) return;
+    let cancelled = false;
+    loader
+      .renderPage(previewPage - 1, PREVIEW_SCALE)
+      .then((th) => {
+        if (!cancelled) setThumb(th);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [previewPage, total, status]);
 
   async function onFiles(files: File[]) {
     const f = files[0];
@@ -78,9 +97,12 @@ export function AddPageNumbers() {
     setErrorMsg(undefined);
     setFile(f);
     setStatus("loading");
+    setThumb(null);
+    loaderRef.current?.destroy();
+    const loader = createThumbLoader(f);
+    loaderRef.current = loader;
     try {
-      const th = await renderThumbnails(f, PREVIEW_SCALE);
-      setThumbs(th);
+      setTotal(await loader.pageCount());
       setPreviewPage(1);
       setStatus("ready");
     } catch {
@@ -91,8 +113,9 @@ export function AddPageNumbers() {
   async function run() {
     if (!file) return;
     setStatus("processing");
+    setProgress({ page: 0, total: 0 });
     try {
-      setResult(await addPageNumbers(file, opts));
+      setResult(await runPdfOp("pageNumbers", file, { opts }, (page, t2) => setProgress({ page, total: t2 })));
       setStatus("done");
       analytics.toolUsed("add-page-numbers");
     } catch {
@@ -101,8 +124,11 @@ export function AddPageNumbers() {
   }
 
   function reset() {
+    loaderRef.current?.destroy();
+    loaderRef.current = null;
     setFile(null);
-    setThumbs([]);
+    setTotal(0);
+    setThumb(null);
     setResult(null);
     setStatus("idle");
     setErrorMsg(undefined);
@@ -135,7 +161,6 @@ export function AddPageNumbers() {
 
   const vert = opts.position[0];
   const horiz = opts.position[1];
-  const thumb = thumbs[previewPage - 1];
 
   const numStyle: React.CSSProperties = {
     position: "absolute",
@@ -329,6 +354,7 @@ export function AddPageNumbers() {
           >
             {status === "processing" ? <><Spinner /> {t("processing")}</> : <><IconCheck size={15} sw={2} /> {tp("action", { count: total })}</>}
           </button>
+          {status === "processing" && <ProgressPanel page={progress.page} total={progress.total} />}
         </div>
       </div>
 

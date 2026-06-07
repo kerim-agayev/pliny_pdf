@@ -1,14 +1,14 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { FileDropzone } from "./FileDropzone";
 import { FileInfoBar } from "./FileInfoBar";
 import { SuccessPanel, ErrorBanner } from "./ResultPanels";
 import { Spinner } from "./Spinner";
+import { ProgressPanel } from "./ProgressPanel";
 import { IconRect, IconCheck, IconChevron, IconCompress, IconFile, IconCursor } from "@/components/shared/icons";
 import {
-  cropPdf,
   getPageSizes,
   aspectInsets,
   detectMargins,
@@ -17,7 +17,8 @@ import {
   type PageSize,
 } from "@/lib/pdf/crop";
 import { parsePageRanges } from "@/lib/pdf/extract";
-import { renderThumbnails, type Thumb } from "@/lib/pdf/thumbnails";
+import { createThumbLoader, type Thumb, type ThumbLoader } from "@/lib/pdf/thumbnailLoader";
+import { runPdfOp } from "@/lib/workers/pdfOpsClient";
 import { isPdf } from "@/lib/pdf/common";
 import { downloadBlob, baseName, MAX_FILE_BYTES } from "@/lib/format";
 import { analytics } from "@/lib/analytics";
@@ -54,7 +55,10 @@ export function CropPdf() {
   const t = useTranslations("ToolUI");
   const tp = useTranslations("ToolPages.cropPdf");
   const [file, setFile] = useState<File | null>(null);
-  const [thumbs, setThumbs] = useState<Thumb[]>([]);
+  const loaderRef = useRef<ThumbLoader | null>(null);
+  const [pageCount, setPageCount] = useState(0);
+  const [thumb, setThumb] = useState<Thumb | null>(null);
+  const [progress, setProgress] = useState({ page: 0, total: 0 });
   const [sizes, setSizes] = useState<PageSize[]>([]);
   const [status, setStatus] = useState<Status>("idle");
   const [result, setResult] = useState<Blob | null>(null);
@@ -69,9 +73,24 @@ export function CropPdf() {
   const frameRef = useRef<HTMLDivElement>(null);
   const drag = useRef<Handle | null>(null);
 
-  const total = thumbs.length;
-  const thumb = thumbs[previewPage - 1];
+  const total = pageCount;
   const size = sizes[previewPage - 1] ?? { w: 595, h: 842 };
+
+  // Render only the selected preview page, on demand (cached by the loader).
+  useEffect(() => {
+    const loader = loaderRef.current;
+    if (!loader || status === "idle" || total === 0) return;
+    let cancelled = false;
+    loader
+      .renderPage(previewPage - 1, PREVIEW_SCALE)
+      .then((th) => {
+        if (!cancelled) setThumb(th);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, [previewPage, total, status]);
 
   async function onFiles(files: File[]) {
     const f = files[0];
@@ -86,9 +105,13 @@ export function CropPdf() {
     setErrorMsg(undefined);
     setFile(f);
     setStatus("loading");
+    setThumb(null);
+    loaderRef.current?.destroy();
+    const loader = createThumbLoader(f);
+    loaderRef.current = loader;
     try {
-      const [th, ps] = await Promise.all([renderThumbnails(f, PREVIEW_SCALE), getPageSizes(f)]);
-      setThumbs(th);
+      const [n, ps] = await Promise.all([loader.pageCount(), getPageSizes(f)]);
+      setPageCount(n);
       setSizes(ps);
       setPreviewPage(1);
       setInsets({ top: 8, right: 8, bottom: 8, left: 8 });
@@ -166,8 +189,9 @@ export function CropPdf() {
     else cropScope = { mode: "range", indices: parsePageRanges(rangeStr, total) };
     if (cropScope.mode === "range" && cropScope.indices.length === 0) return;
     setStatus("processing");
+    setProgress({ page: 0, total: 0 });
     try {
-      setResult(await cropPdf(file, insets, cropScope));
+      setResult(await runPdfOp("crop", file, { insets, scope: cropScope }, (page, t2) => setProgress({ page, total: t2 })));
       setStatus("done");
       analytics.toolUsed("crop-pdf");
     } catch {
@@ -176,8 +200,11 @@ export function CropPdf() {
   }
 
   function reset() {
+    loaderRef.current?.destroy();
+    loaderRef.current = null;
     setFile(null);
-    setThumbs([]);
+    setPageCount(0);
+    setThumb(null);
     setSizes([]);
     setResult(null);
     setStatus("idle");
@@ -328,6 +355,7 @@ export function CropPdf() {
           <button type="button" className="pp-btn pp-btn-lg w-full justify-center" onClick={run} disabled={status === "processing" || (scope === "range" && rangeIndices.length === 0)}>
             {status === "processing" ? <><Spinner /> {t("processing")}</> : <><IconRect size={15} sw={1.7} /> {tp("action")}</>}
           </button>
+          {status === "processing" && <ProgressPanel page={progress.page} total={progress.total} />}
         </div>
       </div>
 
