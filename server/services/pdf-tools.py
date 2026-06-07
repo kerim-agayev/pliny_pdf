@@ -51,13 +51,13 @@ def _too_many(page_count):
     print(json.dumps({"error": "tooManyPages", "pageCount": page_count}))
 
 
-def _page_jpeg(page, dpi):
-    """Render a page to JPEG bytes. Render STRAIGHT to RGB without alpha: letting
+def _render_jpeg(page, dpi, out_path):
+    """Render a page to a JPEG file. Render STRAIGHT to RGB without alpha: letting
     get_pixmap target csRGB makes MuPDF handle any source colorspace (incl. CMYK
     slides) correctly, and alpha=False fills transparent/soft-mask backgrounds
-    white instead of flattening to black in the (alpha-less) JPEG. Rendering to
-    csRGB directly also avoids a manual CMYK→RGB Pixmap conversion, which could
-    produce black/inverted output."""
+    white instead of flattening to black. pix.save() (format inferred from the
+    .jpg extension) is the version-proven encoder — tobytes('jpeg') returned
+    EMPTY bytes on PyMuPDF 1.27, which produced 0-byte/blank downloads."""
     pix = page.get_pixmap(dpi=dpi, colorspace=pymupdf.csRGB, alpha=False)
     sys.stderr.write(
         "[pdf-tools] page %s: cs=%s n=%d %dx%d head=%s\n"
@@ -70,7 +70,7 @@ def _page_jpeg(page, dpi):
             bytes(pix.samples[:12]).hex(),
         )
     )
-    return pix.tobytes("jpeg", jpg_quality=JPEG_QUALITY)
+    pix.save(out_path, jpg_quality=JPEG_QUALITY)
 
 
 def cmd_compress(input_pdf, output_pdf, max_pages):
@@ -130,16 +130,22 @@ def cmd_pdf_to_jpg(input_pdf, output_dir, max_pages, dpi):
             return
         pages = doc.page_count
         if pages == 1:
-            with open(os.path.join(output_dir, "out.jpg"), "wb") as f:
-                f.write(_page_jpeg(doc[0], dpi))
+            out_path = os.path.join(output_dir, "out.jpg")
+            _render_jpeg(doc[0], dpi, out_path)
+            sys.stderr.write("[pdf-tools] wrote %s size=%d\n" % (out_path, os.path.getsize(out_path)))
             print(json.dumps({"pages": 1, "zip": False}))
             return
         zip_path = os.path.join(output_dir, "out.zip")
         with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
             for i, page in enumerate(doc):
-                zf.writestr("page-%03d.jpg" % (i + 1), _page_jpeg(page, dpi))
+                name = "page-%03d.jpg" % (i + 1)
+                jpg_path = os.path.join(output_dir, name)
+                _render_jpeg(page, dpi, jpg_path)
+                zf.write(jpg_path, name)
+                os.remove(jpg_path)
     finally:
         doc.close()
+    sys.stderr.write("[pdf-tools] wrote %s size=%d\n" % (zip_path, os.path.getsize(zip_path)))
     print(json.dumps({"pages": pages, "zip": True}))
 
 

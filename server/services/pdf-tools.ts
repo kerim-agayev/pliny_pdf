@@ -31,7 +31,22 @@ export class TooManyPagesError extends Error {
 type Status = { pages?: number; zip?: boolean; error?: string; pageCount?: number };
 
 async function runTool(args: string[]): Promise<Status> {
-  const { stdout } = await execFileP(PYTHON_BIN, [TOOLS_SCRIPT, ...args], SPAWN_OPTS);
+  let stdout: string;
+  try {
+    const res = await execFileP(PYTHON_BIN, [TOOLS_SCRIPT, ...args], SPAWN_OPTS);
+    stdout = res.stdout.toString();
+    // The Python script writes [pdf-tools] debug + any traceback to its own
+    // stderr, which execFile captures (it does NOT reach journald on its own) —
+    // forward it so it shows up in `journalctl -u plinypdf-backend`.
+    const stderr = res.stderr.toString().trim();
+    if (stderr) console.error(`[pdf-tools] ${args[0]}:\n${stderr}`);
+  } catch (e) {
+    const err = e as { stdout?: Buffer | string; stderr?: Buffer | string };
+    console.error(
+      `[pdf-tools] ${args[0]} FAILED:\n${(err.stderr ?? "").toString()}\n${(err.stdout ?? "").toString()}`,
+    );
+    throw e;
+  }
   const status = JSON.parse(stdout.trim() || "{}") as Status;
   if (status.error === "tooManyPages") {
     throw new TooManyPagesError(status.pageCount ?? 0);
