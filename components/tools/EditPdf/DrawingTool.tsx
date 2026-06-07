@@ -48,13 +48,13 @@ export function DrawingTool({
     cursor: "pointer",
     pointerEvents: interactive ? "auto" : "none",
   };
-  const onDown = (e: React.MouseEvent) => { e.stopPropagation(); onSelect(); };
+  const onDown = (e: React.PointerEvent) => { e.stopPropagation(); onSelect(); };
 
   if (a.shapeType === "rectangle") {
-    return <div style={{ ...wrap, border: `${sw}px solid ${a.color}`, borderRadius: 4 }} onMouseDown={onDown} />;
+    return <div style={{ ...wrap, border: `${sw}px solid ${a.color}`, borderRadius: 4 }} onPointerDown={onDown} />;
   }
   if (a.shapeType === "circle") {
-    return <div style={{ ...wrap, border: `${sw}px solid ${a.color}`, borderRadius: "50%" }} onMouseDown={onDown} />;
+    return <div style={{ ...wrap, border: `${sw}px solid ${a.color}`, borderRadius: "50%" }} onPointerDown={onDown} />;
   }
 
   // arrow / line — drawn from the true start (a.x,a.y) to end (a.x2,a.y2) so the
@@ -72,7 +72,7 @@ export function DrawingTool({
       style={{ position: "absolute", left: minX * scale, top: minY * scale, overflow: "visible", pointerEvents: interactive ? "auto" : "none", cursor: "pointer" }}
       width={Math.max(1, width)}
       height={Math.max(1, height)}
-      onMouseDown={onDown}
+      onPointerDown={onDown}
     >
       <line x1={sx} y1={sy} x2={tx} y2={ty} stroke={a.color} strokeWidth={sw} strokeLinecap="round" />
       {a.shapeType === "arrow" && (

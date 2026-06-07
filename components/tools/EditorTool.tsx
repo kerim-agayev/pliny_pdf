@@ -11,6 +11,7 @@ import { getPdfjs } from "@/lib/pdf/pdfjs";
 import { exportAnnotatedPdf } from "@/lib/pdf/editorExport";
 import { isPdf } from "@/lib/pdf/common";
 import { downloadBlob, baseName } from "@/lib/format";
+import { usePinchZoom } from "@/lib/touch";
 import { analytics } from "@/lib/analytics";
 import {
   IconCursor, IconType, IconSticky, IconHighlight, IconStrike, IconUnderline,
@@ -59,6 +60,9 @@ export function EditorTool() {
   useEffect(() => { toolRef.current = tool; }, [tool]);
   useEffect(() => { colorRef.current = color; }, [color]);
   useEffect(() => { strokeRef.current = stroke; }, [stroke]);
+
+  // two-finger pinch-to-zoom (single-finger touch draws via fabric's pointer events)
+  usePinchZoom(wrapRef, { getScale: () => zoom, setScale: applyZoom, panTarget: () => wrapRef.current });
 
   const snapshot = useCallback(() => {
     const fc = fcRef.current;
@@ -439,7 +443,7 @@ export function EditorTool() {
         <div className="relative" style={{ boxShadow: "var(--shadow-lg)" }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img ref={pageImgRef} alt="" className="block select-none" style={{ width: baseDims.current.w * zoom, height: baseDims.current.h * zoom }} draggable={false} />
-          <div className="absolute inset-0">
+          <div className="absolute inset-0" style={{ touchAction: "none" }}>
             <canvas ref={canvasElRef} />
           </div>
           {!ready && (

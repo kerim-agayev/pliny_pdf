@@ -39,7 +39,7 @@ export function HighlightTool({
     // of the dragged span — NOT a filled rectangle.
     const lineH = Math.max(2, 2 * scale);
     return (
-      <div style={base} onMouseDown={(e) => { e.stopPropagation(); onSelect(); }}>
+      <div style={base} onPointerDown={(e) => { e.stopPropagation(); onSelect(); }}>
         <div
           style={{
             position: "absolute",
@@ -61,13 +61,13 @@ export function HighlightTool({
   return (
     <div
       style={{ ...base, background: a.color + "73" /* ~45% */, borderRadius: 1, outline: selected ? `1.5px solid ${a.color}` : "none" }}
-      onMouseDown={(e) => { e.stopPropagation(); onSelect(); }}
+      onPointerDown={(e) => { e.stopPropagation(); onSelect(); }}
     >
       {selected && (
         <>
           <button
             type="button"
-            onMouseDown={(e) => { e.stopPropagation(); onRemove(); }}
+            onPointerDown={(e) => { e.stopPropagation(); onRemove(); }}
             style={{
               position: "absolute", right: -8, top: -8, width: 16, height: 16, borderRadius: "50%",
               background: "#0F0F0F", color: "white", border: "1.5px solid white",
@@ -86,7 +86,7 @@ export function HighlightTool({
             {HIGHLIGHT_COLORS.map((c) => (
               <span
                 key={c}
-                onMouseDown={(e) => { e.stopPropagation(); onRecolor(c); }}
+                onPointerDown={(e) => { e.stopPropagation(); onRecolor(c); }}
                 style={{
                   width: 18, height: 18, borderRadius: 5, background: c, cursor: "pointer",
                   boxShadow: c === a.color ? `0 0 0 2px var(--card), 0 0 0 3.5px ${c}` : "none",

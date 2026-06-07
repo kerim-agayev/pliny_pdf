@@ -62,3 +62,26 @@
 - Verified: `tsc --noEmit` 0 errors; `bun run build` green (141/141, no MISSING_MESSAGE).
 - Frontend-only → Vercel auto-deploys on push.
 
+## [2026-06-07] GATE 5D passed — mobile touch support (both editors)
+- **Decision:** used Pointer Events (the existing RedactContent/SignPdf/CropPdf
+  pattern), NOT the spec's touchstart→mousedown translation layer. One code path
+  for mouse+touch+pen; far less code. `lib/touch.ts` holds only the shared piece.
+- New `lib/touch.ts`: `usePinchZoom(ref, {getScale,setScale,panTarget})` — two-finger
+  pinch→zoom + midpoint pan; non-passive touch listeners; callbacks kept in a ref so
+  the once-bound listeners never read stale zoom. Generic over zoom units (Annotate
+  factor 0.5–2; Edit PDF percent 50–200, both already clamp).
+- Annotate PDF (`EditorTool.tsx`): `touch-action:none` on the fabric canvas;
+  `usePinchZoom(wrapRef, …)` → existing `applyZoom`. fabric v6 already feeds its
+  draw handlers from touch, so no handler changes.
+- Edit PDF: `EditorCanvas.tsx` mouse→pointer (`onPointerDown`, `beginDrag`/`beginDraw`
+  window `pointermove`/`pointerup`), `touch-action:none` on the page surface,
+  `usePinchZoom` on the scroll container; draft-text guard → `onPointerDown`.
+  `TextBlock.tsx` pointer events + **double-tap-to-edit** (300 ms, `onDoubleClick`
+  kept for desktop) + pointer-based corner resize (`touch-action:none` on handles).
+  `HighlightTool.tsx` + `DrawingTool.tsx`: `onMouseDown`→`onPointerDown`.
+- `globals.css`: `.pp-edtool` mobile min-height 40→44px (≥44px tap target).
+- No changes to WhiteoutTool, EditorToolbar (TSX), the store, or backend.
+- Verified: `bun run build` green (Compiled successfully, no MISSING_MESSAGE);
+  GATE 5D confirmed (DevTools 375px touch sim — both editors draw/select/pinch).
+- Frontend-only → Vercel auto-deploys on push.
+

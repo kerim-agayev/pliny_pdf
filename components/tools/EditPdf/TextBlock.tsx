@@ -48,6 +48,7 @@ export function TextBlock({
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
+  const lastTap = useRef(0);
   const deleted = change?.deleted ?? false;
   const text = change?.newText ?? block.text;
   const modified = change !== undefined && (change.newText !== undefined || change.deleted || change.color || change.fontSize !== undefined);
@@ -80,21 +81,21 @@ export function TextBlock({
 
   // Corner handle → drag to resize the block (min 50×20 px). Resizes from the
   // block's top-left; the contentEditable wraps to the new width.
-  function startResize(e: React.MouseEvent) {
+  function startResize(e: React.PointerEvent) {
     e.stopPropagation();
     e.preventDefault();
     const rect = rootRef.current!.getBoundingClientRect();
-    const move = (ev: MouseEvent) => {
+    const move = (ev: PointerEvent) => {
       const wPx = Math.max(50, ev.clientX - rect.left);
       const hPx = Math.max(20, ev.clientY - rect.top);
       onResize(wPx / scale, hPx / scale);
     };
     const up = () => {
-      window.removeEventListener("mousemove", move);
-      window.removeEventListener("mouseup", up);
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
     };
-    window.addEventListener("mousemove", move);
-    window.addEventListener("mouseup", up);
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
   }
 
   return (
@@ -102,10 +103,21 @@ export function TextBlock({
       ref={rootRef}
       role="button"
       tabIndex={-1}
-      onMouseDown={(e) => {
+      onPointerDown={(e) => {
         if (!editing) {
           e.stopPropagation();
           onSelect();
+        }
+      }}
+      onPointerUp={(e) => {
+        if (editing) return;
+        // double-tap (touch) / double-click fallback → enter edit mode
+        if (e.timeStamp - lastTap.current < 300) {
+          e.stopPropagation();
+          lastTap.current = 0;
+          onStartEdit();
+        } else {
+          lastTap.current = e.timeStamp;
         }
       }}
       onDoubleClick={(e) => {
@@ -161,7 +173,7 @@ export function TextBlock({
       {selected && !editing && ["nw", "ne", "sw", "se"].map((h) => (
         <span
           key={h}
-          onMouseDown={startResize}
+          onPointerDown={startResize}
           style={{
             position: "absolute",
             width: 10,
@@ -169,6 +181,7 @@ export function TextBlock({
             borderRadius: 2,
             background: "white",
             border: "1.5px solid #6B5CE7",
+            touchAction: "none",
             cursor: h === "se" || h === "nw" ? "nwse-resize" : "nesw-resize",
             left: h[1] === "w" ? -5 : "auto",
             right: h[1] === "e" ? -5 : "auto",

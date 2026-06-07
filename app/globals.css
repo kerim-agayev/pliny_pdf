@@ -412,8 +412,8 @@ input[type="range"].pp-range::-moz-range-thumb {
   /* each toolbar row scrolls horizontally instead of wrapping into 3 tall rows */
   .pp-ed-row { overflow-x: auto; overflow-y: hidden; scrollbar-width: none; gap: 2px; padding-left: 10px; padding-right: 10px; }
   .pp-ed-row::-webkit-scrollbar { display: none; }
-  /* roomier tap targets (≈44px) on touch */
-  .pp-edtool { min-height: 40px; }
+  /* roomier tap targets (≥44px) on touch */
+  .pp-edtool { min-height: 44px; }
   /* the page canvas fills the available width with minimal gutter */
   .pp-ed-canvas { padding: 12px 10px !important; }
   /* simplify the bottom bar — drop non-essential chips */

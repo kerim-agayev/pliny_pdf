@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { useEditorStore, computeMatches, type Annotation } from "@/lib/stores/editorStore";
 import { pagePngUrl, addText as apiAddText, whiteout as apiWhiteout } from "@/lib/api/editor";
+import { usePinchZoom } from "@/lib/touch";
 import { analytics } from "@/lib/analytics";
 import { TextBlock } from "./TextBlock";
 import { WhiteoutPreview } from "./WhiteoutTool";
@@ -27,7 +28,11 @@ export function EditorCanvas() {
   const t = useTranslations("ToolPages.editPdf");
   const s = useEditorStore();
   const pageRef = useRef<HTMLDivElement>(null);
+  const scrollRef = useRef<HTMLDivElement>(null);
   const page = s.pages[s.currentPage];
+
+  // two-finger pinch-to-zoom + pan on the scroll surface (store clamps 50–200%)
+  usePinchZoom(scrollRef, { getScale: () => s.zoom, setScale: (z) => s.setZoom(z), panTarget: () => scrollRef.current });
 
   const [drag, setDrag] = useState<{ start: Pt; cur: Pt; tool: string } | null>(null);
   const [draft, setDraft] = useState<Pt | null>(null);
@@ -78,15 +83,15 @@ export function EditorCanvas() {
   // ---- drag gesture (whiteout / highlight / strike / shapes) ----
   function beginDrag(start: Pt, tool: string) {
     setDrag({ start, cur: start, tool });
-    const move = (e: MouseEvent) => setDrag({ start, cur: toPtClient(e.clientX, e.clientY), tool });
-    const up = (e: MouseEvent) => {
-      window.removeEventListener("mousemove", move);
-      window.removeEventListener("mouseup", up);
+    const move = (e: PointerEvent) => setDrag({ start, cur: toPtClient(e.clientX, e.clientY), tool });
+    const up = (e: PointerEvent) => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
       setDrag(null);
       commitDrag(tool, start, toPtClient(e.clientX, e.clientY));
     };
-    window.addEventListener("mousemove", move);
-    window.addEventListener("mouseup", up);
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
   }
 
   async function commitDrag(tool: string, start: Pt, cur: Pt) {
@@ -118,21 +123,21 @@ export function EditorCanvas() {
   function beginDraw(start: Pt) {
     const pts: Pt[] = [start];
     setDrawPts([start]);
-    const move = (e: MouseEvent) => { pts.push(toPtClient(e.clientX, e.clientY)); setDrawPts([...pts]); };
+    const move = (e: PointerEvent) => { pts.push(toPtClient(e.clientX, e.clientY)); setDrawPts([...pts]); };
     const up = () => {
-      window.removeEventListener("mousemove", move);
-      window.removeEventListener("mouseup", up);
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
       setDrawPts([]);
       if (pts.length > 1) {
         const path = "M " + pts.map((p) => `${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(" L ");
         s.addAnnotation({ id: nextId(), type: "draw", pageNum: page.pageNum, x: 0, y: 0, w: page.width, h: page.height, color: s.strokeColor, strokeWidth: s.strokeWidth, path });
       }
     };
-    window.addEventListener("mousemove", move);
-    window.addEventListener("mouseup", up);
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
   }
 
-  function onMouseDown(e: React.MouseEvent) {
+  function onPointerDown(e: React.PointerEvent) {
     if (e.button !== 0) return;
     setCtx(null);
     const tool = s.tool;
@@ -214,6 +219,7 @@ export function EditorCanvas() {
 
   return (
     <div
+      ref={scrollRef}
       className="pp-ed-canvas"
       style={{
         flex: 1, position: "relative", overflow: "auto",
@@ -223,9 +229,9 @@ export function EditorCanvas() {
     >
       <div
         ref={pageRef}
-        onMouseDown={onMouseDown}
+        onPointerDown={onPointerDown}
         onContextMenu={onCanvasContextMenu}
-        style={{ position: "relative", width: displayW, height: displayH, flexShrink: 0, cursor, boxShadow: "0 30px 70px -24px rgba(0,0,0,0.55), 0 0 0 1px rgba(0,0,0,0.18)", background: "#fff" }}
+        style={{ position: "relative", width: displayW, height: displayH, flexShrink: 0, cursor, touchAction: "none", boxShadow: "0 30px 70px -24px rgba(0,0,0,0.55), 0 0 0 1px rgba(0,0,0,0.18)", background: "#fff" }}
       >
         <img
           src={`${pagePngUrl(s.sessionId!, page.pageNum)}?v=${s.renderVersion}`}
@@ -300,7 +306,7 @@ export function EditorCanvas() {
             bubble back to the canvas and reset the draft */}
         {draft && (
           <div
-            onMouseDown={(e) => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()}
             style={{ position: "absolute", left: draft.x * scale, top: draft.y * scale, minWidth: 140, border: "2px dashed #6B5CE7", borderRadius: 4, background: "#fff", boxShadow: "0 4px 14px -4px rgba(0,0,0,0.4)", padding: "4px 6px", zIndex: 30 }}
           >
             <input
