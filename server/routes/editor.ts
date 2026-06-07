@@ -14,6 +14,7 @@ import {
 import { getRequester } from "../services/session";
 import { checkServerTool } from "@/lib/ratelimit";
 import { editorMaxBytes, editorMaxMB, editorMaxPages, bytesToMB } from "@/lib/limits";
+import { attachmentDisposition } from "./http";
 
 const PDF_TYPE = "application/pdf";
 
@@ -27,7 +28,7 @@ function pdfResponse(bytes: Uint8Array, name: string): Response {
   return new Response(bytes as BlobPart, {
     headers: {
       "content-type": PDF_TYPE,
-      "content-disposition": `attachment; filename="${name}"`,
+      "content-disposition": attachmentDisposition(name),
     },
   });
 }

@@ -10,6 +10,7 @@ import { getRequester } from "../services/session";
 import { checkServerTool } from "@/lib/ratelimit";
 import { cloudMaxBytes, cloudMaxMB, cloudMaxPages, pdfToJpgMaxPages, bytesToMB } from "@/lib/limits";
 import { baseName } from "@/lib/format";
+import { attachmentDisposition } from "./http";
 
 const PDF_TYPE = "application/pdf";
 const JPG_TYPE = "image/jpeg";
@@ -26,7 +27,7 @@ function fileResponse(bytes: Uint8Array, name: string, type: string): Response {
   return new Response(bytes as BlobPart, {
     headers: {
       "content-type": type,
-      "content-disposition": `attachment; filename="${name}"`,
+      "content-disposition": attachmentDisposition(name),
     },
   });
 }
