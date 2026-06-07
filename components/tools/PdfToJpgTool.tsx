@@ -50,7 +50,13 @@ export function PdfToJpgTool() {
     const t0 = performance.now();
     try {
       const { blob, filename } = await postBinary("/api/tools/pdf-to-jpg", [file], `${baseName(file.name)}.jpg`);
-      setResult({ blob, filename, isZip: filename.toLowerCase().endsWith(".zip") });
+      // Decide zip vs single jpg from the blob's MIME type (Content-Type is
+      // CORS-safelisted, so always readable cross-origin) and fall back to the
+      // server filename. Build the download name client-side so it's correct even
+      // if Content-Disposition isn't exposed across the api subdomain.
+      const isZip = blob.type === "application/zip" || filename.toLowerCase().endsWith(".zip");
+      const name = isZip ? `${baseName(file.name)}-images.zip` : `${baseName(file.name)}.jpg`;
+      setResult({ blob, filename: name, isZip });
       setStatus("done");
       analytics.toolUsed("pdf-to-jpg", performance.now() - t0);
     } catch (e) {

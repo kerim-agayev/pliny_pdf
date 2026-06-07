@@ -29,7 +29,9 @@ const FRONTEND_ORIGINS = (process.env.FRONTEND_ORIGIN ?? "http://localhost:3000"
   .filter(Boolean);
 
 const app = new Elysia()
-  .use(cors({ origin: FRONTEND_ORIGINS, credentials: true }))
+  // exposeHeaders: let the cross-origin frontend read Content-Disposition so it
+  // can use the server-chosen download name (e.g. PDF→JPG returning a .zip).
+  .use(cors({ origin: FRONTEND_ORIGINS, credentials: true, exposeHeaders: ["Content-Disposition"] }))
   .onError(({ error, code }) => {
     // Don't report routine 404s / validation noise — only real failures.
     if (code !== "NOT_FOUND" && code !== "VALIDATION") {
