@@ -6,33 +6,28 @@ import { toast } from "sonner";
 import { FileDropzone } from "./FileDropzone";
 import { FileInfoBar } from "./FileInfoBar";
 import { SuccessPanel, ErrorBanner } from "./ResultPanels";
+import { CloudProgress } from "./CloudProgress";
 import { Spinner } from "./Spinner";
-import { IconArrow, IconAlert } from "@/components/shared/icons";
-import { compressPdf, type CompressPreset } from "@/lib/pdf/compress";
+import { IconArrow } from "@/components/shared/icons";
 import { readPageCount, isPdf } from "@/lib/pdf/common";
+import { postBinary, ApiError } from "@/lib/api";
 import { formatBytes, downloadBlob, baseName } from "@/lib/format";
 import { analytics } from "@/lib/analytics";
-import { COMPRESS_MAX_MB, COMPRESS_MAX_PAGES } from "@/lib/limits";
+import { useSession } from "@/lib/auth/client";
+import { cloudMaxMB } from "@/lib/limits";
 
-type Status = "idle" | "processing" | "done" | "error";
+type Status = "idle" | "uploading" | "done" | "error";
 
 export function CompressTool() {
   const t = useTranslations("ToolUI");
-  const te = useTranslations("Errors");
   const tp = useTranslations("ToolPages.compress");
+  const { data: session } = useSession();
+  const maxMB = cloudMaxMB((session?.user as { plan?: "free" | "pro" })?.plan ?? null);
   const [file, setFile] = useState<File | null>(null);
   const [pages, setPages] = useState(0);
-  const [preset, setPreset] = useState<CompressPreset>("balanced");
   const [status, setStatus] = useState<Status>("idle");
-  const [result, setResult] = useState<{ blob: Blob; originalSize: number; newSize: number; changed: boolean; textOnly: boolean } | null>(null);
+  const [result, setResult] = useState<{ blob: Blob; originalSize: number; newSize: number; changed: boolean } | null>(null);
   const [errorMsg, setErrorMsg] = useState<string>();
-  const SMALL = 1024 * 1024;
-
-  const PRESETS: { key: CompressPreset; title: string; desc: string }[] = [
-    { key: "max", title: tp("presetMax"), desc: tp("presetMaxDesc") },
-    { key: "balanced", title: tp("presetBalanced"), desc: tp("presetBalancedDesc") },
-    { key: "high", title: tp("presetHigh"), desc: tp("presetHighDesc") },
-  ];
 
   async function onFiles(files: File[]) {
     const f = files[0];
@@ -40,31 +35,29 @@ export function CompressTool() {
       setErrorMsg(t("wrongTypePdf"));
       return;
     }
-    const n = await readPageCount(f).catch(() => 0);
-    if (f.size > COMPRESS_MAX_MB * 1024 * 1024 || n > COMPRESS_MAX_PAGES) {
-      toast.error(te("fileTooLargeCompress", { mb: COMPRESS_MAX_MB, pages: COMPRESS_MAX_PAGES }));
-      return;
-    }
     setErrorMsg(undefined);
     setFile(f);
-    setPages(n);
+    setPages(await readPageCount(f).catch(() => 0));
+    if (status === "done" || status === "error") {
+      setStatus("idle");
+      setResult(null);
+    }
   }
 
   async function run() {
     if (!file) return;
-    setStatus("processing");
+    setStatus("uploading");
+    setErrorMsg(undefined);
+    const t0 = performance.now();
     try {
-      const res = await compressPdf(file, preset);
-      setResult(res);
+      const { blob } = await postBinary("/api/tools/compress", [file], `${baseName(file.name)}-compressed.pdf`);
+      const changed = blob.size < file.size;
+      setResult({ blob, originalSize: file.size, newSize: blob.size, changed });
       setStatus("done");
-      if (res.changed) {
-        toast.success(`${formatBytes(res.originalSize)} → ${formatBytes(res.newSize)}`);
-      }
-      if (res.textOnly) {
-        toast.info(tp("textOnlyNote"));
-      }
-      analytics.toolUsed("compress-pdf");
-    } catch {
+      if (changed) toast.success(`${formatBytes(file.size)} → ${formatBytes(blob.size)}`);
+      analytics.toolUsed("compress-pdf", performance.now() - t0);
+    } catch (e) {
+      setErrorMsg(e instanceof ApiError && e.status === 429 ? t("rateLimited") : e instanceof Error ? e.message : undefined);
       setStatus("error");
     }
   }
@@ -97,7 +90,7 @@ export function CompressTool() {
   if (!file) {
     return (
       <div>
-        <FileDropzone accept="pdf" onFiles={onFiles} />
+        <FileDropzone accept="pdf" maxSizeMB={maxMB} onFiles={onFiles} />
         {errorMsg && <div className="mt-4"><ErrorBanner message={errorMsg} onRetry={() => setErrorMsg(undefined)} /></div>}
       </div>
     );
@@ -107,46 +100,15 @@ export function CompressTool() {
     <div className="flex flex-col gap-5">
       <FileInfoBar file={file} pages={pages} onRemove={reset} />
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        {PRESETS.map((p) => {
-          const active = preset === p.key;
-          return (
-            <button
-              key={p.key}
-              type="button"
-              onClick={() => setPreset(p.key)}
-              className="rounded-xl p-4 text-left"
-              style={{
-                border: `1px solid ${active ? "var(--indigo)" : "var(--line)"}`,
-                background: active ? "var(--indigo-dim)" : "var(--card)",
-              }}
-            >
-              <div className="text-sm font-semibold" style={{ color: "var(--text)" }}>{p.title}</div>
-              <div className="mt-1 text-[12px] leading-snug" style={{ color: "var(--text-2)" }}>{p.desc}</div>
-            </button>
-          );
-        })}
-      </div>
-
-      {file.size < SMALL && (
-        <div className="flex items-start gap-2 text-[12px]" style={{ color: "var(--amber)" }}>
-          <IconAlert size={14} color="var(--amber)" sw={1.7} />
-          <span>{tp("smallFileNote")}</span>
-        </div>
-      )}
-
-      <div className="flex items-start gap-2 text-[12px]" style={{ color: "var(--text-3)" }}>
-        <IconAlert size={14} color="var(--amber)" sw={1.7} />
-        <span>{tp("rasterNote")}</span>
-      </div>
-
       <div className="flex justify-end">
-        <button type="button" className="pp-btn pp-btn-lg min-w-[170px] justify-center" onClick={run} disabled={status === "processing"}>
-          {status === "processing" ? <><Spinner /> {t("processing")}</> : <>{tp("action")} <IconArrow size={15} /></>}
+        <button type="button" className="pp-btn pp-btn-lg min-w-[170px] justify-center" onClick={run} disabled={status === "uploading"}>
+          {status === "uploading" ? <><Spinner /> {t("processing")}</> : <>{tp("action")} <IconArrow size={15} /></>}
         </button>
       </div>
 
-      {status === "error" && <ErrorBanner onRetry={() => setStatus("idle")} />}
+      {status === "uploading" && <CloudProgress accent="#F472B6" />}
+
+      {status === "error" && <ErrorBanner message={errorMsg} note={t("cloudDeletedNote")} onRetry={() => { setStatus("idle"); setErrorMsg(undefined); }} />}
     </div>
   );
 }

@@ -2,12 +2,12 @@
 
 ## Current Status
 - Phase: 5 (Performance, Cloud Migration & Polish)
-- Active wave: **5B — Cloud migration (Compress, Grayscale, PDF→JPG, Merge)**
-- Next step: build PyMuPDF backend (`server/services/pdf-tools.py` + `tools.ts`), routes, switch 4 tools to cloud.
+- Active wave: **5B — Cloud migration** — code complete, build + typecheck green; ⏳ GATE 5B functional checks pending Hetzner deploy.
+- Next step: deploy `server/` to Hetzner, run the GATE 5B real-file checks, then start Wave 5C.
 
 ## Waves
 - **5A** — Global fixes + limit enforcement — *complete (GATE 5A passed 2026-06-07)* ✅
-- **5B** — Cloud migration (Compress, Grayscale, PDF→JPG, Merge) — *in progress*
+- **5B** — Cloud migration (Compress, Grayscale, PDF→JPG, Merge) — *code complete; functional GATE pending deploy*
 - 5C — Local optimizations (Header/Footer, Extract, Sign, lazy thumbnails, Web Workers) — not started
 - 5D — Mobile touch (Annotate PDF + Edit PDF) — not started
 - 5E — Edit PDF improvements — not started

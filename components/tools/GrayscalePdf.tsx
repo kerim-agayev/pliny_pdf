@@ -2,56 +2,57 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { toast } from "sonner";
 import { FileDropzone } from "./FileDropzone";
 import { FileInfoBar } from "./FileInfoBar";
 import { SuccessPanel, ErrorBanner } from "./ResultPanels";
+import { CloudProgress } from "./CloudProgress";
 import { Spinner } from "./Spinner";
 import { IconGrayscale } from "@/components/shared/icons";
-import { grayscalePdf } from "@/lib/pdf/grayscale";
-import { isPdf, readPageCount } from "@/lib/pdf/common";
+import { isPdf } from "@/lib/pdf/common";
+import { postBinary, ApiError } from "@/lib/api";
 import { downloadBlob, baseName } from "@/lib/format";
 import { analytics } from "@/lib/analytics";
-import { GRAYSCALE_MAX_MB, GRAYSCALE_MAX_PAGES } from "@/lib/limits";
+import { useSession } from "@/lib/auth/client";
+import { cloudMaxMB } from "@/lib/limits";
 
-type Status = "idle" | "processing" | "done" | "error";
+type Status = "idle" | "uploading" | "done" | "error";
 
 export function GrayscalePdf() {
   const t = useTranslations("ToolUI");
-  const te = useTranslations("Errors");
   const tp = useTranslations("ToolPages.grayscalePdf");
+  const { data: session } = useSession();
+  const maxMB = cloudMaxMB((session?.user as { plan?: "free" | "pro" })?.plan ?? null);
   const [file, setFile] = useState<File | null>(null);
   const [status, setStatus] = useState<Status>("idle");
   const [result, setResult] = useState<Blob | null>(null);
   const [errorMsg, setErrorMsg] = useState<string>();
-  const [progress, setProgress] = useState({ page: 0, total: 0 });
 
-  async function onFiles(files: File[]) {
+  function onFiles(files: File[]) {
     const f = files[0];
     if (!f || !isPdf(f)) {
       setErrorMsg(t("wrongTypePdf"));
       return;
     }
-    const pages = await readPageCount(f).catch(() => 0);
-    if (f.size > GRAYSCALE_MAX_MB * 1024 * 1024 || pages > GRAYSCALE_MAX_PAGES) {
-      toast.error(te("fileTooLargeGrayscale", { mb: GRAYSCALE_MAX_MB, pages: GRAYSCALE_MAX_PAGES }));
-      return;
-    }
     setErrorMsg(undefined);
     setFile(f);
+    if (status === "done" || status === "error") {
+      setStatus("idle");
+      setResult(null);
+    }
   }
 
   async function run() {
     if (!file) return;
-    setStatus("processing");
-    setProgress({ page: 0, total: 0 });
+    setStatus("uploading");
+    setErrorMsg(undefined);
+    const t0 = performance.now();
     try {
-      const res = await grayscalePdf(file, (page, total) => setProgress({ page, total }));
-      setResult(res.blob);
+      const { blob } = await postBinary("/api/tools/grayscale", [file], `${baseName(file.name)}-grayscale.pdf`);
+      setResult(blob);
       setStatus("done");
-      if (res.inflated) toast.warning(tp("sizeGrew"));
-      analytics.toolUsed("grayscale-pdf");
-    } catch {
+      analytics.toolUsed("grayscale-pdf", performance.now() - t0);
+    } catch (e) {
+      setErrorMsg(e instanceof ApiError && e.status === 429 ? t("rateLimited") : e instanceof Error ? e.message : undefined);
       setStatus("error");
     }
   }
@@ -61,7 +62,6 @@ export function GrayscalePdf() {
     setResult(null);
     setStatus("idle");
     setErrorMsg(undefined);
-    setProgress({ page: 0, total: 0 });
   }
 
   if (status === "done" && result) {
@@ -78,7 +78,7 @@ export function GrayscalePdf() {
   if (!file) {
     return (
       <div>
-        <FileDropzone accept="pdf" onFiles={onFiles} title={tp("emptyTitle")} />
+        <FileDropzone accept="pdf" maxSizeMB={maxMB} onFiles={onFiles} title={tp("emptyTitle")} />
         {errorMsg && <div className="mt-4"><ErrorBanner message={errorMsg} onRetry={() => setErrorMsg(undefined)} /></div>}
       </div>
     );
@@ -88,22 +88,13 @@ export function GrayscalePdf() {
     <div className="flex flex-col gap-5">
       <FileInfoBar file={file} onRemove={reset} />
 
-      <div className="rounded-[14px] p-[18px]" style={{ background: "rgba(127,127,127,0.05)", border: "1px solid var(--line)" }}>
-        <p className="text-[12.5px]" style={{ color: "var(--text-2)" }}>{tp("rasterNote")}</p>
-      </div>
-
-      {status === "processing" && progress.total > 0 && (
-        <div>
-          <div className="pp-progress"><span style={{ width: `${(progress.page / progress.total) * 100}%` }} /></div>
-          <p className="pp-mono mt-2 text-[12px]" style={{ color: "var(--text-3)" }}>{tp("progress", { n: progress.page, total: progress.total })}</p>
-        </div>
-      )}
-
-      <button type="button" className="pp-btn pp-btn-lg justify-center" onClick={run} disabled={status === "processing"}>
-        {status === "processing" ? <><Spinner /> {t("processing")}</> : <><IconGrayscale size={15} sw={1.7} /> {tp("action")}</>}
+      <button type="button" className="pp-btn pp-btn-lg justify-center" onClick={run} disabled={status === "uploading"}>
+        {status === "uploading" ? <><Spinner /> {t("processing")}</> : <><IconGrayscale size={15} sw={1.7} /> {tp("action")}</>}
       </button>
 
-      {status === "error" && <ErrorBanner onRetry={() => setStatus("idle")} />}
+      {status === "uploading" && <CloudProgress accent="#F472B6" />}
+
+      {status === "error" && <ErrorBanner message={errorMsg} note={t("cloudDeletedNote")} onRetry={() => { setStatus("idle"); setErrorMsg(undefined); }} />}
     </div>
   );
 }

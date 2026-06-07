@@ -21,21 +21,26 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { FileDropzone } from "./FileDropzone";
 import { SuccessPanel, ErrorBanner } from "./ResultPanels";
+import { CloudProgress } from "./CloudProgress";
 import { Spinner } from "./Spinner";
-import { IconGrip, IconX, IconArrow, IconPlus } from "@/components/shared/icons";
-import { mergePdfs } from "@/lib/pdf/merge";
+import { IconGrip, IconX, IconArrow } from "@/components/shared/icons";
 import { readPageCount, isPdf } from "@/lib/pdf/common";
+import { postBinary, ApiError } from "@/lib/api";
 import { formatBytes, downloadBlob } from "@/lib/format";
 import { analytics } from "@/lib/analytics";
+import { useSession } from "@/lib/auth/client";
+import { cloudMaxMB } from "@/lib/limits";
 
 type Row = { id: string; file: File; pages: number };
-type Status = "idle" | "processing" | "done" | "error";
+type Status = "idle" | "uploading" | "done" | "error";
 
 const ACCENTS = ["#A78BFA", "#60A5FA", "#34D399", "#F472B6"];
 
 export function MergeTool() {
   const t = useTranslations("ToolUI");
   const tp = useTranslations("ToolPages.merge");
+  const { data: session } = useSession();
+  const maxMB = cloudMaxMB((session?.user as { plan?: "free" | "pro" })?.plan ?? null);
   const [rows, setRows] = useState<Row[]>([]);
   const [status, setStatus] = useState<Status>("idle");
   const [result, setResult] = useState<{ blob: Blob; pageCount: number } | null>(null);
@@ -78,14 +83,16 @@ export function MergeTool() {
   }
 
   async function startMerge() {
-    setStatus("processing");
+    setStatus("uploading");
     setErrorMsg(undefined);
+    const t0 = performance.now();
     try {
-      const res = await mergePdfs(rows.map((r) => r.file));
-      setResult(res);
+      const { blob } = await postBinary("/api/tools/merge", rows.map((r) => r.file), "merged.pdf");
+      setResult({ blob, pageCount: totalPages });
       setStatus("done");
-      analytics.toolUsed("merge-pdf");
-    } catch {
+      analytics.toolUsed("merge-pdf", performance.now() - t0);
+    } catch (e) {
+      setErrorMsg(e instanceof ApiError && e.status === 429 ? t("rateLimited") : e instanceof Error ? e.message : undefined);
       setStatus("error");
     }
   }
@@ -110,7 +117,7 @@ export function MergeTool() {
 
   return (
     <div>
-      <FileDropzone accept="pdf" multiple onFiles={addFiles} />
+      <FileDropzone accept="pdf" multiple maxSizeMB={maxMB} onFiles={addFiles} />
 
       {errorMsg && <div className="mt-4"><ErrorBanner message={errorMsg} onRetry={() => setErrorMsg(undefined)} /></div>}
 
@@ -145,7 +152,7 @@ export function MergeTool() {
             <button type="button" className="pp-btn pp-btn-ghost pp-btn-lg" onClick={reset}>
               {t("clear")}
             </button>
-            {status === "processing" ? (
+            {status === "uploading" ? (
               <button type="button" className="pp-btn pp-btn-lg min-w-[180px] justify-center" disabled>
                 <Spinner /> {t("processing")}
               </button>
@@ -154,25 +161,18 @@ export function MergeTool() {
                 type="button"
                 className="pp-btn pp-btn-lg min-w-[180px] justify-center"
                 onClick={startMerge}
-                disabled={rows.length < 1}
+                disabled={rows.length < 2}
               >
                 {tp("action", { count: rows.length })} <IconArrow size={15} />
               </button>
             )}
           </div>
 
-          {status === "processing" && (
-            <div className="mt-4 rounded-xl p-4" style={{ background: "var(--bg-2)", border: "1px solid var(--line)" }}>
-              <div className="text-[13px]" style={{ color: "var(--text)" }}>{t("processing")}</div>
-              <div className="mt-2.5 flex items-center gap-1.5 text-xs" style={{ color: "var(--text-3)" }}>
-                <span className="pp-dot" style={{ color: "#34D399" }} /> {t("localNote")}
-              </div>
-            </div>
-          )}
+          {status === "uploading" && <CloudProgress accent="#34D399" />}
 
           {status === "error" && (
             <div className="mt-4">
-              <ErrorBanner onRetry={() => setStatus("idle")} />
+              <ErrorBanner message={errorMsg} note={t("cloudDeletedNote")} onRetry={() => { setStatus("idle"); setErrorMsg(undefined); }} />
             </div>
           )}
         </div>

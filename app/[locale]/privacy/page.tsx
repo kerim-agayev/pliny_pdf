@@ -48,7 +48,10 @@ export default async function PrivacyPage({ params }: { params: Promise<{ locale
         <ul className="ml-5 list-disc space-y-1.5">
           <li>
             The contents of files you process with <strong>local tools</strong> — they never leave
-            your browser, so we couldn&apos;t collect them if we wanted to.
+            your browser, so we couldn&apos;t collect them if we wanted to. Most tools are local; a
+            few (PDF&nbsp;to&nbsp;Word, Word&nbsp;to&nbsp;PDF, OCR, AI&nbsp;Summary, Edit&nbsp;PDF,
+            Compress, Grayscale, PDF&nbsp;to&nbsp;JPG, and Merge) run on our server and are clearly
+            marked with a blue <strong>Cloud</strong> badge — those files are deleted within 24 hours.
           </li>
           <li>Advertising or cross-site tracking cookies.</li>
           <li>Third-party ad-network identifiers. We run no ads.</li>

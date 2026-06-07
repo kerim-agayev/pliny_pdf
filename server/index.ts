@@ -5,6 +5,7 @@ import { health } from "./routes/health";
 import { convert } from "./routes/convert";
 import { ocr } from "./routes/ocr";
 import { editor } from "./routes/editor";
+import { tools } from "./routes/tools";
 import { ai } from "./routes/ai";
 import { billing } from "./routes/billing";
 
@@ -39,6 +40,7 @@ const app = new Elysia()
   .use(convert)
   .use(ocr)
   .use(editor)
+  .use(tools)
   .use(ai)
   .use(billing)
   .listen(PORT);
