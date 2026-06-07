@@ -92,8 +92,8 @@ export async function pdfToJpg(
   }
 }
 
-/** Merge PDFs in the given order. `maxPages` caps the total page count. */
-export async function mergePdfs(inputs: Uint8Array[], maxPages: number): Promise<Uint8Array> {
+/** Merge PDFs in the given order. No page cap — merge is bounded by file size. */
+export async function mergePdfs(inputs: Uint8Array[]): Promise<Uint8Array> {
   const dir = await workDir();
   const outPdf = join(dir, "out.pdf");
   try {
@@ -103,7 +103,7 @@ export async function mergePdfs(inputs: Uint8Array[], maxPages: number): Promise
       await writeFile(p, inputs[i]);
       paths.push(p);
     }
-    await runTool(["merge", outPdf, String(maxPages), ...paths]);
+    await runTool(["merge", outPdf, ...paths]);
     return new Uint8Array(await readFile(outPdf));
   } finally {
     await rm(dir, { recursive: true, force: true }).catch(() => {});

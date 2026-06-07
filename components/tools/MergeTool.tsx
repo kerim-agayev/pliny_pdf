@@ -154,7 +154,7 @@ export function MergeTool() {
             </button>
             {status === "uploading" ? (
               <button type="button" className="pp-btn pp-btn-lg min-w-[180px] justify-center" disabled>
-                <Spinner /> {t("processing")}
+                <Spinner /> {t("converting")}
               </button>
             ) : (
               <button

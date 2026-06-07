@@ -89,7 +89,7 @@ export function GrayscalePdf() {
       <FileInfoBar file={file} onRemove={reset} />
 
       <button type="button" className="pp-btn pp-btn-lg justify-center" onClick={run} disabled={status === "uploading"}>
-        {status === "uploading" ? <><Spinner /> {t("processing")}</> : <><IconGrayscale size={15} sw={1.7} /> {tp("action")}</>}
+        {status === "uploading" ? <><Spinner /> {t("converting")}</> : <><IconGrayscale size={15} sw={1.7} /> {tp("action")}</>}
       </button>
 
       {status === "uploading" && <CloudProgress accent="#F472B6" />}

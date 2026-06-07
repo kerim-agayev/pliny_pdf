@@ -8,7 +8,7 @@ import {
 } from "../services/pdf-tools";
 import { getRequester } from "../services/session";
 import { checkServerTool } from "@/lib/ratelimit";
-import { cloudMaxBytes, cloudMaxMB, cloudMaxPages, bytesToMB } from "@/lib/limits";
+import { cloudMaxBytes, cloudMaxMB, cloudMaxPages, pdfToJpgMaxPages, bytesToMB } from "@/lib/limits";
 import { baseName } from "@/lib/format";
 
 const PDF_TYPE = "application/pdf";
@@ -59,9 +59,9 @@ export const tools = new Elysia({ prefix: "/api/tools" })
         set.status = 429;
         return { error: "rateLimited", message: "Daily limit reached. Sign in or upgrade for more.", resetAt: lim.resetAt };
       }
-      const input = new Uint8Array(await file.arrayBuffer());
       let out: Uint8Array;
       try {
+        const input = new Uint8Array(await file.arrayBuffer());
         out = await compressPdf(input, cloudMaxPages(plan));
       } catch (e) {
         if (e instanceof TooManyPagesError) {
@@ -94,9 +94,9 @@ export const tools = new Elysia({ prefix: "/api/tools" })
         set.status = 429;
         return { error: "rateLimited", message: "Daily limit reached. Sign in or upgrade for more.", resetAt: lim.resetAt };
       }
-      const input = new Uint8Array(await file.arrayBuffer());
       let out: Uint8Array;
       try {
+        const input = new Uint8Array(await file.arrayBuffer());
         out = await grayscalePdf(input, cloudMaxPages(plan));
       } catch (e) {
         if (e instanceof TooManyPagesError) {
@@ -129,14 +129,14 @@ export const tools = new Elysia({ prefix: "/api/tools" })
         set.status = 429;
         return { error: "rateLimited", message: "Daily limit reached. Sign in or upgrade for more.", resetAt: lim.resetAt };
       }
-      const input = new Uint8Array(await file.arrayBuffer());
       let result: { bytes: Uint8Array; isZip: boolean };
       try {
-        result = await pdfToJpg(input, cloudMaxPages(plan), JPG_DPI);
+        const input = new Uint8Array(await file.arrayBuffer());
+        result = await pdfToJpg(input, pdfToJpgMaxPages(plan), JPG_DPI);
       } catch (e) {
         if (e instanceof TooManyPagesError) {
           set.status = 413;
-          return { error: "tooManyPages", limitPages: cloudMaxPages(plan), pageCount: e.pageCount };
+          return { error: "tooManyPages", limitPages: pdfToJpgMaxPages(plan), pageCount: e.pageCount };
         }
         set.status = 502;
         return { error: "toolFailed", message: "Couldn't process this PDF. Please try another file.", detail: String(e).slice(0, 200) };
@@ -172,15 +172,12 @@ export const tools = new Elysia({ prefix: "/api/tools" })
         set.status = 429;
         return { error: "rateLimited", message: "Daily limit reached. Sign in or upgrade for more.", resetAt: lim.resetAt };
       }
-      const inputs = await Promise.all(files.map(async (f) => new Uint8Array(await f.arrayBuffer())));
       let out: Uint8Array;
       try {
-        out = await mergePdfs(inputs, cloudMaxPages(plan));
+        // Merge is bounded by total file size only (checked above) — no page cap.
+        const inputs = await Promise.all(files.map(async (f) => new Uint8Array(await f.arrayBuffer())));
+        out = await mergePdfs(inputs);
       } catch (e) {
-        if (e instanceof TooManyPagesError) {
-          set.status = 413;
-          return { error: "tooManyPages", limitPages: cloudMaxPages(plan), pageCount: e.pageCount };
-        }
         set.status = 502;
         return { error: "toolFailed", message: "Couldn't merge these PDFs. Please try other files.", detail: String(e).slice(0, 200) };
       }

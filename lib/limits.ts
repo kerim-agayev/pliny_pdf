@@ -17,6 +17,10 @@ export const LOCAL_MAX_PAGES = { anon: 50, free: 150, pro: 300 } as const;
 export const CLOUD_MAX_MB = { anon: 25, free: 100, pro: 250 } as const;
 export const CLOUD_MAX_PAGES = { anon: 50, free: 300, pro: 1000 } as const;
 
+// PDF→JPG renders every page, so it's heavier than the other cloud tools and needs
+// a tighter page cap to stay fast (~<30s). Size still uses CLOUD_MAX_MB. (Wave 5B)
+export const PDF_TO_JPG_MAX_PAGES = { anon: 20, free: 50, pro: 200 } as const;
+
 const MB = 1024 * 1024;
 
 /** Resolve a plan to a tier key; `null`/`undefined` ⇒ anonymous. */
@@ -54,6 +58,11 @@ export function cloudMaxBytes(plan: Plan | null | undefined): number {
 /** Maximum page count a cloud tool will accept for a plan. */
 export function cloudMaxPages(plan: Plan | null | undefined): number {
   return CLOUD_MAX_PAGES[tier(plan)];
+}
+
+/** Maximum page count for PDF→JPG (tighter — every page is rendered). */
+export function pdfToJpgMaxPages(plan: Plan | null | undefined): number {
+  return PDF_TO_JPG_MAX_PAGES[tier(plan)];
 }
 
 /** Round a byte count to one-decimal MB for display in error messages. */

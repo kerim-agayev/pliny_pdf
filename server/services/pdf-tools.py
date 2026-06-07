@@ -20,21 +20,25 @@ grayscale  <input.pdf> <output.pdf> <maxPages>
 
 pdf-to-jpg <input.pdf> <output-dir> <maxPages> <dpi>
     Render each page to a JPEG at <dpi>. 1 page -> <output-dir>/out.jpg; 2+ pages
-    -> <output-dir>/out.zip (entries "<base>-001.jpg" ...). Print
+    -> <output-dir>/out.zip (entries "page-001.jpg" ...). Print
     {"pages": N, "zip": bool}.
 
-merge      <output.pdf> <maxPages> <input1.pdf> [<input2.pdf> ...]
-    Concatenate inputs in argument order via insert_pdf. <maxPages> caps the
-    TOTAL page count across all inputs. Print {"pages": total}.
+merge      <output.pdf> <input1.pdf> [<input2.pdf> ...]
+    Concatenate inputs in argument order via insert_pdf. No page cap — merge is
+    cheap (no rendering) and is bounded by file size in the route. Print
+    {"pages": total}.
 
 On a page-count overflow every subcommand prints
 {"error": "tooManyPages", "pageCount": N} and exits 0 without writing output.
-Diagnostics go to stderr; the single JSON status line goes to stdout.
+Any unexpected failure prints {"error": "failed", ...} + a traceback to stderr
+and exits 1, so the Bun wrapper surfaces a clean 502. The single JSON status line
+goes to stdout.
 """
 
 import json
 import os
 import sys
+import traceback
 import zipfile
 
 import pymupdf  # MuPDF bindings (a.k.a. fitz)
@@ -47,6 +51,16 @@ def _too_many(page_count):
     print(json.dumps({"error": "tooManyPages", "pageCount": page_count}))
 
 
+def _page_jpeg(page, dpi):
+    """Render a page to JPEG bytes. JPEG can't carry alpha or CMYK, so render
+    without alpha and convert non-gray/RGB colorspaces (e.g. CMYK slides) to RGB
+    first — otherwise pix.tobytes('jpeg') raises (the 'notebook slides' 500)."""
+    pix = page.get_pixmap(dpi=dpi, alpha=False)
+    if pix.n >= 4:  # CMYK (or other >3-channel) — JPEG needs gray/RGB
+        pix = pymupdf.Pixmap(pymupdf.csRGB, pix)
+    return pix.tobytes("jpeg", jpg_quality=JPEG_QUALITY)
+
+
 def cmd_compress(input_pdf, output_pdf, max_pages):
     doc = pymupdf.open(input_pdf)
     try:
@@ -54,13 +68,15 @@ def cmd_compress(input_pdf, output_pdf, max_pages):
             _too_many(doc.page_count)
             return
         pages = doc.page_count
+        # garbage=3 (compact xref + drop unused) is fast and superlinear-free;
+        # garbage=4 additionally joins duplicate objects, which is O(n^2)-ish and
+        # made 800-page files take minutes. deflate* re-compresses streams.
         doc.save(
             output_pdf,
-            garbage=4,
+            garbage=3,
             deflate=True,
             deflate_images=True,
             deflate_fonts=True,
-            clean=True,
         )
     finally:
         doc.close()
@@ -85,7 +101,7 @@ def cmd_grayscale(input_pdf, output_pdf, max_pages):
                 rect = page.rect
                 dst = out.new_page(width=rect.width, height=rect.height)
                 dst.insert_image(dst.rect, pixmap=pix)
-            out.save(output_pdf, garbage=4, deflate=True, clean=True)
+            out.save(output_pdf, garbage=3, deflate=True)
         finally:
             out.close()
     finally:
@@ -102,22 +118,20 @@ def cmd_pdf_to_jpg(input_pdf, output_dir, max_pages, dpi):
             return
         pages = doc.page_count
         if pages == 1:
-            pix = doc[0].get_pixmap(dpi=dpi)
-            pix.save(os.path.join(output_dir, "out.jpg"), jpg_quality=JPEG_QUALITY)
+            with open(os.path.join(output_dir, "out.jpg"), "wb") as f:
+                f.write(_page_jpeg(doc[0], dpi))
             print(json.dumps({"pages": 1, "zip": False}))
             return
         zip_path = os.path.join(output_dir, "out.zip")
         with zipfile.ZipFile(zip_path, "w", zipfile.ZIP_DEFLATED) as zf:
             for i, page in enumerate(doc):
-                pix = page.get_pixmap(dpi=dpi)
-                name = "page-%03d.jpg" % (i + 1)
-                zf.writestr(name, pix.tobytes("jpeg", jpg_quality=JPEG_QUALITY))
+                zf.writestr("page-%03d.jpg" % (i + 1), _page_jpeg(page, dpi))
     finally:
         doc.close()
     print(json.dumps({"pages": pages, "zip": True}))
 
 
-def cmd_merge(output_pdf, max_pages, inputs):
+def cmd_merge(output_pdf, inputs):
     out = pymupdf.open()
     srcs = []
     try:
@@ -126,12 +140,9 @@ def cmd_merge(output_pdf, max_pages, inputs):
             d = pymupdf.open(path)
             srcs.append(d)
             total += d.page_count
-        if total > max_pages:
-            _too_many(total)
-            return
         for d in srcs:
             out.insert_pdf(d)
-        out.save(output_pdf, garbage=4, deflate=True)
+        out.save(output_pdf, garbage=3, deflate=True)
     finally:
         for d in srcs:
             d.close()
@@ -144,30 +155,36 @@ def main(argv):
         sys.stderr.write("usage: pdf-tools.py <compress|grayscale|pdf-to-jpg|merge> ...\n")
         return 2
     cmd = argv[1]
-    if cmd == "compress":
-        if len(argv) != 5:
-            sys.stderr.write("usage: pdf-tools.py compress <input.pdf> <output.pdf> <maxPages>\n")
-            return 2
-        cmd_compress(argv[2], argv[3], int(argv[4]))
-        return 0
-    if cmd == "grayscale":
-        if len(argv) != 5:
-            sys.stderr.write("usage: pdf-tools.py grayscale <input.pdf> <output.pdf> <maxPages>\n")
-            return 2
-        cmd_grayscale(argv[2], argv[3], int(argv[4]))
-        return 0
-    if cmd == "pdf-to-jpg":
-        if len(argv) != 6:
-            sys.stderr.write("usage: pdf-tools.py pdf-to-jpg <input.pdf> <output-dir> <maxPages> <dpi>\n")
-            return 2
-        cmd_pdf_to_jpg(argv[2], argv[3], int(argv[4]), int(argv[5]))
-        return 0
-    if cmd == "merge":
-        if len(argv) < 5:
-            sys.stderr.write("usage: pdf-tools.py merge <output.pdf> <maxPages> <input1.pdf> ...\n")
-            return 2
-        cmd_merge(argv[2], int(argv[3]), argv[4:])
-        return 0
+    try:
+        if cmd == "compress":
+            if len(argv) != 5:
+                sys.stderr.write("usage: pdf-tools.py compress <input.pdf> <output.pdf> <maxPages>\n")
+                return 2
+            cmd_compress(argv[2], argv[3], int(argv[4]))
+            return 0
+        if cmd == "grayscale":
+            if len(argv) != 5:
+                sys.stderr.write("usage: pdf-tools.py grayscale <input.pdf> <output.pdf> <maxPages>\n")
+                return 2
+            cmd_grayscale(argv[2], argv[3], int(argv[4]))
+            return 0
+        if cmd == "pdf-to-jpg":
+            if len(argv) != 6:
+                sys.stderr.write("usage: pdf-tools.py pdf-to-jpg <input.pdf> <output-dir> <maxPages> <dpi>\n")
+                return 2
+            cmd_pdf_to_jpg(argv[2], argv[3], int(argv[4]), int(argv[5]))
+            return 0
+        if cmd == "merge":
+            if len(argv) < 4:
+                sys.stderr.write("usage: pdf-tools.py merge <output.pdf> <input1.pdf> ...\n")
+                return 2
+            cmd_merge(argv[2], argv[3:])
+            return 0
+    except Exception as e:  # noqa: BLE001 — surface a clean failure to the Bun wrapper
+        sys.stderr.write(
+            json.dumps({"error": "failed", "command": cmd, "detail": str(e), "traceback": traceback.format_exc()}) + "\n"
+        )
+        return 1
     sys.stderr.write("unknown command: %s\n" % cmd)
     return 2
 

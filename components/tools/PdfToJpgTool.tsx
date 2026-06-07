@@ -91,7 +91,7 @@ export function PdfToJpgTool() {
       <FileInfoBar file={file} pages={pages} onRemove={reset} />
       <div className="flex justify-end">
         <button type="button" className="pp-btn pp-btn-lg min-w-[170px] justify-center" onClick={run} disabled={status === "uploading"}>
-          {status === "uploading" ? <><Spinner /> {t("processing")}</> : <>{tp("action")} <IconArrow size={15} /></>}
+          {status === "uploading" ? <><Spinner /> {t("converting")}</> : <>{tp("action")} <IconArrow size={15} /></>}
         </button>
       </div>
 
