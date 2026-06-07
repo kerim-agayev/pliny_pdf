@@ -21,7 +21,34 @@ interface FsWritable {
 interface FsFileHandle {
   createWritable(): Promise<FsWritable>;
 }
-type ShowSaveFilePicker = (opts?: { suggestedName?: string }) => Promise<FsFileHandle>;
+interface FsAcceptType {
+  description: string;
+  accept: Record<string, string[]>;
+}
+type ShowSaveFilePicker = (opts?: {
+  suggestedName?: string;
+  types?: FsAcceptType[];
+}) => Promise<FsFileHandle>;
+
+// The four output types the app produces. Passing the matching entry as the
+// picker's `types` makes the browser keep/re-append the extension and tag the
+// correct MIME type even when the user renames the file in the Save dialog.
+const SAVE_TYPES: Record<string, FsAcceptType> = {
+  ".pdf": { description: "PDF document", accept: { "application/pdf": [".pdf"] } },
+  ".jpg": { description: "JPEG image", accept: { "image/jpeg": [".jpg", ".jpeg"] } },
+  ".zip": { description: "ZIP archive", accept: { "application/zip": [".zip"] } },
+  ".docx": {
+    description: "Word document",
+    accept: {
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"],
+    },
+  },
+};
+
+/** Lowercased trailing extension (incl. dot), or "" if none. */
+function extOf(name: string): string {
+  return name.toLowerCase().match(/\.[a-z0-9]+$/)?.[0] ?? "";
+}
 
 function pickerSupported(): boolean {
   return (
@@ -33,10 +60,13 @@ function pickerSupported(): boolean {
 
 /** Classic anchor + blob: URL download (universal fallback). */
 function anchorDownload(blob: Blob, filename: string) {
+  // Safety net: the `download` attribute should always carry an extension so the
+  // saved file keeps its type. Callers pass one today; default to .pdf otherwise.
+  const name = extOf(filename) ? filename : `${filename}.pdf`;
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = filename;
+  a.download = name;
   document.body.appendChild(a);
   a.click();
   a.remove();
@@ -48,8 +78,13 @@ async function streamSave(blob: Blob, filename: string) {
   const picker = (window as unknown as { showSaveFilePicker: ShowSaveFilePicker })
     .showSaveFilePicker;
   // Called synchronously at the start of this async fn so the click's user
-  // activation is still valid; suggestedName carries the extension/type.
-  const handle = await picker({ suggestedName: filename });
+  // activation is still valid; suggestedName carries the extension/type, and
+  // `types` keeps the extension even if the user renames the file in the dialog.
+  const type = SAVE_TYPES[extOf(filename)];
+  const handle = await picker({
+    suggestedName: filename,
+    ...(type ? { types: [type] } : {}),
+  });
   const writable = await handle.createWritable();
   await writable.write(blob);
   await writable.close();

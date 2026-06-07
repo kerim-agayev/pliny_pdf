@@ -1,16 +1,21 @@
 import type { Plan } from "./ratelimit";
 
 /**
- * File-size limits (Phase 3, Wave 3B). Shared by the frontend dropzone (friendly
+ * File-size and page-count limits. Shared by the frontend dropzone (friendly
  * pre-upload check + badge) and the backend routes (authoritative enforcement).
  *
- * - Local (browser) tools: 100 MB for everyone.
- * - Cloud tools: per plan — anon 25 / free 50 / pro 200 MB.
+ * Per-plan (anon / free / pro), revised in Phase 5 Wave 5A so no tool exceeds
+ * ~30 s for any tier:
+ * - Local (browser) tools: 10 / 25 / 50 MB, 50 / 150 / 300 pages.
+ * - Cloud tools: 25 / 100 / 250 MB, 50 / 300 / 1000 pages.
+ * - Edit PDF has its own table (see EDITOR_MAX_* below).
  */
 
-export const LOCAL_MAX_MB = 100;
+export const LOCAL_MAX_MB = { anon: 10, free: 25, pro: 50 } as const;
+export const LOCAL_MAX_PAGES = { anon: 50, free: 150, pro: 300 } as const;
 
-export const CLOUD_MAX_MB = { anon: 25, free: 50, pro: 200 } as const;
+export const CLOUD_MAX_MB = { anon: 25, free: 100, pro: 250 } as const;
+export const CLOUD_MAX_PAGES = { anon: 50, free: 300, pro: 1000 } as const;
 
 // Tool-specific caps for the heaviest local raster operations (Wave 3C). These are
 // stricter than the generic local limit because grayscale/compress re-render every
@@ -22,16 +27,41 @@ export const COMPRESS_MAX_PAGES = 300;
 
 const MB = 1024 * 1024;
 
+/** Resolve a plan to a tier key; `null`/`undefined` ⇒ anonymous. */
+function tier(plan: Plan | null | undefined): "anon" | "free" | "pro" {
+  if (plan === "pro") return "pro";
+  if (plan === "free") return "free";
+  return "anon";
+}
+
+/** Local size limit (MB) for a plan. `null`/`undefined` ⇒ anonymous. */
+export function localMaxMB(plan: Plan | null | undefined): number {
+  return LOCAL_MAX_MB[tier(plan)];
+}
+
+/** Local size limit in bytes for a plan. */
+export function localMaxBytes(plan: Plan | null | undefined): number {
+  return localMaxMB(plan) * MB;
+}
+
+/** Maximum page count a local tool will accept for a plan. */
+export function localMaxPages(plan: Plan | null | undefined): number {
+  return LOCAL_MAX_PAGES[tier(plan)];
+}
+
 /** Cloud size limit (MB) for a plan. `null`/`undefined` ⇒ anonymous. */
 export function cloudMaxMB(plan: Plan | null | undefined): number {
-  if (plan === "pro") return CLOUD_MAX_MB.pro;
-  if (plan === "free") return CLOUD_MAX_MB.free;
-  return CLOUD_MAX_MB.anon;
+  return CLOUD_MAX_MB[tier(plan)];
 }
 
 /** Cloud size limit in bytes for a plan. */
 export function cloudMaxBytes(plan: Plan | null | undefined): number {
   return cloudMaxMB(plan) * MB;
+}
+
+/** Maximum page count a cloud tool will accept for a plan. */
+export function cloudMaxPages(plan: Plan | null | undefined): number {
+  return CLOUD_MAX_PAGES[tier(plan)];
 }
 
 /** Round a byte count to one-decimal MB for display in error messages. */

@@ -8,7 +8,9 @@ import { Kbd, useModKey } from "@/components/shared/Kbd";
 import { Spinner } from "./Spinner";
 import { PasswordModal } from "@/components/shared/PasswordModal";
 import { validateFileType, validateFileSize, isPdfEncrypted } from "@/lib/validation";
-import { LOCAL_MAX_MB } from "@/lib/limits";
+import { localMaxMB, localMaxPages } from "@/lib/limits";
+import { readPageCount } from "@/lib/pdf/common";
+import { useSession } from "@/lib/auth/client";
 
 type Accept = "pdf" | "image" | "word";
 
@@ -22,7 +24,10 @@ const ACCEPT_ATTR: Record<Accept, string> = {
  * Shared file entry point for every tool. Beyond drag/drop it is the Phase 3
  * chokepoint for validation (Wave 3B):
  *  - extension + magic-byte type check (pdf / docx)
- *  - size limit (default {@link LOCAL_MAX_MB}; cloud tools pass their plan tier)
+ *  - size limit (plan-aware local default via {@link localMaxMB}; cloud tools
+ *    pass their own plan tier through `maxSizeMB`)
+ *  - page-count limit (opt-in via `checkPages`, for local PDF tools) — rejected
+ *    before `onFiles` runs so heavy processing never starts on an over-limit file
  *  - encrypted-PDF detection → prompts via PasswordModal and hands the tool a
  *    decrypted file. Tools that own password logic (Protect/Unlock) opt out with
  *    `disablePasswordPrompt`.
@@ -34,7 +39,8 @@ export function FileDropzone({
   multiple = false,
   onFiles,
   title,
-  maxSizeMB = LOCAL_MAX_MB,
+  maxSizeMB,
+  checkPages = false,
   disablePasswordPrompt = false,
 }: {
   accept: Accept;
@@ -42,11 +48,13 @@ export function FileDropzone({
   onFiles: (files: File[]) => void;
   title?: string;
   maxSizeMB?: number;
+  checkPages?: boolean;
   disablePasswordPrompt?: boolean;
 }) {
   const t = useTranslations("ToolUI");
   const te = useTranslations("Errors");
   const mod = useModKey();
+  const { data: session } = useSession();
   const inputRef = useRef<HTMLInputElement>(null);
   const [glow, setGlow] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -56,8 +64,14 @@ export function FileDropzone({
   const doneRef = useRef<File[]>([]);
   const [pending, setPending] = useState<File | null>(null);
 
+  const plan = (session?.user as { plan?: "free" | "pro" })?.plan ?? null;
+  // Cloud tools pass an explicit `maxSizeMB`; local tools fall back to the
+  // plan-aware local limit (10 / 25 / 50 MB).
+  const sizeLimitMB = maxSizeMB ?? localMaxMB(plan);
+  const pageLimit = localMaxPages(plan);
+
   const expected = accept === "pdf" ? "pdf" : accept === "word" ? "docx" : null;
-  const maxBytes = maxSizeMB * 1024 * 1024;
+  const maxBytes = sizeLimitMB * 1024 * 1024;
 
   const heading =
     title ?? (accept === "image" ? t("dropImageTitle") : multiple ? t("dropTitle") : t("dropSingleTitle"));
@@ -109,6 +123,13 @@ export function FileDropzone({
       if (!sizeRes.ok) {
         toast.error(te("fileTooLarge", { limitMB: sizeRes.limitMB, fileMB: sizeRes.fileMB }));
         continue;
+      }
+      if (checkPages && accept === "pdf") {
+        const pages = await readPageCount(f).catch(() => 0);
+        if (pages > pageLimit) {
+          toast.error(te("tooManyPagesLocal", { pages, limit: pageLimit }));
+          continue;
+        }
       }
       accepted.push(f);
     }
@@ -202,7 +223,7 @@ export function FileDropzone({
           {multiple && <span style={{ color: "var(--text-3)" }}> · {t("multiple")}</span>}
         </div>
         <div className="mt-3 flex items-center justify-center gap-2 text-[11px]" style={{ color: "var(--text-3)" }}>
-          <span className="pp-mono">{t("maxSize", { mb: maxSizeMB })}</span>
+          <span className="pp-mono">{t("maxSize", { mb: sizeLimitMB })}</span>
           {!busy && (
             <>
               <span aria-hidden>·</span>

@@ -234,6 +234,7 @@
   },
   "Errors": {
     "fileTooLarge": "Bu dosya çok büyük. En fazla {limitMB} MB olabilir (dosyanız {fileMB} MB).",
+    "tooManyPagesLocal": "Bu PDF {pages} sayfa içeriyor. Planınız en fazla {limit} sayfaya izin veriyor.",
     "fileTooLargeGrayscale": "Bu dosya gri tonlama dönüşümü için çok büyük. Lütfen {mb} MB ve {pages} sayfanın altında bir PDF kullanın.",
     "fileTooLargeCompress": "Bu dosya sıkıştırma için çok büyük. Lütfen {mb} MB ve {pages} sayfanın altında bir PDF kullanın. İpucu: Önce PDF'nizi bölün, sonra her parçayı sıkıştırın.",
     "wrongType": "Bu dosya türü burada desteklenmiyor.",

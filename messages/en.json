@@ -234,6 +234,7 @@
   },
   "Errors": {
     "fileTooLarge": "This file is too large. Maximum is {limitMB} MB (your file is {fileMB} MB).",
+    "tooManyPagesLocal": "This PDF has {pages} pages. Your plan allows up to {limit} pages.",
     "fileTooLargeGrayscale": "This file is too large for grayscale conversion. Please use a PDF under {mb} MB and {pages} pages.",
     "fileTooLargeCompress": "This file is too large for compression. Please use a PDF under {mb} MB and {pages} pages. Tip: Split your PDF first, then compress each part.",
     "wrongType": "That file type isn't supported here.",

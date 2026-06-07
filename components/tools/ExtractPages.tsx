@@ -90,7 +90,7 @@ export function ExtractPages() {
   if (!file) {
     return (
       <div>
-        <FileDropzone accept="pdf" onFiles={onFiles} />
+        <FileDropzone accept="pdf" checkPages onFiles={onFiles} />
         {errorMsg && (
           <div className="mt-4">
             <ErrorBanner message={errorMsg} onRetry={() => setErrorMsg(undefined)} />

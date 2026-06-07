@@ -69,7 +69,7 @@ export function FlattenPdf() {
   if (!file) {
     return (
       <div>
-        <FileDropzone accept="pdf" onFiles={onFiles} title={tp("emptyTitle")} />
+        <FileDropzone accept="pdf" checkPages onFiles={onFiles} title={tp("emptyTitle")} />
         {errorMsg && <div className="mt-4"><ErrorBanner message={errorMsg} onRetry={() => setErrorMsg(undefined)} /></div>}
       </div>
     );
