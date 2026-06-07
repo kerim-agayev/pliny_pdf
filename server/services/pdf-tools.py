@@ -52,12 +52,24 @@ def _too_many(page_count):
 
 
 def _page_jpeg(page, dpi):
-    """Render a page to JPEG bytes. JPEG can't carry alpha or CMYK, so render
-    without alpha and convert non-gray/RGB colorspaces (e.g. CMYK slides) to RGB
-    first — otherwise pix.tobytes('jpeg') raises (the 'notebook slides' 500)."""
-    pix = page.get_pixmap(dpi=dpi, alpha=False)
-    if pix.n >= 4:  # CMYK (or other >3-channel) — JPEG needs gray/RGB
-        pix = pymupdf.Pixmap(pymupdf.csRGB, pix)
+    """Render a page to JPEG bytes. Render STRAIGHT to RGB without alpha: letting
+    get_pixmap target csRGB makes MuPDF handle any source colorspace (incl. CMYK
+    slides) correctly, and alpha=False fills transparent/soft-mask backgrounds
+    white instead of flattening to black in the (alpha-less) JPEG. Rendering to
+    csRGB directly also avoids a manual CMYK→RGB Pixmap conversion, which could
+    produce black/inverted output."""
+    pix = page.get_pixmap(dpi=dpi, colorspace=pymupdf.csRGB, alpha=False)
+    sys.stderr.write(
+        "[pdf-tools] page %s: cs=%s n=%d %dx%d head=%s\n"
+        % (
+            page.number,
+            pix.colorspace.name if pix.colorspace else None,
+            pix.n,
+            pix.width,
+            pix.height,
+            bytes(pix.samples[:12]).hex(),
+        )
+    )
     return pix.tobytes("jpeg", jpg_quality=JPEG_QUALITY)
 
 
@@ -97,7 +109,7 @@ def cmd_grayscale(input_pdf, output_pdf, max_pages):
         out = pymupdf.open()
         try:
             for page in src:
-                pix = page.get_pixmap(dpi=RENDER_DPI, colorspace=pymupdf.csGRAY)
+                pix = page.get_pixmap(dpi=RENDER_DPI, colorspace=pymupdf.csGRAY, alpha=False)
                 rect = page.rect
                 dst = out.new_page(width=rect.width, height=rect.height)
                 dst.insert_image(dst.rect, pixmap=pix)
