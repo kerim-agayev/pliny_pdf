@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { TextBlock as TBlock, BlockChange } from "@/lib/api/editor";
 
 /** Map a PyMuPDF font name to a CSS family for the overlay approximation. */
-function cssFont(name: string): string {
+export function cssFont(name: string): string {
   const n = (name || "").toLowerCase();
   if (n.includes("times") || n.includes("serif") || n.includes("georgia")) return "Georgia, 'Times New Roman', serif";
   if (n.includes("cour") || n.includes("mono")) return "var(--font-mono), monospace";
@@ -49,6 +49,7 @@ export function TextBlock({
   const ref = useRef<HTMLDivElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const lastTap = useRef(0);
+  const [resizing, setResizing] = useState(false);
   const deleted = change?.deleted ?? false;
   const text = change?.newText ?? block.text;
   const modified = change !== undefined && (change.newText !== undefined || change.deleted || change.color || change.fontSize !== undefined);
@@ -73,7 +74,7 @@ export function TextBlock({
   const bold = change?.bold ?? block.bold;
   const italic = change?.italic ?? block.italic;
 
-  const border = editing || selected ? "2px solid #6B5CE7" : "1px solid transparent";
+  const border = resizing ? "2px dashed #6B5CE7" : editing || selected ? "2px solid #6B5CE7" : "1px solid transparent";
   const bg = masked ? "#FFFFFF" : selected || editing ? "rgba(107,92,231,0.06)" : "transparent";
 
   const boxW = (resize?.w ?? block.w) * scale;
@@ -84,15 +85,27 @@ export function TextBlock({
   function startResize(e: React.PointerEvent) {
     e.stopPropagation();
     e.preventDefault();
+    setResizing(true);
     const rect = rootRef.current!.getBoundingClientRect();
+    const aspect = rect.width / rect.height || 1; // starting ratio for Shift-lock
+    let raf = 0;
+    let pending: { w: number; h: number } | null = null;
+    const flush = () => {
+      raf = 0;
+      if (pending) { onResize(pending.w, pending.h); pending = null; }
+    };
     const move = (ev: PointerEvent) => {
       const wPx = Math.max(50, ev.clientX - rect.left);
-      const hPx = Math.max(20, ev.clientY - rect.top);
-      onResize(wPx / scale, hPx / scale);
+      const hPx = ev.shiftKey ? wPx / aspect : Math.max(20, ev.clientY - rect.top);
+      pending = { w: wPx / scale, h: hPx / scale };
+      if (!raf) raf = requestAnimationFrame(flush); // coalesce to one update per frame
     };
     const up = () => {
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerup", up);
+      if (raf) cancelAnimationFrame(raf);
+      flush();
+      setResizing(false);
     };
     window.addEventListener("pointermove", move);
     window.addEventListener("pointerup", up);

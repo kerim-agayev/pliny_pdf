@@ -52,6 +52,9 @@ export function EditorToolbar() {
   const t = useTranslations("ToolPages.editPdf");
   const s = useEditorStore();
   const enabled = s.selectedBlock !== null;
+  // Text+ active → keep font/size/color live so the user styles the *next* new block
+  const textMode = s.tool === "text";
+  const fmtEnabled = enabled || textMode;
   const colorRef = useRef<HTMLInputElement>(null);
   const [shapesOpen, setShapesOpen] = useState(false);
   const [underline, setUnderline] = useState(false);
@@ -124,18 +127,18 @@ export function EditorToolbar() {
       </div>
 
       {/* Row 2 — text formatting */}
-      <div className="pp-ed-row" style={{ ...ROW, height: 46, gap: 5, opacity: enabled ? 1 : 0.55 }}>
+      <div className="pp-ed-row" style={{ ...ROW, height: 46, gap: 5, opacity: fmtEnabled ? 1 : 0.55 }}>
         <select
-          className="pp-edtool" value={s.fontFamily} disabled={!enabled}
+          className="pp-edtool" value={s.fontFamily} disabled={!fmtEnabled}
           onChange={(e) => s.setFormat({ fontFamily: e.target.value })}
-          style={{ height: 30, width: 104, borderRadius: 7, background: "var(--bg-2)", border: "1px solid var(--line)", color: "var(--text)", fontSize: 12.5, padding: "0 8px", fontFamily: "inherit", appearance: "none", cursor: enabled ? "pointer" : "not-allowed" }}
+          style={{ height: 30, width: 104, borderRadius: 7, background: "var(--bg-2)", border: "1px solid var(--line)", color: "var(--text)", fontSize: 12.5, padding: "0 8px", fontFamily: "inherit", appearance: "none", cursor: fmtEnabled ? "pointer" : "not-allowed" }}
         >
           {FONTS.map((f) => <option key={f} value={f}>{f}</option>)}
         </select>
         <select
-          className="pp-edtool" value={s.fontSize} disabled={!enabled}
+          className="pp-edtool" value={s.fontSize} disabled={!fmtEnabled}
           onChange={(e) => s.setFormat({ fontSize: Number(e.target.value) })}
-          style={{ height: 30, width: 58, borderRadius: 7, background: "var(--bg-2)", border: "1px solid var(--line)", color: "var(--text)", fontSize: 12.5, padding: "0 8px", fontFamily: "inherit", appearance: "none", cursor: enabled ? "pointer" : "not-allowed" }}
+          style={{ height: 30, width: 58, borderRadius: 7, background: "var(--bg-2)", border: "1px solid var(--line)", color: "var(--text)", fontSize: 12.5, padding: "0 8px", fontFamily: "inherit", appearance: "none", cursor: fmtEnabled ? "pointer" : "not-allowed" }}
         >
           {SIZES.map((n) => <option key={n} value={n}>{n}</option>)}
         </select>
@@ -145,9 +148,9 @@ export function EditorToolbar() {
         <TBtn icon={IconUnderlineText} label={t("underline")} active={enabled && underline} disabled={!enabled} onClick={() => setUnderline((v) => !v)} />
         <TBDiv />
         <button
-          type="button" disabled={!enabled} className="pp-edtool" title={t("color")}
+          type="button" disabled={!fmtEnabled} className="pp-edtool" title={t("color")}
           onClick={() => colorRef.current?.click()}
-          style={{ height: 30, padding: "0 6px", borderRadius: 7, background: "var(--bg-2)", border: "1px solid var(--line)", display: "inline-flex", alignItems: "center", gap: 6, cursor: enabled ? "pointer" : "not-allowed", opacity: enabled ? 1 : 0.5 }}
+          style={{ height: 30, padding: "0 6px", borderRadius: 7, background: "var(--bg-2)", border: "1px solid var(--line)", display: "inline-flex", alignItems: "center", gap: 6, cursor: fmtEnabled ? "pointer" : "not-allowed", opacity: fmtEnabled ? 1 : 0.5 }}
         >
           <span style={{ width: 16, height: 16, borderRadius: 4, background: s.fontColor, border: "1px solid var(--line-2)" }} />
           <IconChevron size={11} style={{ transform: "rotate(90deg)", opacity: 0.6, color: "var(--text-2)" }} />

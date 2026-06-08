@@ -85,3 +85,27 @@
   GATE 5D confirmed (DevTools 375px touch sim — both editors draw/select/pinch).
 - Frontend-only → Vercel auto-deploys on push.
 
+## [2026-06-08] GATE 5E passed — Edit PDF improvements (new-text styling, selectable-after-add, resize polish)
+- **5E-1** (`EditorToolbar.tsx`): font/size/color controls now live when `tool === "text"`
+  (`fmtEnabled = enabled || textMode`), not only when a block is selected. bold/italic/
+  underline/align stay selection-only (addText takes none of them). The chosen
+  fontFamily/fontSize/fontColor already flowed into `addText`; draft `<input>` now
+  previews in the chosen font (`cssFont`, exported from TextBlock).
+- **5E-2** (`editorStore.ts` + `EditorCanvas.tsx` + **backend** `editor.ts`):
+  - `addLocalBlock(block)` — pushes the new block into the current page, switches to
+    Select, auto-selects it. `commitDraft` calls it after `addText` returns `{ blockId }`,
+    with an approximate bbox (`measureTextWidth` offscreen-canvas + `h = fontSize*1.25`).
+  - **Backend `saveSession`:** edits/deletes targeting `add-…` blockIds (which the
+    pristine-PDF geometry map can't resolve, so they were silently dropped) are now
+    merged into the preserved add-text structural op — patch text/fontSize/fontName/
+    color, or drop the op on delete. TS-only; no Python change. **Requires Hetzner deploy.**
+- **5E-3** (`editorStore.ts` + `EditorCanvas.tsx` + `TextBlock.tsx`):
+  `blockSizes` map + `resizeBlock` action (replaces throwaway component state). Resize
+  drag: rAF-coalesced (no jitter), **Shift** locks the starting aspect ratio, min 50×20px,
+  dashed-blue outline while dragging. **Visual-only** — `BlockChange` has no w/h and the
+  server ignores block width, so resize affects the edit overlay, not the output PDF.
+- Verified: `bun run build` green; `tsc --noEmit` 0 errors (incl. server). No new i18n keys.
+- ⚠️ Frontend auto-deploys (Vercel); **5E-2 save needs the Hetzner backend deploy**
+  (git reset --hard origin/main + restart plinypdf-backend) — until then, editing a
+  newly-added block and saving still drops the edit.
+

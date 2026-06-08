@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import type { OpenResult, PageData, BlockChange } from "@/lib/api/editor";
+import type { OpenResult, PageData, BlockChange, TextBlock } from "@/lib/api/editor";
 import { editorSessionTtlMs } from "@/lib/limits";
 import type { Plan } from "@/lib/ratelimit";
 
@@ -95,6 +95,8 @@ interface EditorState {
   // mutations
   changes: Map<string, BlockChange>;
   annotations: Annotation[];
+  /** client-only box-size overrides per block (visual resize via corner handles) */
+  blockSizes: Record<string, { w: number; h: number }>;
   undoStack: Snapshot[];
   redoStack: Snapshot[];
   hasUnsavedChanges: boolean;
@@ -126,6 +128,10 @@ interface EditorState {
   editBlock: (blockId: string, patch: Partial<BlockChange>) => void;
   deleteBlock: (blockId: string) => void;
   deleteBlocks: (ids: string[]) => void;
+  /** add a just-created text block to the current page and auto-select it (Wave 5E) */
+  addLocalBlock: (block: TextBlock) => void;
+  /** record a client-only box-size override from corner-handle resize (Wave 5E) */
+  resizeBlock: (blockId: string, w: number, h: number) => void;
 
   setFormat: (patch: Partial<Pick<EditorState, "fontFamily" | "fontSize" | "fontColor" | "bold" | "italic" | "textAlign">>) => void;
   setStroke: (patch: Partial<Pick<EditorState, "strokeColor" | "strokeWidth">>) => void;
@@ -173,6 +179,7 @@ const INITIAL = {
   strokeWidth: 3,
   changes: new Map<string, BlockChange>(),
   annotations: [] as Annotation[],
+  blockSizes: {} as Record<string, { w: number; h: number }>,
   undoStack: [] as Snapshot[],
   redoStack: [] as Snapshot[],
   hasUnsavedChanges: false,
@@ -256,6 +263,25 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       for (const blockId of ids) changes.set(blockId, { ...changes.get(blockId), blockId, deleted: true });
       return { changes, undoStack, redoStack: [], hasUnsavedChanges: true, selectedBlock: null, multiSelected: [] };
     }),
+
+  addLocalBlock: (block) =>
+    set((s) => {
+      const pages = s.pages.map((pg) =>
+        pg.pageNum === s.pages[s.currentPage]?.pageNum
+          ? { ...pg, textBlocks: [...pg.textBlocks, block] }
+          : pg,
+      );
+      return {
+        pages,
+        tool: "select" as Tool,
+        selectedBlock: block.blockId,
+        multiSelected: [],
+        editingBlock: null,
+      };
+    }),
+
+  resizeBlock: (blockId, w, h) =>
+    set((s) => ({ blockSizes: { ...s.blockSizes, [blockId]: { w, h } } })),
 
   setFormat: (patch) => {
     set(patch);

@@ -8,7 +8,7 @@ import { useEditorStore, computeMatches, type Annotation } from "@/lib/stores/ed
 import { pagePngUrl, addText as apiAddText, whiteout as apiWhiteout } from "@/lib/api/editor";
 import { usePinchZoom } from "@/lib/touch";
 import { analytics } from "@/lib/analytics";
-import { TextBlock } from "./TextBlock";
+import { TextBlock, cssFont } from "./TextBlock";
 import { WhiteoutPreview } from "./WhiteoutTool";
 import { HighlightTool } from "./HighlightTool";
 import { DrawingTool } from "./DrawingTool";
@@ -22,6 +22,16 @@ let annId = 0;
 const nextId = () => `a${++annId}`;
 
 const dragTools = new Set(["whiteout", "highlight", "strike", "shapes"]);
+
+/** Approximate a text run's width (PDF points) for a freshly-placed block's bbox. */
+let measureCanvas: HTMLCanvasElement | null = null;
+function measureTextWidth(text: string, fontSize: number, fontName: string): number {
+  if (!measureCanvas) measureCanvas = document.createElement("canvas");
+  const ctx = measureCanvas.getContext("2d");
+  if (!ctx) return text.length * fontSize * 0.5;
+  ctx.font = `${fontSize}px ${cssFont(fontName)}`;
+  return ctx.measureText(text).width;
+}
 
 /** The editing surface: page PNG background + text-block & annotation overlays. */
 export function EditorCanvas() {
@@ -40,8 +50,6 @@ export function EditorCanvas() {
   const [drawPts, setDrawPts] = useState<Pt[]>([]);
   const [ctx, setCtx] = useState<ContextMenuState | null>(null);
   const [openComment, setOpenComment] = useState<string | null>(null);
-  /** client-only box-size overrides per block (visual resize via corner handles) */
-  const [resizes, setResizes] = useState<Record<string, { w: number; h: number }>>({});
   const draftInputRef = useRef<HTMLInputElement>(null);
   // true once the draft is settled — guards against the focus-race blur that fires
   // the instant the autofocused input mounts (which would clear the box immediately).
@@ -177,7 +185,17 @@ export function EditorCanvas() {
     setDraftText("");
     if (!at || !text || !s.sessionId) return;
     try {
-      await apiAddText(s.sessionId, { pageNum: page.pageNum, x: at.x, y: at.y + s.fontSize, text, fontSize: s.fontSize, fontName: s.fontFamily, color: s.fontColor });
+      const { blockId } = await apiAddText(s.sessionId, { pageNum: page.pageNum, x: at.x, y: at.y + s.fontSize, text, fontSize: s.fontSize, fontName: s.fontFamily, color: s.fontColor });
+      // Register the new block locally so it's selectable + re-editable this session
+      // (server already baked the text into the PNG; this pristine overlay is invisible
+      // until the user edits it). bbox is approximate — enough for selection + masking.
+      s.addLocalBlock({
+        blockId, x: at.x, y: at.y,
+        w: measureTextWidth(text, s.fontSize, s.fontFamily) + 6,
+        h: s.fontSize * 1.25,
+        text, fontSize: s.fontSize, fontName: s.fontFamily, color: s.fontColor,
+        bold: false, italic: false,
+      });
       s.bumpRender();
       analytics.editorTextEdited();
     } catch (e) {
@@ -263,12 +281,12 @@ export function EditorCanvas() {
             change={s.changes.get(b.blockId)}
             scale={scale}
             interactive={interactive}
-            resize={resizes[b.blockId]}
+            resize={s.blockSizes[b.blockId]}
             selected={s.selectedBlock === b.blockId || s.multiSelected.includes(b.blockId)}
             editing={s.editingBlock === b.blockId}
             onSelect={() => interactive && s.selectBlock(b.blockId)}
             onStartEdit={() => { s.setTool("select"); s.setEditing(b.blockId); }}
-            onResize={(w, h) => setResizes((r) => ({ ...r, [b.blockId]: { w, h } }))}
+            onResize={(w, h) => s.resizeBlock(b.blockId, w, h)}
             onInput={(text) => { s.editBlock(b.blockId, { newText: text }); analytics.editorTextEdited(); }}
             onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); s.selectBlock(b.blockId); setCtx({ x: e.clientX, y: e.clientY, blockId: b.blockId, pt: toPt(e) }); }}
           />
@@ -319,7 +337,7 @@ export function EditorCanvas() {
               onBlur={() => { if (draftReady.current) commitDraft(); else draftInputRef.current?.focus(); }}
               onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); commitDraft(); } if (e.key === "Escape") { setDraft(null); setDraftText(""); } }}
               placeholder={t("typeHere")}
-              style={{ border: 0, outline: "none", background: "transparent", color: s.fontColor, fontSize: Math.max(11, s.fontSize * scale), width: "100%", minWidth: 130 }}
+              style={{ border: 0, outline: "none", background: "transparent", color: s.fontColor, fontFamily: cssFont(s.fontFamily), fontSize: Math.max(11, s.fontSize * scale), width: "100%", minWidth: 130 }}
             />
           </div>
         )}

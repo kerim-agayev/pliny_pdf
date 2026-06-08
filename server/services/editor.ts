@@ -173,10 +173,42 @@ export async function saveSession(
   annotations: Change[] = [],
 ): Promise<Uint8Array> {
   const dir = sessionDir(sessionId);
-  const existing = (await readChanges(dir)).filter(
+  // Structural ops survive every save (add-text / whiteout / find-replace); edits and
+  // annotations are the full desired set, replaced wholesale.
+  let structural = (await readChanges(dir)).filter(
     (c) => c.type !== "edit" && !ANNOT_TYPES.has(c.type),
   );
-  const all = [...existing, ...edits.map((e) => ({ ...e, type: "edit" })), ...annotations];
+
+  // Reconcile edits that target an added text block ("add-…"). Those blockIds aren't in
+  // the pristine-PDF geometry map, so a normal edit would be dropped on apply — instead
+  // merge the edit into the preserved add-text op (or remove it on delete).
+  const passthroughEdits: Change[] = [];
+  const removed = new Set<string>();
+  for (const e of edits) {
+    const id = typeof e.blockId === "string" ? e.blockId : "";
+    const op = id.startsWith("add-")
+      ? structural.find((c) => c.type === "add-text" && c.blockId === id)
+      : undefined;
+    if (!op) {
+      passthroughEdits.push(e); // normal block (or unknown add-id) → geometry-map edit path
+      continue;
+    }
+    if (e.deleted) {
+      removed.add(id);
+      continue;
+    }
+    if (e.text !== undefined) op.text = e.text;
+    if (e.fontSize !== undefined) op.fontSize = e.fontSize;
+    if (e.fontName !== undefined) op.fontName = e.fontName;
+    if (e.color !== undefined) op.color = e.color;
+  }
+  if (removed.size) {
+    structural = structural.filter(
+      (c) => !(c.type === "add-text" && removed.has(c.blockId as string)),
+    );
+  }
+
+  const all = [...structural, ...passthroughEdits.map((e) => ({ ...e, type: "edit" })), ...annotations];
   console.log(
     `[editor] saveSession ${sessionId}: ${edits.length} edit(s), ${annotations.length} annotation(s); ` +
       `writing ${all.length} change(s): [${all.map((c) => c.type).join(", ")}]`,
