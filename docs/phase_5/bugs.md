@@ -41,3 +41,32 @@ Other cloud tools keep the general 50/300/1000 page cap.
 **Verified locally:** `bun run build` green, `tsc` 0 errors, `pdf-tools.py`
 py_compile OK. **Pending:** Hetzner deploy + real-file re-test of the GATE 5B
 checks; do not commit until the user confirms the gate passes.
+
+## GATE 5E production testing — 4 bugs (FIXED, deployed — commit d0a5d79)
+
+### Bug 1/2 (CRITICAL) — add-text + Save 502 on Times blocks — FIXED
+Root cause: `_BASE14["times"]` regular code was `"times"`, not a valid PyMuPDF
+Base-14 name → `insert_text` raised "need font file or buffer" and `apply` crashed,
+502-ing add-text and save once 5E-1 let users pick the Times font. Fix → `"tiro"`
+(Times-Roman). Helvetica/Courier and the Times bold/italic codes were already correct.
+
+### Bug 3 — Underline button had no effect — FIXED
+Was throwaway local toolbar state. Added `s.underline` + per-block `blockStyles`;
+U button → `setFormat({ underline })`; TextBlock applies `text-decoration`. Visual-only.
+
+### Bug 4 — Text alignment had no effect — FIXED
+Toolbar already called `setFormat({ textAlign })` but it was never applied. Now
+persisted per block in `blockStyles` and applied via `text-align` in TextBlock. Visual-only.
+
+## Deferred to Phase 6 (design decisions, NOT bugs — surfaced during GATE 5E)
+
+### Resize — text overflows when the box is shrunk
+The 5E-3 corner-handle resize is **visual-only** (no `w`/`h` in `BlockChange`; the
+server ignores block width). Shrinking the box smaller than the text doesn't reflow or
+clip the content — it overflows. By design for Phase 5. A real fix needs server-side
+bounding-box support (text reflow / clip on save).
+
+### Resize — minimum width/height values look swapped
+Current min in `TextBlock.startResize` is width ≥ 50px, height ≥ 20px. User noted these
+read backwards for the intended feel (suggested 20/50 — i.e. min width 20, min height 50).
+Left as-is for Phase 5; revisit alongside the overflow fix in Phase 6.

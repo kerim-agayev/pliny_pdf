@@ -1,4 +1,4 @@
-# Wave 5E — Edit PDF improvements ✅ (GATE 5E passed 2026-06-08)
+# Wave 5E — Edit PDF improvements ✅ DONE (GATE 5E passed 2026-06-08, user-confirmed)
 
 Improvements deferred from Phase 4. See CLAUDE_5.md §4 Wave 5E.
 
@@ -23,3 +23,17 @@ deletable in the same session (after backend deploy); smooth aspect-lockable res
 - 5E-2 required a backend change + Hetzner deploy (user-approved) for added-block
   edit/delete to persist on save — not achievable frontend-only.
 - After placing new text: switch to Select + auto-select the block (user-approved).
+
+## GATE-run bug fixes (commit d0a5d79)
+- **Times Base-14 code:** `_BASE14["times"]` regular was `"times"` (invalid) → `"tiro"`.
+  Caused a 502 on add-text/save for Times blocks ("need font file or buffer").
+- **Underline (Bug 3):** added `s.underline` + `blockStyles`; U button → `setFormat`;
+  TextBlock applies `text-decoration`.
+- **Alignment (Bug 4):** persisted per block in `blockStyles`; TextBlock applies `text-align`.
+  Both underline + alignment are **visual-only** (not sent on save).
+
+## Deferred to Phase 6 (design decisions, not bugs — see bugs.md)
+- Resize text overflow when the box shrinks (resize is visual-only by design).
+- Minimum-size width/height values swapped (50/20 → 20/50).
+
+**User-confirmed GATE 5E green (2026-06-08).**

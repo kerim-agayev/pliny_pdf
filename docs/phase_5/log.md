@@ -85,7 +85,7 @@
   GATE 5D confirmed (DevTools 375px touch sim — both editors draw/select/pinch).
 - Frontend-only → Vercel auto-deploys on push.
 
-## [2026-06-08] GATE 5E passed — Edit PDF improvements (new-text styling, selectable-after-add, resize polish)
+## [2026-06-08] Wave 5E code complete — Edit PDF improvements (new-text styling, selectable-after-add, resize polish)
 - **5E-1** (`EditorToolbar.tsx`): font/size/color controls now live when `tool === "text"`
   (`fmtEnabled = enabled || textMode`), not only when a block is selected. bold/italic/
   underline/align stay selection-only (addText takes none of them). The chosen
@@ -108,4 +108,27 @@
 - ⚠️ Frontend auto-deploys (Vercel); **5E-2 save needs the Hetzner backend deploy**
   (git reset --hard origin/main + restart plinypdf-backend) — until then, editing a
   newly-added block and saving still drops the edit.
+
+## [2026-06-08] ✅ GATE 5E PASSED — Edit PDF improvements confirmed (Phase 5 COMPLETE 🎉)
+First gate run surfaced 4 bugs; fixed in commit `d0a5d79` (frontend → Vercel, plus a
+Hetzner backend deploy for the Python fix):
+- **Bug 1/2 (CRITICAL 502 on add-text + save):** `_BASE14["times"]` regular code was
+  `"times"` — not a valid PyMuPDF Base-14 name, so `insert_text` demanded a fontfile
+  ("need font file or buffer") and `apply` crashed once a Times block was processed
+  (surfaced by 5E-1's font picker). Fixed → `"tiro"` (Times-Roman). Helvetica/Courier
+  and the Times bold/italic codes were already correct.
+- **Bug 3 (underline):** was throwaway local toolbar state. Added `s.underline` +
+  per-block `blockStyles`; U button → `setFormat({ underline })`; TextBlock applies
+  `text-decoration`.
+- **Bug 4 (alignment):** toolbar already called `setFormat({ textAlign })`; now persisted
+  per block in `blockStyles` and applied via `text-align` in TextBlock.
+  Underline + alignment are **visual-only** (no `BlockChange`/server support; never sent
+  on save) — see `decisions.md`.
+- Verified: `bun run build` green, `tsc --noEmit` clean, `py_compile` OK.
+- **User-confirmed GATE 5E green:** 5E-1 Times/size/color ✅; 5E-2 auto-select/edit/delete
+  all save to PDF ✅; 5E-3 smooth resize + dashed outline + Shift aspect-lock ✅; underline ✅;
+  alignment ✅.
+- Two non-blocking items deferred to Phase 6 (design decisions, not bugs) → `bugs.md`.
+
+**Phase 5 (Performance, Cloud Migration & Polish) is COMPLETE — all waves 5A–5E shipped.**
 
