@@ -282,6 +282,7 @@ export function EditorCanvas() {
             scale={scale}
             interactive={interactive}
             resize={s.blockSizes[b.blockId]}
+            blockStyle={s.blockStyles[b.blockId]}
             selected={s.selectedBlock === b.blockId || s.multiSelected.includes(b.blockId)}
             editing={s.editingBlock === b.blockId}
             onSelect={() => interactive && s.selectBlock(b.blockId)}

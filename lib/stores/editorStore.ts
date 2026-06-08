@@ -86,6 +86,7 @@ interface EditorState {
   fontColor: string;
   bold: boolean;
   italic: boolean;
+  underline: boolean;
   textAlign: TextAlign;
 
   // annotation tool settings
@@ -97,6 +98,8 @@ interface EditorState {
   annotations: Annotation[];
   /** client-only box-size overrides per block (visual resize via corner handles) */
   blockSizes: Record<string, { w: number; h: number }>;
+  /** client-only visual styles per block (underline / alignment — no server support) */
+  blockStyles: Record<string, { underline?: boolean; textAlign?: TextAlign }>;
   undoStack: Snapshot[];
   redoStack: Snapshot[];
   hasUnsavedChanges: boolean;
@@ -133,7 +136,7 @@ interface EditorState {
   /** record a client-only box-size override from corner-handle resize (Wave 5E) */
   resizeBlock: (blockId: string, w: number, h: number) => void;
 
-  setFormat: (patch: Partial<Pick<EditorState, "fontFamily" | "fontSize" | "fontColor" | "bold" | "italic" | "textAlign">>) => void;
+  setFormat: (patch: Partial<Pick<EditorState, "fontFamily" | "fontSize" | "fontColor" | "bold" | "italic" | "underline" | "textAlign">>) => void;
   setStroke: (patch: Partial<Pick<EditorState, "strokeColor" | "strokeWidth">>) => void;
 
   addAnnotation: (a: Annotation) => void;
@@ -174,12 +177,14 @@ const INITIAL = {
   fontColor: "#1f1f1f",
   bold: false,
   italic: false,
+  underline: false,
   textAlign: "left" as TextAlign,
   strokeColor: "#F43F5E",
   strokeWidth: 3,
   changes: new Map<string, BlockChange>(),
   annotations: [] as Annotation[],
   blockSizes: {} as Record<string, { w: number; h: number }>,
+  blockStyles: {} as Record<string, { underline?: boolean; textAlign?: TextAlign }>,
   undoStack: [] as Snapshot[],
   redoStack: [] as Snapshot[],
   hasUnsavedChanges: false,
@@ -222,6 +227,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   selectBlock: (id) => {
     const block = id ? get().pages.flatMap((pg) => pg.textBlocks).find((b) => b.blockId === id) : null;
     const change = id ? get().changes.get(id) : undefined;
+    const style = id ? get().blockStyles[id] : undefined;
     if (block) {
       set({
         selectedBlock: id,
@@ -230,6 +236,8 @@ export const useEditorStore = create<EditorState>((set, get) => ({
         fontColor: change?.color ?? block.color ?? "#1f1f1f",
         bold: change?.bold ?? block.bold ?? false,
         italic: change?.italic ?? block.italic ?? false,
+        underline: style?.underline ?? false,
+        textAlign: style?.textAlign ?? "left",
       });
     } else {
       set({ selectedBlock: id, editingBlock: id ? get().editingBlock : null });
@@ -294,6 +302,20 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       if (patch.bold !== undefined) map.bold = patch.bold;
       if (patch.italic !== undefined) map.italic = patch.italic;
       if (Object.keys(map).length) get().editBlock(id, map);
+      // underline + alignment are visual-only (no BlockChange / server support) → keep
+      // them in a client-side per-block style map, never sent on save.
+      if (patch.underline !== undefined || patch.textAlign !== undefined) {
+        set((s) => ({
+          blockStyles: {
+            ...s.blockStyles,
+            [id]: {
+              ...s.blockStyles[id],
+              ...(patch.underline !== undefined ? { underline: patch.underline } : {}),
+              ...(patch.textAlign !== undefined ? { textAlign: patch.textAlign } : {}),
+            },
+          },
+        }));
+      }
     }
   },
   setStroke: (patch) => set(patch),

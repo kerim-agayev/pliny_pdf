@@ -57,7 +57,6 @@ export function EditorToolbar() {
   const fmtEnabled = enabled || textMode;
   const colorRef = useRef<HTMLInputElement>(null);
   const [shapesOpen, setShapesOpen] = useState(false);
-  const [underline, setUnderline] = useState(false);
 
   return (
     <div style={{ position: "relative" }}>
@@ -145,7 +144,7 @@ export function EditorToolbar() {
         <TBDiv />
         <TBtn icon={IconBold} label={t("bold")} active={enabled && s.bold} disabled={!enabled} onClick={() => s.setFormat({ bold: !s.bold })} />
         <TBtn icon={IconItalic} label={t("italic")} active={enabled && s.italic} disabled={!enabled} onClick={() => s.setFormat({ italic: !s.italic })} />
-        <TBtn icon={IconUnderlineText} label={t("underline")} active={enabled && underline} disabled={!enabled} onClick={() => setUnderline((v) => !v)} />
+        <TBtn icon={IconUnderlineText} label={t("underline")} active={enabled && s.underline} disabled={!enabled} onClick={() => s.setFormat({ underline: !s.underline })} />
         <TBDiv />
         <button
           type="button" disabled={!fmtEnabled} className="pp-edtool" title={t("color")}

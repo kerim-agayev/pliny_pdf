@@ -14,3 +14,15 @@
 - **Download filename fix**: pass `types` to `showSaveFilePicker` (keeps the
   extension on rename) + anchor `download` extension safety net. Handles
   `.pdf` / `.jpg` / `.zip` / `.docx`.
+
+## 5E (incl. GATE 5E bug fixes)
+- **Times Base-14 code bug (`pdf-editor.py`)**: `_BASE14["times"]` regular code was
+  `"times"` — not a valid PyMuPDF Base-14 name, so `insert_text` demanded a fontfile
+  ("need font file or buffer") and the apply crashed → add-text/save 502. Correct code
+  is `"tiro"` (Times-Roman). Surfaced once 5E-1 let users pick the Times font.
+- **Underline + text alignment are visual-only.** `BlockChange` (and the server) carry
+  no underline/align, so they're stored in a **client-only per-block style map**
+  (`blockStyles` in `editorStore`, mirroring `blockSizes`) and applied as CSS
+  (`textDecoration` / `textAlign`) in `TextBlock`. Never sent on save — they do **not**
+  alter the output PDF (same constraint as 5E-3 resize). True alignment/underline in the
+  PDF would need a `BlockChange`/backend extension (out of scope).

@@ -25,6 +25,7 @@ export function TextBlock({
   editing,
   interactive,
   resize,
+  blockStyle,
   onSelect,
   onStartEdit,
   onResize,
@@ -40,6 +41,8 @@ export function TextBlock({
   interactive: boolean;
   /** client-only box-size override (PDF points) from corner-handle dragging */
   resize: { w: number; h: number } | undefined;
+  /** client-only visual style (underline / alignment) — not sent to the server */
+  blockStyle: { underline?: boolean; textAlign?: "left" | "center" | "right" } | undefined;
   onSelect: () => void;
   onStartEdit: () => void;
   onResize: (w: number, h: number) => void;
@@ -172,6 +175,8 @@ export function TextBlock({
             color,
             fontWeight: bold ? 700 : 400,
             fontStyle: italic ? "italic" : "normal",
+            textDecoration: blockStyle?.underline ? "underline" : "none",
+            textAlign: blockStyle?.textAlign ?? "left",
             outline: "none",
             whiteSpace: "pre-wrap",
             // pristine, unselected blocks stay invisible so the PNG text shows through

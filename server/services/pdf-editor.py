@@ -44,9 +44,11 @@ FLAG_ITALIC = 1 << 1
 FLAG_BOLD = 1 << 4
 
 # Base-14 font codes by family → (regular, bold, italic, bold-italic).
+# NB: Times-Roman's code is "tiro", NOT "times" — the latter isn't a Base-14 name and
+# makes insert_text demand a fontfile ("need font file or buffer").
 _BASE14 = {
     "helv": ("helv", "hebo", "heit", "hebi"),
-    "times": ("times", "tibo", "tiit", "tibi"),
+    "times": ("tiro", "tibo", "tiit", "tibi"),
     "cour": ("cour", "cobo", "coit", "cobi"),
 }
 
