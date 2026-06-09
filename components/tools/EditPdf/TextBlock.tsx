@@ -27,12 +27,10 @@ export function TextBlock({
   selected,
   editing,
   interactive,
-  resize,
   pos,
   blockStyle,
   onSelect,
   onStartEdit,
-  onResize,
   onMove,
   onInput,
   onContextMenu,
@@ -44,15 +42,12 @@ export function TextBlock({
   editing: boolean;
   /** false (non-select tools) → let pointer events fall through to the canvas */
   interactive: boolean;
-  /** client-only box-size override (PDF points) from corner-handle dragging */
-  resize: { w: number; h: number } | undefined;
   /** client-only position override (PDF points) from drag-to-move */
   pos: { x: number; y: number } | undefined;
   /** client-only visual style (underline / alignment) — not sent to the server */
   blockStyle: { underline?: boolean; textAlign?: "left" | "center" | "right" } | undefined;
   onSelect: () => void;
   onStartEdit: () => void;
-  onResize: (w: number, h: number) => void;
   onMove: (x: number, y: number) => void;
   onInput: (text: string) => void;
   onContextMenu: (e: React.MouseEvent) => void;
@@ -60,7 +55,6 @@ export function TextBlock({
   const ref = useRef<HTMLDivElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const lastTap = useRef(0);
-  const [resizing, setResizing] = useState(false);
   const [moveOffset, setMoveOffset] = useState<{ dx: number; dy: number } | null>(null);
   const dragState = useRef<{ startX: number; startY: number; moved: boolean } | null>(null);
   const cancelMoveRef = useRef<(() => void) | null>(null);
@@ -68,7 +62,8 @@ export function TextBlock({
   const deleted = change?.deleted ?? false;
   const text = change?.newText ?? block.text;
   const modified = change !== undefined && (change.newText !== undefined || change.deleted || change.color || change.fontSize !== undefined);
-  const masked = editing || modified || moveOffset !== null; // cover the original PNG text
+  // Show overlay whenever the block has visible state beyond what the PNG carries.
+  const masked = editing || modified || moveOffset !== null || !!blockStyle?.underline;
 
   // Seed the contenteditable once when entering edit mode (uncontrolled while typing).
   useEffect(() => {
@@ -88,45 +83,29 @@ export function TextBlock({
   const bold = change?.bold ?? block.bold;
   const italic = change?.italic ?? block.italic;
 
-  const border = resizing ? "2px dashed #6B5CE7" : editing || selected ? "2px solid #6B5CE7" : "1px solid transparent";
+  const border = editing || selected ? "2px solid #6B5CE7" : "1px solid transparent";
   const bg = masked ? "#FFFFFF" : selected || editing ? "rgba(107,92,231,0.06)" : "transparent";
 
-  const boxW = (resize?.w ?? block.w) * scale;
-  const boxH = (resize?.h ?? block.h) * scale;
+  const boxW = block.w * scale;
+  const boxH = block.h * scale;
 
   // Use position override if present (drag-to-move), else original block coords.
   const blockLeft = (pos?.x ?? block.x) * scale;
   const blockTop = (pos?.y ?? block.y) * scale;
 
-  // Corner handle → drag to resize the block. Resizes from the block's top-left.
-  function startResize(e: React.PointerEvent) {
-    e.stopPropagation();
-    e.preventDefault();
-    setResizing(true);
-    const rect = rootRef.current!.getBoundingClientRect();
-    const aspect = rect.width / rect.height || 1;
-    let raf = 0;
-    let pending: { w: number; h: number } | null = null;
-    const flush = () => {
-      raf = 0;
-      if (pending) { onResize(pending.w, pending.h); pending = null; }
-    };
-    const move = (ev: PointerEvent) => {
-      const wPx = Math.max(50, ev.clientX - rect.left);
-      const hPx = ev.shiftKey ? wPx / aspect : Math.max(20, ev.clientY - rect.top);
-      pending = { w: wPx / scale, h: hPx / scale };
-      if (!raf) raf = requestAnimationFrame(flush);
-    };
-    const up = () => {
-      window.removeEventListener("pointermove", move);
-      window.removeEventListener("pointerup", up);
-      if (raf) cancelAnimationFrame(raf);
-      flush();
-      setResizing(false);
-    };
-    window.addEventListener("pointermove", move);
-    window.addEventListener("pointerup", up);
-  }
+  // Shared position/size style used by both the ghost mask and the root div.
+  const boxStyle: React.CSSProperties = {
+    position: "absolute",
+    left: blockLeft,
+    top: blockTop,
+    width: boxW,
+    height: boxH,
+    overflow: "hidden",
+    borderRadius: 3,
+    boxSizing: "content-box" as const,
+    margin: "-2px -3px",
+    padding: "2px 3px",
+  };
 
   // Drag-to-move gesture on the block container when selected and not editing.
   function startMove(e: React.PointerEvent) {
@@ -174,107 +153,84 @@ export function TextBlock({
   }
 
   return (
-    <div
-      ref={rootRef}
-      role="button"
-      tabIndex={-1}
-      onPointerDown={(e) => {
-        if (!editing) {
-          e.stopPropagation();
-          onSelect();
-          startMove(e);
-        }
-      }}
-      onPointerUp={(e) => {
-        if (editing) return;
-        if (dragState.current?.moved) return; // already handled in startMove
-        // double-tap (touch) / double-click fallback → enter edit mode
-        if (e.timeStamp - lastTap.current < 300) {
-          e.stopPropagation();
-          lastTap.current = 0;
-          onStartEdit();
-        } else {
-          lastTap.current = e.timeStamp;
-        }
-      }}
-      onDoubleClick={(e) => {
-        e.stopPropagation();
-        cancelMoveRef.current?.();
-        onStartEdit();
-      }}
-      onContextMenu={onContextMenu}
-      className="pp-textblock"
-      style={{
-        position: "absolute",
-        left: blockLeft,
-        top: blockTop,
-        width: boxW,
-        height: boxH,
-        overflow: "hidden",
-        border,
-        background: bg,
-        borderRadius: 3,
-        boxSizing: "content-box",
-        margin: "-2px -3px",
-        padding: "2px 3px",
-        cursor: moveOffset ? "move" : (editing ? "text" : "pointer"),
-        transition: moveOffset ? "none" : "border-color 0.12s, background 0.12s",
-        transform: moveOffset ? `translate(${moveOffset.dx}px, ${moveOffset.dy}px)` : undefined,
-        zIndex: moveOffset ? 100 : undefined,
-        // editing always stays interactive; otherwise only in select mode so
-        // whiteout/highlight/text drags can start over existing text.
-        pointerEvents: interactive || editing ? "auto" : "none",
-      }}
-    >
-      {!deleted && (
-        <div
-          ref={ref}
-          contentEditable={editing}
-          suppressContentEditableWarning
-          onInput={(e) => onInput((e.target as HTMLDivElement).innerText)}
-          spellCheck={false}
-          style={{
-            fontFamily: cssFont(change?.fontName ?? block.fontName),
-            fontSize: Math.max(6, fontSize),
-            lineHeight: 1.12,
-            color,
-            fontWeight: bold ? 700 : 400,
-            fontStyle: italic ? "italic" : "normal",
-            textDecoration: blockStyle?.underline ? "underline" : "none",
-            textAlign: blockStyle?.textAlign ?? "left",
-            outline: "none",
-            whiteSpace: "pre-wrap",
-            overflow: "hidden",
-            width: "100%",
-            height: "100%",
-            // pristine, unselected blocks stay invisible so the PNG text shows through
-            visibility: masked || editing ? "visible" : "hidden",
-          }}
-        >
-          {!editing ? text : null}
-        </div>
+    <>
+      {/* White ghost at the pre-drag position masks the PNG text while the block floats */}
+      {moveOffset !== null && (
+        <div style={{ ...boxStyle, background: "#fff", zIndex: 99, pointerEvents: "none", border: "1px solid transparent" }} />
       )}
 
-      {selected && !editing && ["nw", "ne", "sw", "se"].map((h) => (
-        <span
-          key={h}
-          onPointerDown={startResize}
-          style={{
-            position: "absolute",
-            width: 10,
-            height: 10,
-            borderRadius: 2,
-            background: "white",
-            border: "1.5px solid #6B5CE7",
-            touchAction: "none",
-            cursor: h === "se" || h === "nw" ? "nwse-resize" : "nesw-resize",
-            left: h[1] === "w" ? -5 : "auto",
-            right: h[1] === "e" ? -5 : "auto",
-            top: h[0] === "n" ? -5 : "auto",
-            bottom: h[0] === "s" ? -5 : "auto",
-          }}
-        />
-      ))}
-    </div>
+      <div
+        ref={rootRef}
+        role="button"
+        tabIndex={-1}
+        onPointerDown={(e) => {
+          if (!editing) {
+            e.stopPropagation();
+            onSelect();
+            startMove(e);
+          }
+        }}
+        onPointerUp={(e) => {
+          if (editing) return;
+          if (dragState.current?.moved) return; // already handled in startMove
+          // double-tap (touch) / double-click fallback → enter edit mode
+          if (e.timeStamp - lastTap.current < 300) {
+            e.stopPropagation();
+            lastTap.current = 0;
+            onStartEdit();
+          } else {
+            lastTap.current = e.timeStamp;
+          }
+        }}
+        onDoubleClick={(e) => {
+          e.stopPropagation();
+          cancelMoveRef.current?.();
+          onStartEdit();
+        }}
+        onContextMenu={onContextMenu}
+        className="pp-textblock"
+        style={{
+          ...boxStyle,
+          border,
+          background: bg,
+          cursor: moveOffset ? "move" : (editing ? "text" : "pointer"),
+          transition: moveOffset ? "none" : "border-color 0.12s, background 0.12s",
+          transform: moveOffset ? `translate(${moveOffset.dx}px, ${moveOffset.dy}px)` : undefined,
+          zIndex: moveOffset ? 100 : undefined,
+          // editing always stays interactive; otherwise only in select mode so
+          // whiteout/highlight/text drags can start over existing text.
+          pointerEvents: interactive || editing ? "auto" : "none",
+        }}
+      >
+        {!deleted && (
+          <div
+            ref={ref}
+            contentEditable={editing}
+            suppressContentEditableWarning
+            onInput={(e) => onInput((e.target as HTMLDivElement).innerText)}
+            spellCheck={false}
+            style={{
+              fontFamily: cssFont(change?.fontName ?? block.fontName),
+              fontSize: Math.max(6, fontSize),
+              lineHeight: 1.12,
+              color,
+              fontWeight: bold ? 700 : 400,
+              fontStyle: italic ? "italic" : "normal",
+              textDecoration: blockStyle?.underline ? "underline" : "none",
+              textAlign: blockStyle?.textAlign ?? "left",
+              outline: "none",
+              whiteSpace: "pre-wrap",
+              overflow: "hidden",
+              width: "100%",
+              height: "100%",
+              // pristine, unselected blocks stay invisible so the PNG text shows through
+              visibility: masked || editing ? "visible" : "hidden",
+            }}
+          >
+            {!editing ? text : null}
+          </div>
+        )}
+      </div>
+    </>
   );
 }

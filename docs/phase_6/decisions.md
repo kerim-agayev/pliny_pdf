@@ -52,6 +52,16 @@ current implementation has interaction issues that require a design pass.
 
 ---
 
+## D6-6 — Resize removed in Wave 6A
+
+**Decision**: Corner-handle resize (blockSizes store, `resizeBlock` action, resize handles in TextBlock) has been removed entirely.
+
+**Why**: The visual resize didn't clip text reliably (root div used `minHeight` not `height`) and the PDF output never used the width/height values — the server ignored them. The feature added complexity for zero user benefit.
+
+**How to apply**: If resize is re-added, it needs: exact `height/width` on both root and content divs, and backend support to wrap/clip inserted text to a specific column width.
+
+---
+
 ## D6-4 — Noto Serif: download from Google Fonts to Hetzner
 
 **Decision**: NotoSerif-Regular.ttf and NotoSerif-Bold.ttf are downloaded to

@@ -96,8 +96,6 @@ interface EditorState {
   // mutations
   changes: Map<string, BlockChange>;
   annotations: Annotation[];
-  /** client-only box-size overrides per block (visual resize via corner handles) */
-  blockSizes: Record<string, { w: number; h: number }>;
   /** client-only position overrides per block (visual drag-to-move) */
   blockPositions: Record<string, { x: number; y: number }>;
   /** client-only visual styles per block (underline / alignment — no server support) */
@@ -135,8 +133,6 @@ interface EditorState {
   deleteBlocks: (ids: string[]) => void;
   /** add a just-created text block to the current page and auto-select it (Wave 5E) */
   addLocalBlock: (block: TextBlock) => void;
-  /** record a client-only box-size override from corner-handle resize (Wave 5E) */
-  resizeBlock: (blockId: string, w: number, h: number) => void;
   /** record a client-only position override from drag-to-move (Wave 6A) */
   moveBlock: (blockId: string, x: number, y: number) => void;
 
@@ -187,7 +183,6 @@ const INITIAL = {
   strokeWidth: 3,
   changes: new Map<string, BlockChange>(),
   annotations: [] as Annotation[],
-  blockSizes: {} as Record<string, { w: number; h: number }>,
   blockPositions: {} as Record<string, { x: number; y: number }>,
   blockStyles: {} as Record<string, { underline?: boolean; textAlign?: TextAlign }>,
   undoStack: [] as Snapshot[],
@@ -222,7 +217,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
 
   failParse: (kind) => set({ phase: "error", errorKind: kind }),
 
-  reset: () => set({ ...INITIAL, changes: new Map(), annotations: [], undoStack: [], redoStack: [], blockSizes: {}, blockPositions: {} }),
+  reset: () => set({ ...INITIAL, changes: new Map(), annotations: [], undoStack: [], redoStack: [], blockPositions: {} }),
 
   setTool: (tool) => set({ tool, selectedBlock: tool === "select" ? get().selectedBlock : null, multiSelected: [], editingBlock: null }),
   setShapeType: (shapeType) => set({ shapeType }),
@@ -292,9 +287,6 @@ export const useEditorStore = create<EditorState>((set, get) => ({
         editingBlock: null,
       };
     }),
-
-  resizeBlock: (blockId, w, h) =>
-    set((s) => ({ blockSizes: { ...s.blockSizes, [blockId]: { w, h } } })),
 
   moveBlock: (blockId, x, y) =>
     set((s) => ({ blockPositions: { ...s.blockPositions, [blockId]: { x, y } }, hasUnsavedChanges: true })),

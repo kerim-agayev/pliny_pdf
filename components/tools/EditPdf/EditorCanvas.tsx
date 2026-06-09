@@ -285,14 +285,12 @@ export function EditorCanvas() {
             change={s.changes.get(b.blockId)}
             scale={scale}
             interactive={interactive}
-            resize={s.blockSizes[b.blockId]}
             pos={s.blockPositions[b.blockId]}
             blockStyle={s.blockStyles[b.blockId]}
             selected={s.selectedBlock === b.blockId || s.multiSelected.includes(b.blockId)}
             editing={s.editingBlock === b.blockId}
             onSelect={() => interactive && s.selectBlock(b.blockId)}
             onStartEdit={() => { s.setTool("select"); s.setEditing(b.blockId); }}
-            onResize={(w, h) => s.resizeBlock(b.blockId, w, h)}
             onMove={(x, y) => s.moveBlock(b.blockId, x, y)}
             onInput={(text) => { s.editBlock(b.blockId, { newText: text }); analytics.editorTextEdited(); }}
             onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); s.selectBlock(b.blockId); setCtx({ x: e.clientX, y: e.clientY, blockId: b.blockId, pt: toPt(e) }); }}
