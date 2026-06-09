@@ -3,31 +3,18 @@
 ## Current Status
 
 - Phase: 6 (Edit PDF Final Polish & Features)
-- Active wave: Wave 6A — Text & Movement Improvements
-- Next step: Implement Step 1 (Bug A fix) through Step 6 (bold/italic on addText)
+- Active wave: Wave 6B — Images & Stamps
+- Last completed: Wave 6A — Text & Movement Improvements (GATE passed 2026-06-09)
 
 ## Wave Status
 
 | Wave | Title | Status |
 |---|---|---|
-| 6A | Text & Movement | 🔧 In Progress |
-| 6B | Images & Stamps | pending |
+| 6A | Text & Movement | ✅ COMPLETE (2026-06-09) |
+| 6B | Images & Stamps | 🔧 Next |
 | 6C | Links & Whiteout Improvements | pending |
 | 6D | Annotation & Shape Fixes | pending |
 | 6E | Comprehensive QA & Performance | pending |
-
-## Wave 6A Tasks
-
-1. ✅ docs/phase_6/ tree created
-2. 🔧 Bug A — shape drag preview fix (EditorCanvas.tsx)
-3. 🔧 Bug B — text overflow fix (TextBlock.tsx)
-4. 🔧 Bug C — resize min-width/height verify
-5. 🔧 Text Move (drag-and-drop)
-6. 🔧 Text Duplicate (Ctrl+D)
-7. 🔧 More fonts (3 → 6: +Noto Sans, Noto Serif, Noto Sans Mono)
-8. 🔧 Bold/Italic on addText (needed for duplicate + 6A-5)
-9. 🔧 bun run build gate
-10. 🔧 GATE 6A verification
 
 ## Key Files
 
