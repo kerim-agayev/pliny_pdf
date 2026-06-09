@@ -41,6 +41,17 @@ For add-text blocks (no geometry map entry), the approximation is
 
 ---
 
+## D6-5 — Find & Replace removed from UI in Wave 6A
+
+**Decision**: The Find & Replace button and ⌘H shortcut are removed from
+EditorToolbar (Row 3) and the keyboard handler in index.tsx. FindReplaceModal.tsx
+is retained but not rendered anywhere.
+
+**Why**: Find & Replace needs a UX rework before re-enabling (Wave 6E). The
+current implementation has interaction issues that require a design pass.
+
+---
+
 ## D6-4 — Noto Serif: download from Google Fonts to Hetzner
 
 **Decision**: NotoSerif-Regular.ttf and NotoSerif-Bold.ttf are downloaded to

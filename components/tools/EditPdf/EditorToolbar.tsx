@@ -8,7 +8,7 @@ import { addText as apiAddText } from "@/lib/api/editor";
 import {
   IconCursor, IconTextPlus, IconWhiteout, IconHighlight, IconStrike, IconPen, IconShapes,
   IconMessage, IconBold, IconItalic, IconUnderlineText, IconAlignLeft, IconAlignCenter,
-  IconAlignRight, IconTrash, IconUndo, IconRedo, IconSearch, IconChevron, IconX, IconPlus,
+  IconAlignRight, IconTrash, IconUndo, IconRedo, IconChevron, IconX, IconPlus,
   IconCopy, IconRect, IconCircleShape, IconArrowDraw, IconLineShape, type IconProps,
 } from "@/components/shared/icons";
 import type { ComponentType } from "react";
@@ -204,12 +204,6 @@ export function EditorToolbar() {
       <div className="pp-ed-row" style={{ ...ROW, height: 46, gap: 5 }}>
         <TBtn icon={IconUndo} label={t("undo")} kbd="⌘Z" disabled={!s.undoStack.length} onClick={s.undo} />
         <TBtn icon={IconRedo} label={t("redo")} kbd="⌘⇧Z" disabled={!s.redoStack.length} onClick={s.redo} />
-        <TBDiv />
-        <button type="button" onClick={s.openFindReplace} className="pp-edtool"
-          style={{ height: 30, padding: "0 12px", borderRadius: 7, background: "var(--bg-2)", border: "1px solid var(--line)", color: "var(--text)", display: "inline-flex", alignItems: "center", gap: 7, fontSize: 12.5, cursor: "pointer" }}>
-          <IconSearch size={14} /> {t("findReplace")}
-          <span className="pp-mono" style={{ fontSize: 9.5, color: "var(--text-3)" }}>⌘H</span>
-        </button>
         <div style={{ flex: 1 }} />
         <div style={{ display: "flex", alignItems: "center", gap: 2, padding: 3, background: "var(--bg-2)", border: "1px solid var(--line)", borderRadius: 8 }}>
           <button type="button" className="pp-edtool" onClick={() => s.setZoom(s.zoom - 10)}

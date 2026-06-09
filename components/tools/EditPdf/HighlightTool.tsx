@@ -37,7 +37,7 @@ export function HighlightTool({
   if (a.type === "strike" || a.type === "underline") {
     // a single thin line through the middle (strike) or along the bottom (underline)
     // of the dragged span — NOT a filled rectangle.
-    const lineH = Math.max(2, 2 * scale);
+    const lineH = Math.max(1, (a.strokeWidth ?? 2) * scale);
     return (
       <div style={base} onPointerDown={(e) => { e.stopPropagation(); onSelect(); }}>
         <div

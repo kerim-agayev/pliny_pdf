@@ -63,11 +63,12 @@ export function TextBlock({
   const [resizing, setResizing] = useState(false);
   const [moveOffset, setMoveOffset] = useState<{ dx: number; dy: number } | null>(null);
   const dragState = useRef<{ startX: number; startY: number; moved: boolean } | null>(null);
+  const cancelMoveRef = useRef<(() => void) | null>(null);
 
   const deleted = change?.deleted ?? false;
   const text = change?.newText ?? block.text;
   const modified = change !== undefined && (change.newText !== undefined || change.deleted || change.color || change.fontSize !== undefined);
-  const masked = editing || modified; // cover the original PNG text
+  const masked = editing || modified || moveOffset !== null; // cover the original PNG text
 
   // Seed the contenteditable once when entering edit mode (uncontrolled while typing).
   useEffect(() => {
@@ -130,9 +131,21 @@ export function TextBlock({
   // Drag-to-move gesture on the block container when selected and not editing.
   function startMove(e: React.PointerEvent) {
     if (editing) return;
+
+    // Cancel any still-pending drag (e.g. from a rapid double-click's first pointer-down).
+    cancelMoveRef.current?.();
+
     const startX = e.clientX;
     const startY = e.clientY;
     dragState.current = { startX, startY, moved: false };
+
+    const cleanup = () => {
+      window.removeEventListener("pointermove", handleMove);
+      window.removeEventListener("pointerup", handleUp);
+      cancelMoveRef.current = null;
+      dragState.current = null;
+      setMoveOffset(null);
+    };
 
     const handleMove = (ev: PointerEvent) => {
       if (!dragState.current) return;
@@ -144,18 +157,18 @@ export function TextBlock({
       }
     };
     const handleUp = (ev: PointerEvent) => {
-      window.removeEventListener("pointermove", handleMove);
-      window.removeEventListener("pointerup", handleUp);
-      if (dragState.current?.moved) {
+      const moved = dragState.current?.moved ?? false;
+      cleanup();
+      if (moved) {
         const dx = ev.clientX - startX;
         const dy = ev.clientY - startY;
         const newX = (pos?.x ?? block.x) + dx / scale;
         const newY = (pos?.y ?? block.y) + dy / scale;
         onMove(newX, newY);
       }
-      dragState.current = null;
-      setMoveOffset(null);
     };
+
+    cancelMoveRef.current = cleanup;
     window.addEventListener("pointermove", handleMove);
     window.addEventListener("pointerup", handleUp);
   }
@@ -186,6 +199,7 @@ export function TextBlock({
       }}
       onDoubleClick={(e) => {
         e.stopPropagation();
+        cancelMoveRef.current?.();
         onStartEdit();
       }}
       onContextMenu={onContextMenu}
@@ -195,7 +209,8 @@ export function TextBlock({
         left: blockLeft,
         top: blockTop,
         width: boxW,
-        minHeight: boxH,
+        height: boxH,
+        overflow: "hidden",
         border,
         background: bg,
         borderRadius: 3,
@@ -230,9 +245,10 @@ export function TextBlock({
             outline: "none",
             whiteSpace: "pre-wrap",
             overflow: "hidden",
+            width: "100%",
+            height: "100%",
             // pristine, unselected blocks stay invisible so the PNG text shows through
             visibility: masked || editing ? "visible" : "hidden",
-            minHeight: "1em",
           }}
         >
           {!editing ? text : null}

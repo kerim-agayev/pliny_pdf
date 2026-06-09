@@ -45,6 +45,7 @@ export function EditorCanvas() {
   usePinchZoom(scrollRef, { getScale: () => s.zoom, setScale: (z) => s.setZoom(z), panTarget: () => scrollRef.current });
 
   const [drag, setDrag] = useState<{ start: Pt; cur: Pt; tool: string } | null>(null);
+  const [whiteoutOverlays, setWhiteoutOverlays] = useState<{ pageNum: number; x: number; y: number; w: number; h: number }[]>([]);
   const [draft, setDraft] = useState<Pt | null>(null);
   const [draftText, setDraftText] = useState("");
   const [drawPts, setDrawPts] = useState<Pt[]>([]);
@@ -110,13 +111,16 @@ export function EditorCanvas() {
       try {
         await apiWhiteout(s.sessionId!, { pageNum: page.pageNum, x, y, w, h });
         s.bumpRender();
+        // Render a client-side white cover above text-block overlays so edited blocks
+        // are immediately hidden without waiting for the PNG reload.
+        setWhiteoutOverlays((prev) => [...prev, { pageNum: page.pageNum, x, y, w, h }]);
       } catch (e) {
         toast.error(e instanceof Error ? e.message : t("saveFailed"));
       }
     } else if (tool === "highlight") {
       s.addAnnotation({ id: nextId(), type: "highlight", pageNum: page.pageNum, x, y, w: Math.max(w, 8), h: Math.max(h, 10), color: s.strokeColor });
     } else if (tool === "strike") {
-      s.addAnnotation({ id: nextId(), type: "strike", pageNum: page.pageNum, x, y, w: Math.max(w, 8), h: Math.max(h, 6), color: s.strokeColor });
+      s.addAnnotation({ id: nextId(), type: "strike", pageNum: page.pageNum, x, y, w: Math.max(w, 8), h: Math.max(h, 6), color: s.strokeColor, strokeWidth: s.strokeWidth });
     } else if (tool === "shapes") {
       if (s.shapeType === "arrow" || s.shapeType === "line") {
         // keep the true start→end so the arrowhead points the right way
@@ -295,6 +299,11 @@ export function EditorCanvas() {
           />
         ))}
 
+        {/* committed whiteout covers — renders above text-block overlays */}
+        {whiteoutOverlays.filter((r) => r.pageNum === page.pageNum).map((r, i) => (
+          <div key={`wo-${i}`} style={{ position: "absolute", left: r.x * scale, top: r.y * scale, width: r.w * scale, height: r.h * scale, background: "#fff", pointerEvents: "none" }} />
+        ))}
+
         {/* annotation overlays */}
         {pageAnns.map((a) => {
           if (a.type === "highlight" || a.type === "strike" || a.type === "underline")
@@ -328,7 +337,7 @@ export function EditorCanvas() {
             const midY = (drag.start.y + drag.cur.y) / 2;
             return (
               <svg width={displayW} height={displayH} viewBox={`0 0 ${page.width} ${page.height}`} style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
-                <line x1={drag.start.x} y1={midY} x2={drag.cur.x} y2={midY} stroke={sc} strokeWidth={2} strokeLinecap="round" />
+                <line x1={drag.start.x} y1={midY} x2={drag.cur.x} y2={midY} stroke={sc} strokeWidth={sw} strokeLinecap="round" />
               </svg>
             );
           }

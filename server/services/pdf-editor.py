@@ -375,7 +375,7 @@ def _apply_strike(doc, change, affected):
     w, h = change.get("w", 0), change.get("h", 0)
     rgb = _hex_to_rgb01(change.get("color", "#F43F5E"))
     mid = y + h / 2.0
-    page.draw_line(pymupdf.Point(x, mid), pymupdf.Point(x + w, mid), color=rgb, width=2)
+    page.draw_line(pymupdf.Point(x, mid), pymupdf.Point(x + w, mid), color=rgb, width=change.get("strokeWidth", 2))
 
 
 def _parse_path(path):

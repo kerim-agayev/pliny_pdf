@@ -120,7 +120,6 @@ export function EditPdf() {
       const editable = (e.target as HTMLElement)?.isContentEditable || ["INPUT", "TEXTAREA"].includes((e.target as HTMLElement)?.tagName);
       if (k === "s") { e.preventDefault(); handleSave(false); }
       else if (k === "d") { e.preventDefault(); handleSave(true); }
-      else if (k === "h") { e.preventDefault(); s.openFindReplace(); }
       else if (k === "z" && !editable) { e.preventDefault(); e.shiftKey ? s.redo() : s.undo(); }
       else if (k === "y" && !editable) { e.preventDefault(); s.redo(); }
     }
