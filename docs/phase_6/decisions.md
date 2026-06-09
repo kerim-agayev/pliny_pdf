@@ -62,6 +62,26 @@ current implementation has interaction issues that require a design pass.
 
 ---
 
+## D6-7 — Underline burns into the PDF (GATE 6A re-test)
+
+**Decision**: Underline now persists in the saved PDF. It is still stored
+client-side in `blockStyles[blockId].underline` (drives the on-screen
+`text-decoration`), but `changeList()` in `index.tsx` merges it into the
+`BlockChange` payload on save. `BlockChange.underline` flows through the save
+route → `saveSession` → `_apply_edit` / `_apply_add_text`, where
+`_draw_underline()` draws a line just below the baseline (`baseline + 0.12·size`)
+spanning the text width (measured for re-typed text, original bbox width
+otherwise). Chosen over keeping it display-only.
+
+**Re-test fixes also landed here**: moved blocks no longer show blank (overlay
+`masked` now includes a position override `pos`, and a white ghost stays pinned
+at the original coords to cover the stale PNG); bold/italic now persist after
+deselect (`modified` includes `change.bold`/`change.italic`).
+
+**Note**: `textAlign` remains visual-only — no server support.
+
+---
+
 ## D6-4 — Noto Serif: download from Google Fonts to Hetzner
 
 **Decision**: NotoSerif-Regular.ttf and NotoSerif-Bold.ttf are downloaded to

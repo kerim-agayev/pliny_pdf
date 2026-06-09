@@ -41,6 +41,8 @@ export type BlockChange = {
   deleted?: boolean;
   bold?: boolean;
   italic?: boolean;
+  /** underline — drawn as a line under the text bbox server-side (Wave 6A) */
+  underline?: boolean;
   /** moved position — top-left x in PDF points (Wave 6A) */
   x?: number;
   /** moved position — top-left y in PDF points (Wave 6A) */

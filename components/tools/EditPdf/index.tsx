@@ -81,8 +81,15 @@ export function EditPdf() {
         list.push({ blockId, x: pos.x, y: pos.y });
       }
     }
+    // Merge per-block underline (client-only visual style) so it burns into the PDF.
+    for (const [blockId, style] of Object.entries(s.blockStyles)) {
+      if (!style?.underline) continue;
+      const existing = list.find((c) => c.blockId === blockId);
+      if (existing) existing.underline = true;
+      else list.push({ blockId, underline: true });
+    }
     return list;
-  }, [s.changes, s.blockPositions]);
+  }, [s.changes, s.blockPositions, s.blockStyles]);
   // overlay annotations serialized for the server to burn into the PDF (Wave 4C)
   const annotationList = useCallback(
     (): AnnotationChange[] =>

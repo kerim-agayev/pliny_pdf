@@ -203,6 +203,7 @@ export async function saveSession(
     if (e.color !== undefined) op.color = e.color;
     if (e.bold !== undefined) op.bold = e.bold;
     if (e.italic !== undefined) op.italic = e.italic;
+    if (e.underline !== undefined) op.underline = e.underline;
     if (e.x !== undefined) op.x = e.x;
     if (e.y !== undefined) {
       // BlockChange.y is the top-left y; add-text uses baseline y ≈ top + fontSize

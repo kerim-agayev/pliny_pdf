@@ -61,9 +61,19 @@ export function TextBlock({
 
   const deleted = change?.deleted ?? false;
   const text = change?.newText ?? block.text;
-  const modified = change !== undefined && (change.newText !== undefined || change.deleted || change.color || change.fontSize !== undefined);
-  // Show overlay whenever the block has visible state beyond what the PNG carries.
-  const masked = editing || modified || moveOffset !== null || !!blockStyle?.underline;
+  const modified =
+    change !== undefined &&
+    (change.newText !== undefined ||
+      change.deleted ||
+      change.color ||
+      change.fontSize !== undefined ||
+      change.bold !== undefined ||
+      change.italic !== undefined);
+  // Show overlay whenever the block has visible state beyond what the PNG carries:
+  // edited content, a style override (underline), or a position override (moved —
+  // the PNG still has the original text at the old spot, so the overlay must paint
+  // the text at the new spot, and a ghost mask covers the old spot below).
+  const masked = editing || modified || moveOffset !== null || !!blockStyle?.underline || !!pos;
 
   // Seed the contenteditable once when entering edit mode (uncontrolled while typing).
   useEffect(() => {
@@ -92,6 +102,11 @@ export function TextBlock({
   // Use position override if present (drag-to-move), else original block coords.
   const blockLeft = (pos?.x ?? block.x) * scale;
   const blockTop = (pos?.y ?? block.y) * scale;
+
+  // The PNG always carries the text at its ORIGINAL coords (no re-render until save),
+  // so a moved block needs a white ghost pinned there to cover the stale PNG text.
+  const origLeft = block.x * scale;
+  const origTop = block.y * scale;
 
   // Shared position/size style used by both the ghost mask and the root div.
   const boxStyle: React.CSSProperties = {
@@ -154,9 +169,22 @@ export function TextBlock({
 
   return (
     <>
-      {/* White ghost at the pre-drag position masks the PNG text while the block floats */}
-      {moveOffset !== null && (
-        <div style={{ ...boxStyle, background: "#fff", zIndex: 99, pointerEvents: "none", border: "1px solid transparent" }} />
+      {/* White ghost pinned at the ORIGINAL position masks the stale PNG text — both
+          while the block floats (moveOffset) and after it has settled at a new spot
+          (pos), since the PNG isn't re-rendered until save. */}
+      {(moveOffset !== null || pos) && (
+        <div
+          style={{
+            ...boxStyle,
+            left: origLeft,
+            top: origTop,
+            transform: undefined,
+            background: "#fff",
+            zIndex: 99,
+            pointerEvents: "none",
+            border: "1px solid transparent",
+          }}
+        />
       )}
 
       <div

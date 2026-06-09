@@ -302,8 +302,9 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       if (patch.bold !== undefined) map.bold = patch.bold;
       if (patch.italic !== undefined) map.italic = patch.italic;
       if (Object.keys(map).length) get().editBlock(id, map);
-      // underline + alignment are visual-only (no BlockChange / server support) → keep
-      // them in a client-side per-block style map, never sent on save.
+      // underline + alignment live in a client-side per-block style map. Underline is
+      // merged into the save payload (changeList) and burned into the PDF as a drawn
+      // line server-side; textAlign remains visual-only (no server support).
       if (patch.underline !== undefined || patch.textAlign !== undefined) {
         set((s) => ({
           blockStyles: {

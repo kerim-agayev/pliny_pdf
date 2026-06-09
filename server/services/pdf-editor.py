@@ -197,6 +197,19 @@ def _insert_text(page, point, text, font_size, font_name, color, bold, italic):
         )
 
 
+def _draw_underline(page, point, width, font_size, color):
+    """Draw an underline just below the baseline at `point`, spanning `width` points."""
+    rgb = _hex_to_rgb01(color) if isinstance(color, str) else (color or (0.0, 0.0, 0.0))
+    size = font_size or 11
+    uy = point.y + size * 0.12
+    page.draw_line(
+        pymupdf.Point(point.x, uy),
+        pymupdf.Point(point.x + width, uy),
+        color=rgb,
+        width=max(0.5, size * 0.06),
+    )
+
+
 def _redact_rect(page, rect):
     """White-out a rectangle: redaction removes underlying text/marks cleanly."""
     page.add_redact_annot(rect, fill=(1, 1, 1))
@@ -267,16 +280,27 @@ def _apply_edit(doc, geo, change, affected):
         insert_point = pymupdf.Point(g["origin"])
     # Use original text as fallback so bold/italic-only changes don't erase text.
     text = change.get("text") or g.get("text", "")
+    size = change.get("fontSize", g["size"])
     _insert_text(
         page,
         insert_point,
         text,
-        change.get("fontSize", g["size"]),
+        size,
         change.get("fontName", g["font"]),
         change.get("color", "#000000"),
         bold,
         italic,
     )
+    if change.get("underline"):
+        # Use the measured width for re-typed text, else the original bbox width.
+        if change.get("text"):
+            try:
+                uw = pymupdf.get_text_length(text, fontname="helv", fontsize=size)
+            except Exception:
+                uw = g["bbox"][2] - g["bbox"][0]
+        else:
+            uw = g["bbox"][2] - g["bbox"][0]
+        _draw_underline(page, insert_point, uw, size, change.get("color", "#000000"))
 
 
 def _apply_add_text(doc, change, affected):
@@ -285,16 +309,25 @@ def _apply_add_text(doc, change, affected):
         return
     page = doc[page_num]
     affected.add(page_num)
+    pt = pymupdf.Point(change.get("x", 0), change.get("y", 0))
+    size = change.get("fontSize", 12)
+    text = change.get("text", "")
     _insert_text(
         page,
-        pymupdf.Point(change.get("x", 0), change.get("y", 0)),
-        change.get("text", ""),
-        change.get("fontSize", 12),
+        pt,
+        text,
+        size,
         change.get("fontName", "Helvetica"),
         change.get("color", "#000000"),
         change.get("bold", False),
         change.get("italic", False),
     )
+    if change.get("underline"):
+        try:
+            uw = pymupdf.get_text_length(text, fontname="helv", fontsize=size)
+        except Exception:
+            uw = size * 0.5 * max(1, len(text))
+        _draw_underline(page, pt, uw, size, change.get("color", "#000000"))
 
 
 def _apply_whiteout(doc, change, affected):
