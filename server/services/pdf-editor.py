@@ -175,7 +175,6 @@ def _insert_text(page, point, text, font_size, font_name, color, bold, italic):
     n = (font_name or "").lower()
     if _is_explicit_noto(font_name) or _needs_unicode(text):
         # Route to the correct Noto TTF based on the font family.
-        # Italic is not supported (no italic TTF on disk) — silently uses regular weight.
         if "mono" in n:
             fontfile = NOTO_MONO_REGULAR
             fontcode = "notomono"
@@ -186,9 +185,12 @@ def _insert_text(page, point, text, font_size, font_name, color, bold, italic):
             # Noto Sans (default) + unicode auto-fallback
             fontfile = NOTO_BOLD if bold else NOTO_REGULAR
             fontcode = "notob" if bold else "noto"
+        # No italic TTF on disk, so synthesize oblique by shearing the glyphs to the
+        # right around the insertion point (matches the base-14 oblique slant).
+        morph = (point, pymupdf.Matrix(1, 0, 0.25, 1, 0, 0)) if italic else None
         page.insert_text(
             point, text, fontsize=size,
-            fontname=fontcode, fontfile=fontfile, color=rgb,
+            fontname=fontcode, fontfile=fontfile, color=rgb, morph=morph,
         )
     else:
         page.insert_text(

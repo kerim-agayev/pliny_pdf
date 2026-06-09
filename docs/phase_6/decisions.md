@@ -1,17 +1,21 @@
 # Phase 6 — Technical Decisions
 
-## D6-1 — Noto Italic: silently fall back to regular weight
+## D6-1 — Noto Italic: synthesize oblique via shear (SUPERSEDED in GATE 6A re-test)
 
-**Decision**: Italic for Noto fonts (Noto Sans, Noto Serif, Noto Sans Mono)
-renders as regular weight in the saved PDF because NotoSans-Italic.ttf and
-NotoSerif-Italic.ttf are not on disk.
+**Original decision**: Italic for Noto fonts (and any text routed to the Noto
+path because it needs Unicode) rendered as regular weight in the saved PDF —
+NotoSans-Italic.ttf / NotoSerif-Italic.ttf are not on disk.
 
-**Why**: Downloading additional TTFs adds ~400KB each; italic support for these
-fonts is low-priority for Phase 6. The CSS overlay still shows italic via
-`font-style: italic` for the on-screen preview.
+**Updated (GATE 6A re-test)**: italic is now synthesized in `_insert_text` for the
+Noto/unicode branch by shearing the glyphs with `pymupdf.Matrix(1, 0, 0.25, 1, 0, 0)`
+around the insertion point (`morph`). This matches the right-leaning slant of the
+base-14 oblique faces. No extra TTFs needed. Verified by rendering: Noto Sans,
+Noto bold+italic, and Turkish unicode (`şğü`) all slant correctly.
 
-**Impact**: Users who select a Noto font + italic will see italic on screen but
-regular in the downloaded PDF. Document in the known limitations section.
+**Why it mattered**: Wave 6A added Noto fonts to the toolbar dropdown, so selecting
+a Noto font + italic (or italicizing text with smart quotes / non-Latin-1 chars)
+hit this branch and lost italic in the PDF — while base-14 italic (`heit`/`tiit`/
+`coit`) already worked. The asymmetry is why "bold worked but italic didn't".
 
 ---
 
