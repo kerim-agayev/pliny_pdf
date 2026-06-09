@@ -98,6 +98,8 @@ interface EditorState {
   annotations: Annotation[];
   /** client-only box-size overrides per block (visual resize via corner handles) */
   blockSizes: Record<string, { w: number; h: number }>;
+  /** client-only position overrides per block (visual drag-to-move) */
+  blockPositions: Record<string, { x: number; y: number }>;
   /** client-only visual styles per block (underline / alignment — no server support) */
   blockStyles: Record<string, { underline?: boolean; textAlign?: TextAlign }>;
   undoStack: Snapshot[];
@@ -135,6 +137,8 @@ interface EditorState {
   addLocalBlock: (block: TextBlock) => void;
   /** record a client-only box-size override from corner-handle resize (Wave 5E) */
   resizeBlock: (blockId: string, w: number, h: number) => void;
+  /** record a client-only position override from drag-to-move (Wave 6A) */
+  moveBlock: (blockId: string, x: number, y: number) => void;
 
   setFormat: (patch: Partial<Pick<EditorState, "fontFamily" | "fontSize" | "fontColor" | "bold" | "italic" | "underline" | "textAlign">>) => void;
   setStroke: (patch: Partial<Pick<EditorState, "strokeColor" | "strokeWidth">>) => void;
@@ -184,6 +188,7 @@ const INITIAL = {
   changes: new Map<string, BlockChange>(),
   annotations: [] as Annotation[],
   blockSizes: {} as Record<string, { w: number; h: number }>,
+  blockPositions: {} as Record<string, { x: number; y: number }>,
   blockStyles: {} as Record<string, { underline?: boolean; textAlign?: TextAlign }>,
   undoStack: [] as Snapshot[],
   redoStack: [] as Snapshot[],
@@ -217,7 +222,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
 
   failParse: (kind) => set({ phase: "error", errorKind: kind }),
 
-  reset: () => set({ ...INITIAL, changes: new Map(), annotations: [], undoStack: [], redoStack: [] }),
+  reset: () => set({ ...INITIAL, changes: new Map(), annotations: [], undoStack: [], redoStack: [], blockSizes: {}, blockPositions: {} }),
 
   setTool: (tool) => set({ tool, selectedBlock: tool === "select" ? get().selectedBlock : null, multiSelected: [], editingBlock: null }),
   setShapeType: (shapeType) => set({ shapeType }),
@@ -290,6 +295,9 @@ export const useEditorStore = create<EditorState>((set, get) => ({
 
   resizeBlock: (blockId, w, h) =>
     set((s) => ({ blockSizes: { ...s.blockSizes, [blockId]: { w, h } } })),
+
+  moveBlock: (blockId, x, y) =>
+    set((s) => ({ blockPositions: { ...s.blockPositions, [blockId]: { x, y } }, hasUnsavedChanges: true })),
 
   setFormat: (patch) => {
     set(patch);

@@ -201,6 +201,14 @@ export async function saveSession(
     if (e.fontSize !== undefined) op.fontSize = e.fontSize;
     if (e.fontName !== undefined) op.fontName = e.fontName;
     if (e.color !== undefined) op.color = e.color;
+    if (e.bold !== undefined) op.bold = e.bold;
+    if (e.italic !== undefined) op.italic = e.italic;
+    if (e.x !== undefined) op.x = e.x;
+    if (e.y !== undefined) {
+      // BlockChange.y is the top-left y; add-text uses baseline y ≈ top + fontSize
+      const fs = typeof op.fontSize === "number" ? op.fontSize : 12;
+      op.y = (e.y as number) + (fs as number);
+    }
   }
   if (removed.size) {
     structural = structural.filter(
@@ -227,7 +235,7 @@ async function appendAndApply(sessionId: string, change: Change): Promise<ApplyR
 
 export async function addText(
   sessionId: string,
-  params: { pageNum: number; x: number; y: number; text: string; fontSize: number; fontName: string; color: string },
+  params: { pageNum: number; x: number; y: number; text: string; fontSize: number; fontName: string; color: string; bold?: boolean; italic?: boolean },
 ): Promise<string> {
   const blockId = `add-${crypto.randomUUID()}`;
   await appendAndApply(sessionId, { type: "add-text", blockId, ...params });

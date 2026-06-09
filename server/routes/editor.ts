@@ -128,6 +128,8 @@ export const editor = new Elysia({ prefix: "/api/editor" })
         deleted: c.deleted,
         bold: c.bold,
         italic: c.italic,
+        x: c.x,
+        y: c.y,
       }));
       // Overlay annotations to burn into the PDF (Wave 4C); keyed by their own type.
       const annotations: Change[] = (body.annotations ?? []).map((a) => ({ ...a }));
@@ -152,6 +154,8 @@ export const editor = new Elysia({ prefix: "/api/editor" })
             deleted: t.Optional(t.Boolean()),
             bold: t.Optional(t.Boolean()),
             italic: t.Optional(t.Boolean()),
+            x: t.Optional(t.Number()),
+            y: t.Optional(t.Number()),
           }),
         ),
         annotations: t.Optional(
@@ -194,6 +198,8 @@ export const editor = new Elysia({ prefix: "/api/editor" })
           fontSize: body.fontSize ?? 12,
           fontName: body.fontName ?? "Helvetica",
           color: body.color ?? "#000000",
+          bold: body.bold ?? false,
+          italic: body.italic ?? false,
         });
         return { blockId };
       } catch (e) {
@@ -211,6 +217,8 @@ export const editor = new Elysia({ prefix: "/api/editor" })
         fontSize: t.Optional(t.Number()),
         fontName: t.Optional(t.String()),
         color: t.Optional(t.String()),
+        bold: t.Optional(t.Boolean()),
+        italic: t.Optional(t.Boolean()),
       }),
     },
   )

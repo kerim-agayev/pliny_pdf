@@ -282,12 +282,14 @@ export function EditorCanvas() {
             scale={scale}
             interactive={interactive}
             resize={s.blockSizes[b.blockId]}
+            pos={s.blockPositions[b.blockId]}
             blockStyle={s.blockStyles[b.blockId]}
             selected={s.selectedBlock === b.blockId || s.multiSelected.includes(b.blockId)}
             editing={s.editingBlock === b.blockId}
             onSelect={() => interactive && s.selectBlock(b.blockId)}
             onStartEdit={() => { s.setTool("select"); s.setEditing(b.blockId); }}
             onResize={(w, h) => s.resizeBlock(b.blockId, w, h)}
+            onMove={(x, y) => s.moveBlock(b.blockId, x, y)}
             onInput={(text) => { s.editBlock(b.blockId, { newText: text }); analytics.editorTextEdited(); }}
             onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); s.selectBlock(b.blockId); setCtx({ x: e.clientX, y: e.clientY, blockId: b.blockId, pt: toPt(e) }); }}
           />
@@ -311,13 +313,44 @@ export function EditorCanvas() {
           </svg>
         )}
 
-        {/* drag preview (whiteout = rose; others = indigo) */}
+        {/* drag preview — per-tool rendering */}
         {drag && (() => {
           const x = Math.min(drag.start.x, drag.cur.x) * scale;
           const y = Math.min(drag.start.y, drag.cur.y) * scale;
           const w = Math.abs(drag.cur.x - drag.start.x) * scale;
           const h = Math.abs(drag.cur.y - drag.start.y) * scale;
+          const sc = s.strokeColor;
+          const sw = s.strokeWidth;
           if (drag.tool === "whiteout") return <WhiteoutPreview rect={{ x, y, w, h }} hint={t("whiteoutHint")} />;
+          if (drag.tool === "highlight")
+            return <div style={{ position: "absolute", left: x, top: y, width: w, height: h, background: `${sc}60`, borderRadius: 2, pointerEvents: "none" }} />;
+          if (drag.tool === "strike") {
+            const midY = (drag.start.y + drag.cur.y) / 2;
+            return (
+              <svg width={displayW} height={displayH} viewBox={`0 0 ${page.width} ${page.height}`} style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
+                <line x1={drag.start.x} y1={midY} x2={drag.cur.x} y2={midY} stroke={sc} strokeWidth={2} strokeLinecap="round" />
+              </svg>
+            );
+          }
+          if (drag.tool === "shapes") {
+            const st = s.shapeType;
+            if (st === "rectangle") return <div style={{ position: "absolute", left: x, top: y, width: w, height: h, border: `${sw}px solid ${sc}`, borderRadius: 4, pointerEvents: "none" }} />;
+            if (st === "circle") return <div style={{ position: "absolute", left: x, top: y, width: w, height: h, border: `${sw}px solid ${sc}`, borderRadius: "50%", pointerEvents: "none" }} />;
+            // arrow / line: use exact drag start→end in PDF coords
+            const ang = Math.atan2(drag.cur.y - drag.start.y, drag.cur.x - drag.start.x);
+            const head = Math.max(9, sw * 3);
+            return (
+              <svg width={displayW} height={displayH} viewBox={`0 0 ${page.width} ${page.height}`} style={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
+                <line x1={drag.start.x} y1={drag.start.y} x2={drag.cur.x} y2={drag.cur.y} stroke={sc} strokeWidth={sw} strokeLinecap="round" />
+                {st === "arrow" && (
+                  <>
+                    <line x1={drag.cur.x} y1={drag.cur.y} x2={drag.cur.x + head * Math.cos(ang + Math.PI - 0.5)} y2={drag.cur.y + head * Math.sin(ang + Math.PI - 0.5)} stroke={sc} strokeWidth={sw} strokeLinecap="round" />
+                    <line x1={drag.cur.x} y1={drag.cur.y} x2={drag.cur.x + head * Math.cos(ang + Math.PI + 0.5)} y2={drag.cur.y + head * Math.sin(ang + Math.PI + 0.5)} stroke={sc} strokeWidth={sw} strokeLinecap="round" />
+                  </>
+                )}
+              </svg>
+            );
+          }
           return <div style={{ position: "absolute", left: x, top: y, width: w, height: h, border: "1.5px dashed #6B5CE7", background: "rgba(107,92,231,0.06)", borderRadius: 2, pointerEvents: "none" }} />;
         })()}
 

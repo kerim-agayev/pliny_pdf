@@ -2,12 +2,14 @@
 
 import { useRef, useState } from "react";
 import { useTranslations } from "next-intl";
+import { toast } from "sonner";
 import { useEditorStore, type ShapeType } from "@/lib/stores/editorStore";
+import { addText as apiAddText } from "@/lib/api/editor";
 import {
   IconCursor, IconTextPlus, IconWhiteout, IconHighlight, IconStrike, IconPen, IconShapes,
   IconMessage, IconBold, IconItalic, IconUnderlineText, IconAlignLeft, IconAlignCenter,
   IconAlignRight, IconTrash, IconUndo, IconRedo, IconSearch, IconChevron, IconX, IconPlus,
-  IconRect, IconCircleShape, IconArrowDraw, IconLineShape, type IconProps,
+  IconCopy, IconRect, IconCircleShape, IconArrowDraw, IconLineShape, type IconProps,
 } from "@/components/shared/icons";
 import type { ComponentType } from "react";
 
@@ -41,7 +43,7 @@ function TBtn({ icon: Ic, label, active, disabled, danger, hasCaret, kbd, onClic
 
 const TBDiv = () => <div style={{ width: 1, height: 20, background: "var(--line)", flexShrink: 0, margin: "0 3px" }} />;
 
-const FONTS = ["Helvetica", "Times", "Courier"];
+const FONTS = ["Helvetica", "Times", "Courier", "Noto Sans", "Noto Serif", "Noto Sans Mono"];
 const SIZES = [8, 9, 10, 11, 12, 14, 16, 18, 20, 24, 28, 32];
 // shared palette + stroke widths for the drawing tools (Draw / Shapes / Highlight / Strike)
 const DRAW_COLORS = ["#0F0F0F", "#F43F5E", "#3B82F6", "#10B981", "#FACC15", "#FFFFFF"];
@@ -57,6 +59,35 @@ export function EditorToolbar() {
   const fmtEnabled = enabled || textMode;
   const colorRef = useRef<HTMLInputElement>(null);
   const [shapesOpen, setShapesOpen] = useState(false);
+
+  async function duplicateBlock() {
+    const id = s.selectedBlock;
+    if (!id || !s.sessionId) return;
+    const page = s.pages[s.currentPage];
+    if (!page) return;
+    const block = page.textBlocks.find((b) => b.blockId === id);
+    if (!block) return;
+    const change = s.changes.get(id);
+    const text = change?.newText ?? block.text;
+    const fontSize = change?.fontSize ?? block.fontSize;
+    const fontName = change?.fontName ?? block.fontName;
+    const color = change?.color ?? block.color ?? "#1f1f1f";
+    const bold = change?.bold ?? block.bold ?? false;
+    const italic = change?.italic ?? block.italic ?? false;
+    const posOverride = s.blockPositions[id];
+    const newX = (posOverride?.x ?? block.x) + 20;
+    const newY = (posOverride?.y ?? block.y) + 20;
+    try {
+      const { blockId } = await apiAddText(s.sessionId, {
+        pageNum: page.pageNum, x: newX, y: newY + fontSize,
+        text, fontSize, fontName, color, bold, italic,
+      });
+      s.addLocalBlock({ blockId, x: newX, y: newY, w: block.w, h: block.h, text, fontSize, fontName, color, bold, italic });
+      s.bumpRender();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : t("saveFailed"));
+    }
+  }
 
   return (
     <div style={{ position: "relative" }}>
@@ -165,6 +196,7 @@ export function EditorToolbar() {
           ))}
         </div>
         <div style={{ flex: 1 }} />
+        <TBtn icon={IconCopy} label={t("duplicate")} disabled={!enabled} onClick={duplicateBlock} />
         <TBtn icon={IconTrash} label={t("deleteBlock")} danger disabled={!enabled} kbd="Del" onClick={() => s.selectedBlock && s.deleteBlock(s.selectedBlock)} />
       </div>
 

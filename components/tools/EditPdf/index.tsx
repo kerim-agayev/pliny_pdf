@@ -69,7 +69,20 @@ export function EditPdf() {
     if (id) closeEditor(id);
   }, []);
 
-  const changeList = useCallback((): BlockChange[] => Array.from(s.changes.values()), [s.changes]);
+  const changeList = useCallback((): BlockChange[] => {
+    const list = Array.from(s.changes.values());
+    // Merge blockPositions overrides into their BlockChange entries (or create new entries).
+    for (const [blockId, pos] of Object.entries(s.blockPositions)) {
+      const existing = list.find((c) => c.blockId === blockId);
+      if (existing) {
+        existing.x = pos.x;
+        existing.y = pos.y;
+      } else {
+        list.push({ blockId, x: pos.x, y: pos.y });
+      }
+    }
+    return list;
+  }, [s.changes, s.blockPositions]);
   // overlay annotations serialized for the server to burn into the PDF (Wave 4C)
   const annotationList = useCallback(
     (): AnnotationChange[] =>

@@ -700,6 +700,7 @@
       "italic": "İtalik",
       "underline": "Altı çizili",
       "color": "Metin rengi",
+      "duplicate": "Çoğalt",
       "deleteBlock": "Bloğu sil",
       "undo": "Geri al",
       "redo": "Yinele",

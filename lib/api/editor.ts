@@ -41,6 +41,10 @@ export type BlockChange = {
   deleted?: boolean;
   bold?: boolean;
   italic?: boolean;
+  /** moved position — top-left x in PDF points (Wave 6A) */
+  x?: number;
+  /** moved position — top-left y in PDF points (Wave 6A) */
+  y?: number;
 };
 
 /** A client overlay annotation serialized for the server to burn into the PDF (Wave 4C). */
@@ -134,7 +138,7 @@ export async function saveEditor(
 
 export function addText(
   sessionId: string,
-  params: { pageNum: number; x: number; y: number; text: string; fontSize?: number; fontName?: string; color?: string },
+  params: { pageNum: number; x: number; y: number; text: string; fontSize?: number; fontName?: string; color?: string; bold?: boolean; italic?: boolean },
 ): Promise<{ blockId: string }> {
   return postJson("/add-text", { sessionId, ...params });
 }

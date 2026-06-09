@@ -38,6 +38,9 @@ _FONTS_DIR = os.path.join(
 )
 NOTO_REGULAR = os.path.join(_FONTS_DIR, "NotoSans-Regular.ttf")
 NOTO_BOLD = os.path.join(_FONTS_DIR, "NotoSans-Bold.ttf")
+NOTO_SERIF_REGULAR = os.path.join(_FONTS_DIR, "NotoSerif-Regular.ttf")
+NOTO_SERIF_BOLD = os.path.join(_FONTS_DIR, "NotoSerif-Bold.ttf")
+NOTO_MONO_REGULAR = os.path.join(_FONTS_DIR, "NotoSansMono-Regular.ttf")
 
 # get_text() span flag bits we care about.
 FLAG_ITALIC = 1 << 1
@@ -79,6 +82,11 @@ def _needs_unicode(text):
         return False
     except (UnicodeEncodeError, AttributeError):
         return True
+
+
+def _is_explicit_noto(font_name):
+    """True when the user explicitly chose a Noto font family."""
+    return (font_name or "").lower().startswith("noto")
 
 
 def _hex_to_rgb01(hex_color):
@@ -161,14 +169,26 @@ def _doc_json(doc, session_dir, render=True):
 
 
 def _insert_text(page, point, text, font_size, font_name, color, bold, italic):
-    """Insert text honoring color/size; pick base-14 or embedded Noto by script."""
+    """Insert text honoring color/size; pick base-14 or embedded Noto by font/script."""
     rgb = _hex_to_rgb01(color) if isinstance(color, str) else (color or (0.0, 0.0, 0.0))
     size = font_size or 11
-    if _needs_unicode(text):
-        fontfile = NOTO_BOLD if bold else NOTO_REGULAR
+    n = (font_name or "").lower()
+    if _is_explicit_noto(font_name) or _needs_unicode(text):
+        # Route to the correct Noto TTF based on the font family.
+        # Italic is not supported (no italic TTF on disk) — silently uses regular weight.
+        if "mono" in n:
+            fontfile = NOTO_MONO_REGULAR
+            fontcode = "notomono"
+        elif "serif" in n:
+            fontfile = NOTO_SERIF_BOLD if bold else NOTO_SERIF_REGULAR
+            fontcode = "notseb" if bold else "notser"
+        else:
+            # Noto Sans (default) + unicode auto-fallback
+            fontfile = NOTO_BOLD if bold else NOTO_REGULAR
+            fontcode = "notob" if bold else "noto"
         page.insert_text(
             point, text, fontsize=size,
-            fontname=("notob" if bold else "noto"), fontfile=fontfile, color=rgb,
+            fontname=fontcode, fontfile=fontfile, color=rgb,
         )
     else:
         page.insert_text(
@@ -203,19 +223,23 @@ def cmd_parse(input_pdf, session_dir):
 
 # ── apply ──────────────────────────────────────────────────────────────────
 def _build_geometry_map(original_pdf):
-    """blockId → {page, bbox, origin, size, font, flags} from the pristine PDF."""
+    """blockId → {page, bbox, origin, size, font, flags, text, baseline_offset} from the pristine PDF."""
     geo = {}
     doc = pymupdf.open(original_pdf)
     try:
         for page_num, page in enumerate(doc):
             for block_id, span in _spans(page, page_num):
+                origin = list(span.get("origin", span["bbox"][:2]))
                 geo[block_id] = {
                     "page": page_num,
                     "bbox": list(span["bbox"]),
-                    "origin": list(span.get("origin", span["bbox"][:2])),
+                    "origin": origin,
                     "size": span.get("size", 11),
                     "font": span.get("font", ""),
                     "flags": span.get("flags", 0),
+                    "text": span.get("text", ""),
+                    # distance from bbox top to text baseline (used for move y-coord conversion)
+                    "baseline_offset": origin[1] - span["bbox"][1],
                 }
     finally:
         doc.close()
@@ -233,10 +257,20 @@ def _apply_edit(doc, geo, change, affected):
         return
     bold = change.get("bold", bool(g["flags"] & FLAG_BOLD))
     italic = change.get("italic", bool(g["flags"] & FLAG_ITALIC))
+    # Position override for move: BlockChange.y is top-left y; convert to baseline.
+    x_override = change.get("x")
+    y_override = change.get("y")
+    if x_override is not None and y_override is not None:
+        baseline_y = y_override + g.get("baseline_offset", 0)
+        insert_point = pymupdf.Point(x_override, baseline_y)
+    else:
+        insert_point = pymupdf.Point(g["origin"])
+    # Use original text as fallback so bold/italic-only changes don't erase text.
+    text = change.get("text") or g.get("text", "")
     _insert_text(
         page,
-        pymupdf.Point(g["origin"]),
-        change.get("text", ""),
+        insert_point,
+        text,
         change.get("fontSize", g["size"]),
         change.get("fontName", g["font"]),
         change.get("color", "#000000"),

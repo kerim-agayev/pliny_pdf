@@ -6,6 +6,9 @@ import type { TextBlock as TBlock, BlockChange } from "@/lib/api/editor";
 /** Map a PyMuPDF font name to a CSS family for the overlay approximation. */
 export function cssFont(name: string): string {
   const n = (name || "").toLowerCase();
+  if (n === "noto serif") return "'Noto Serif', Georgia, 'Times New Roman', serif";
+  if (n === "noto sans mono") return "'Noto Sans Mono', var(--font-mono), monospace";
+  if (n === "noto sans") return "'Noto Sans', 'Helvetica Neue', Arial, sans-serif";
   if (n.includes("times") || n.includes("serif") || n.includes("georgia")) return "Georgia, 'Times New Roman', serif";
   if (n.includes("cour") || n.includes("mono")) return "var(--font-mono), monospace";
   return "'Helvetica Neue', Arial, sans-serif";
@@ -25,10 +28,12 @@ export function TextBlock({
   editing,
   interactive,
   resize,
+  pos,
   blockStyle,
   onSelect,
   onStartEdit,
   onResize,
+  onMove,
   onInput,
   onContextMenu,
 }: {
@@ -41,11 +46,14 @@ export function TextBlock({
   interactive: boolean;
   /** client-only box-size override (PDF points) from corner-handle dragging */
   resize: { w: number; h: number } | undefined;
+  /** client-only position override (PDF points) from drag-to-move */
+  pos: { x: number; y: number } | undefined;
   /** client-only visual style (underline / alignment) — not sent to the server */
   blockStyle: { underline?: boolean; textAlign?: "left" | "center" | "right" } | undefined;
   onSelect: () => void;
   onStartEdit: () => void;
   onResize: (w: number, h: number) => void;
+  onMove: (x: number, y: number) => void;
   onInput: (text: string) => void;
   onContextMenu: (e: React.MouseEvent) => void;
 }) {
@@ -53,6 +61,9 @@ export function TextBlock({
   const rootRef = useRef<HTMLDivElement>(null);
   const lastTap = useRef(0);
   const [resizing, setResizing] = useState(false);
+  const [moveOffset, setMoveOffset] = useState<{ dx: number; dy: number } | null>(null);
+  const dragState = useRef<{ startX: number; startY: number; moved: boolean } | null>(null);
+
   const deleted = change?.deleted ?? false;
   const text = change?.newText ?? block.text;
   const modified = change !== undefined && (change.newText !== undefined || change.deleted || change.color || change.fontSize !== undefined);
@@ -62,7 +73,6 @@ export function TextBlock({
   useEffect(() => {
     if (editing && ref.current && ref.current.innerText !== text) {
       ref.current.innerText = text;
-      // place caret at end
       const sel = window.getSelection();
       const r = document.createRange();
       r.selectNodeContents(ref.current);
@@ -83,14 +93,17 @@ export function TextBlock({
   const boxW = (resize?.w ?? block.w) * scale;
   const boxH = (resize?.h ?? block.h) * scale;
 
-  // Corner handle → drag to resize the block (min 50×20 px). Resizes from the
-  // block's top-left; the contentEditable wraps to the new width.
+  // Use position override if present (drag-to-move), else original block coords.
+  const blockLeft = (pos?.x ?? block.x) * scale;
+  const blockTop = (pos?.y ?? block.y) * scale;
+
+  // Corner handle → drag to resize the block. Resizes from the block's top-left.
   function startResize(e: React.PointerEvent) {
     e.stopPropagation();
     e.preventDefault();
     setResizing(true);
     const rect = rootRef.current!.getBoundingClientRect();
-    const aspect = rect.width / rect.height || 1; // starting ratio for Shift-lock
+    const aspect = rect.width / rect.height || 1;
     let raf = 0;
     let pending: { w: number; h: number } | null = null;
     const flush = () => {
@@ -101,7 +114,7 @@ export function TextBlock({
       const wPx = Math.max(50, ev.clientX - rect.left);
       const hPx = ev.shiftKey ? wPx / aspect : Math.max(20, ev.clientY - rect.top);
       pending = { w: wPx / scale, h: hPx / scale };
-      if (!raf) raf = requestAnimationFrame(flush); // coalesce to one update per frame
+      if (!raf) raf = requestAnimationFrame(flush);
     };
     const up = () => {
       window.removeEventListener("pointermove", move);
@@ -114,6 +127,39 @@ export function TextBlock({
     window.addEventListener("pointerup", up);
   }
 
+  // Drag-to-move gesture on the block container when selected and not editing.
+  function startMove(e: React.PointerEvent) {
+    if (editing) return;
+    const startX = e.clientX;
+    const startY = e.clientY;
+    dragState.current = { startX, startY, moved: false };
+
+    const handleMove = (ev: PointerEvent) => {
+      if (!dragState.current) return;
+      const dx = ev.clientX - startX;
+      const dy = ev.clientY - startY;
+      if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+        dragState.current.moved = true;
+        setMoveOffset({ dx, dy });
+      }
+    };
+    const handleUp = (ev: PointerEvent) => {
+      window.removeEventListener("pointermove", handleMove);
+      window.removeEventListener("pointerup", handleUp);
+      if (dragState.current?.moved) {
+        const dx = ev.clientX - startX;
+        const dy = ev.clientY - startY;
+        const newX = (pos?.x ?? block.x) + dx / scale;
+        const newY = (pos?.y ?? block.y) + dy / scale;
+        onMove(newX, newY);
+      }
+      dragState.current = null;
+      setMoveOffset(null);
+    };
+    window.addEventListener("pointermove", handleMove);
+    window.addEventListener("pointerup", handleUp);
+  }
+
   return (
     <div
       ref={rootRef}
@@ -123,10 +169,12 @@ export function TextBlock({
         if (!editing) {
           e.stopPropagation();
           onSelect();
+          startMove(e);
         }
       }}
       onPointerUp={(e) => {
         if (editing) return;
+        if (dragState.current?.moved) return; // already handled in startMove
         // double-tap (touch) / double-click fallback → enter edit mode
         if (e.timeStamp - lastTap.current < 300) {
           e.stopPropagation();
@@ -144,8 +192,8 @@ export function TextBlock({
       className="pp-textblock"
       style={{
         position: "absolute",
-        left: block.x * scale,
-        top: block.y * scale,
+        left: blockLeft,
+        top: blockTop,
         width: boxW,
         minHeight: boxH,
         border,
@@ -154,8 +202,10 @@ export function TextBlock({
         boxSizing: "content-box",
         margin: "-2px -3px",
         padding: "2px 3px",
-        cursor: editing ? "text" : "pointer",
-        transition: "border-color 0.12s, background 0.12s",
+        cursor: moveOffset ? "move" : (editing ? "text" : "pointer"),
+        transition: moveOffset ? "none" : "border-color 0.12s, background 0.12s",
+        transform: moveOffset ? `translate(${moveOffset.dx}px, ${moveOffset.dy}px)` : undefined,
+        zIndex: moveOffset ? 100 : undefined,
         // editing always stays interactive; otherwise only in select mode so
         // whiteout/highlight/text drags can start over existing text.
         pointerEvents: interactive || editing ? "auto" : "none",
@@ -179,6 +229,7 @@ export function TextBlock({
             textAlign: blockStyle?.textAlign ?? "left",
             outline: "none",
             whiteSpace: "pre-wrap",
+            overflow: "hidden",
             // pristine, unselected blocks stay invisible so the PNG text shows through
             visibility: masked || editing ? "visible" : "hidden",
             minHeight: "1em",

@@ -700,6 +700,7 @@
       "italic": "Italic",
       "underline": "Underline",
       "color": "Text color",
+      "duplicate": "Duplicate",
       "deleteBlock": "Delete block",
       "undo": "Undo",
       "redo": "Redo",
