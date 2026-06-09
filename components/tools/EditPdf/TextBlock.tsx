@@ -224,7 +224,10 @@ export function TextBlock({
           cursor: moveOffset ? "move" : (editing ? "text" : "pointer"),
           transition: moveOffset ? "none" : "border-color 0.12s, background 0.12s",
           transform: moveOffset ? `translate(${moveOffset.dx}px, ${moveOffset.dy}px)` : undefined,
-          zIndex: moveOffset ? 100 : undefined,
+          // Stay above the original-position ghost (zIndex 99) both while dragging
+          // and after settling at a new spot — else, for a small move, the ghost
+          // overlaps the new position and its white paints over the block's text.
+          zIndex: moveOffset || pos ? 100 : undefined,
           // editing always stays interactive; otherwise only in select mode so
           // whiteout/highlight/text drags can start over existing text.
           pointerEvents: interactive || editing ? "auto" : "none",
