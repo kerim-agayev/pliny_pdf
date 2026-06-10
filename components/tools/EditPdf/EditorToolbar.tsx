@@ -162,7 +162,11 @@ export function EditorToolbar() {
         pageNum: page.pageNum, x: 72, y: 72 + s.fontSize,
         text, fontSize: s.fontSize, fontName: s.fontFamily, color: s.fontColor,
       });
-      s.addLocalBlock({ blockId, x: 72, y: 72, w: text.length * s.fontSize * 0.55 + 6, h: s.fontSize * 1.25, text, fontSize: s.fontSize, fontName: s.fontFamily, color: s.fontColor, bold: false, italic: false });
+      // Size the editable block generously so the whole date fits at any font size —
+      // the overlay clips to w×h (overflow:hidden) once the block is edited/masked.
+      const w = Math.ceil(text.length * s.fontSize * 0.65) + 12;
+      const h = Math.ceil(s.fontSize * 1.5);
+      s.addLocalBlock({ blockId, x: 72, y: 72, w, h, text, fontSize: s.fontSize, fontName: s.fontFamily, color: s.fontColor, bold: false, italic: false });
       s.bumpRender();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t("saveFailed"));
