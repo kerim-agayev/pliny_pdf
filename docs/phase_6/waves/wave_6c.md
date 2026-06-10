@@ -1,6 +1,6 @@
 # Wave 6C — Links & Whiteout Improvements
 
-**Status**: ✅ implemented — GATE 6C pending (build green + Python smoke test passed 2026-06-10)
+**Status**: ✅ GATE 6C PASSED (2026-06-10)
 
 ## Features shipped
 
@@ -48,13 +48,18 @@ Deferred to a later wave per user decision (D6-8). Existing PDF links are preser
 - A link's rect is captured when the link is created; it does NOT follow a text block moved *afterward*.
 - Existing-link edit/remove deferred (feature 12).
 
-## GATE 6C checklist
+## GATE 6C checklist — ✅ PASSED (2026-06-10)
 - [x] `bun run build` green
 - [x] Python smoke test: blackout removes underlying text; link inserted + survives redaction (two-pass)
-- [ ] Add link → clickable in downloaded PDF
-- [ ] Whiteout color/custom + border in saved PDF
-- [ ] Duplicate to all pages
-- [ ] Whiteout/link select + ✕/Del + undo
-- [ ] Blackout: copy/extract over box yields no text (manual confirm in a viewer)
-- [ ] i18n en/tr/ru, no MISSING_MESSAGE
-- [ ] Hetzner deploy (Python changed): `git pull && pm2 restart pliny-backend`
+- [x] Add link → clickable in downloaded PDF (with visible blue underline)
+- [x] Whiteout color/custom in saved PDF
+- [x] Duplicate to all pages (behind a confirmation dialog)
+- [x] Whiteout/link select + ✕/Del + undo
+- [x] Blackout: copy/extract over box yields no text
+- [x] i18n en/tr/ru, no MISSING_MESSAGE
+- [x] Hetzner deploy
+
+## GATE feedback applied (D6-9)
+- Border feature removed (not useful).
+- Duplicate-to-all-pages now requires a confirmation dialog.
+- Links draw a blue underline in the PDF so the hyperlink is visually obvious.

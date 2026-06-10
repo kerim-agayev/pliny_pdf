@@ -78,3 +78,14 @@ Wave 6C (Links & Whiteout Improvements) starts next.
 - Links now draw a blue underline in the saved PDF (visible hyperlink look).
 - `bun run build` ✅; Python smoke test ✅ (link + blue underline drawing present).
 - NOT marking GATE passed — awaiting re-test.
+
+## 2026-06-10 — GATE 6C PASSED ✅
+
+Links & Whiteout Improvements verified:
+- Add link → clickable hyperlink + visible blue underline in downloaded PDF ✅
+- Whiteout: color/custom, select/drag/resize/✕/Del, undo ✅
+- Blackout: true redaction (underlying text removed) ✅
+- Duplicate-to-all-pages behind confirmation dialog ✅
+- Border feature removed (D6-9) ✅
+Feature 12 (edit/remove existing links) deferred (D6-8).
+Commits: 084142e (impl), 351df0d (GATE feedback). Wave 6D next.
