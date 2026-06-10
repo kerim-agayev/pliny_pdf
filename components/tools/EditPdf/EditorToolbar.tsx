@@ -10,7 +10,7 @@ import {
   IconMessage, IconBold, IconItalic, IconUnderlineText, IconAlignLeft, IconAlignCenter,
   IconAlignRight, IconTrash, IconUndo, IconRedo, IconChevron, IconX, IconPlus,
   IconCopy, IconRect, IconCircleShape, IconArrowDraw, IconLineShape,
-  IconImage, IconBolt, IconClock, type IconProps,
+  IconImage, IconBolt, type IconProps,
 } from "@/components/shared/icons";
 import type { ComponentType } from "react";
 
@@ -58,21 +58,8 @@ const STAMP_COLOR: Record<string, string> = {
 };
 const STAMP_LABELS = ["DRAFT", "APPROVED", "CONFIDENTIAL", "COPY", "FINAL", "VOID", "RECEIVED", "REVIEWED"] as const;
 
-function formatDate(fmt: "long" | "dmy" | "iso"): string {
-  const now = new Date();
-  const d = now.getDate().toString().padStart(2, "0");
-  const m = (now.getMonth() + 1).toString().padStart(2, "0");
-  const y = now.getFullYear();
-  if (fmt === "long") return now.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
-  if (fmt === "dmy") return `${d}/${m}/${y}`;
-  return `${y}-${m}-${d}`;
-}
-
 let annStampId = 0;
 const nextStampId = () => `stamp${++annStampId}`;
-
-// Each date stamp stacks below the previous one so multiple stamps never overlap.
-let dateStackCount = 0;
 
 export function EditorToolbar() {
   const t = useTranslations("ToolPages.editPdf");
@@ -85,7 +72,6 @@ export function EditorToolbar() {
   const imageInputRef = useRef<HTMLInputElement>(null);
   const [shapesOpen, setShapesOpen] = useState(false);
   const [stampOpen, setStampOpen] = useState(false);
-  const [dateOpen, setDateOpen] = useState(false);
 
   async function duplicateBlock() {
     const id = s.selectedBlock;
@@ -155,34 +141,6 @@ export function EditorToolbar() {
     s.addAnnotation({ id: nextStampId(), type: "stamp", pageNum: page.pageNum, x: cx, y: cy, w, h, color, label });
   }
 
-  async function addDateStamp(fmt: "long" | "dmy" | "iso") {
-    setDateOpen(false);
-    const page = s.pages[s.currentPage];
-    if (!page || !s.sessionId) return;
-    const text = formatDate(fmt);
-    const fs = s.fontSize;
-    // Stack each new date below the previous so two stamps don't land on the same
-    // fixed spot (which overlaps in both the overlay and the baked PNG).
-    const n = dateStackCount++;
-    const xTop = 72;
-    const yTop = 72 + n * Math.round(Math.max(fs * 1.8, 28));
-    try {
-      const { blockId } = await apiAddText(s.sessionId, {
-        pageNum: page.pageNum, x: xTop, y: yTop + fs,
-        text, fontSize: fs, fontName: s.fontFamily, color: s.fontColor,
-      });
-      // Generously size the editable block so the date never clips (the overlay clips
-      // to w×h with overflow:hidden once masked). Date strings are short/predictable
-      // (max ~16 chars), so fontSize×15 always fits any format at any size.
-      const w = Math.ceil(fs * 15);
-      const h = Math.ceil(fs * 2.5);
-      s.addLocalBlock({ blockId, x: xTop, y: yTop, w, h, text, fontSize: fs, fontName: s.fontFamily, color: s.fontColor, bold: false, italic: false });
-      s.bumpRender();
-    } catch (err) {
-      toast.error(err instanceof Error ? err.message : t("saveFailed"));
-    }
-  }
-
   return (
     <div style={{ position: "relative" }}>
       {/* Row 1 — tools */}
@@ -200,8 +158,7 @@ export function EditorToolbar() {
         <TBDiv />
         <TBtn icon={IconImage} label={t("toolImage")} disabled={!s.sessionId} onClick={() => imageInputRef.current?.click()} />
         <input ref={imageInputRef} type="file" accept="image/jpeg,image/png,image/gif,image/bmp,image/webp" style={{ display: "none" }} onChange={handleImageUpload} />
-        <TBtn icon={IconBolt} label={t("toolStamp")} hasCaret active={stampOpen} onClick={() => { setStampOpen((v) => !v); setDateOpen(false); }} disabled={!s.sessionId} />
-        <TBtn icon={IconClock} label={t("toolDate")} hasCaret active={dateOpen} onClick={() => { setDateOpen((v) => !v); setStampOpen(false); }} disabled={!s.sessionId} />
+        <TBtn icon={IconBolt} label={t("toolStamp")} hasCaret active={stampOpen} onClick={() => setStampOpen((v) => !v)} disabled={!s.sessionId} />
 
         {DRAW_TOOLS.has(s.tool) && (
           <>
@@ -257,7 +214,7 @@ export function EditorToolbar() {
         {stampOpen && (
           <div
             style={{
-              position: "absolute", right: 116, top: 46, zIndex: 40, width: 200, background: "var(--card)",
+              position: "absolute", right: 74, top: 46, zIndex: 40, width: 200, background: "var(--card)",
               border: "1px solid var(--line-2)", borderRadius: 12, padding: 6, boxShadow: "0 16px 40px -12px rgba(0,0,0,0.6)",
             }}
           >
@@ -277,27 +234,6 @@ export function EditorToolbar() {
           </div>
         )}
 
-        {dateOpen && (
-          <div
-            style={{
-              position: "absolute", right: 74, top: 46, zIndex: 40, width: 196, background: "var(--card)",
-              border: "1px solid var(--line-2)", borderRadius: 12, padding: 6, boxShadow: "0 16px 40px -12px rgba(0,0,0,0.6)",
-            }}
-          >
-            {([["long", formatDate("long")], ["dmy", formatDate("dmy")], ["iso", formatDate("iso")]] as const).map(([fmt, display]) => (
-              <button
-                key={fmt} type="button" className="pp-related"
-                onClick={() => addDateStamp(fmt)}
-                style={{
-                  width: "100%", display: "flex", alignItems: "center", padding: "8px 10px", borderRadius: 8,
-                  background: "transparent", border: 0, color: "var(--text)", fontSize: 13, cursor: "pointer", fontFamily: "inherit",
-                }}
-              >
-                {display}
-              </button>
-            ))}
-          </div>
-        )}
       </div>
 
       {/* Row 2 — text formatting */}

@@ -91,3 +91,10 @@ and after settling at a new spot.
 **Move does not push to undo stack**: `blockPositions` is a parallel structure
 separate from the `changes` Map and `annotations` array that undo snapshots track.
 Adding it to snapshots requires a Snapshot type change — deferred to Wave 6E.
+
+## D6-7 — Date stamp removed from UI
+
+Date stamp removed from UI — not needed by user. The Date dropdown button,
+its handler, and the `toolDate` i18n key (en/tr/ru) were removed from
+`EditorToolbar.tsx`. No backend changes — the feature reused the existing
+`add-text` op, which stays intact for the Text tool and Duplicate.
