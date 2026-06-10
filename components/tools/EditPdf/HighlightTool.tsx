@@ -3,7 +3,7 @@
 import type { Annotation } from "@/lib/stores/editorStore";
 import { IconX } from "@/components/shared/icons";
 
-export const HIGHLIGHT_COLORS = ["#FACC15", "#34D399", "#60A5FA", "#F472B6"];
+export const HIGHLIGHT_COLORS = ["#FBBF24", "#34D399", "#60A5FA", "#F472B6", "#FB923C", "#FCA5A5"];
 
 /**
  * A text mark annotation (highlight / strikethrough / underline). Selected
@@ -60,7 +60,7 @@ export function HighlightTool({
 
   return (
     <div
-      style={{ ...base, background: a.color + "73" /* ~45% */, borderRadius: 1, outline: selected ? `1.5px solid ${a.color}` : "none" }}
+      style={{ ...base, background: a.color + "66" /* ~40% */, borderRadius: 1, outline: selected ? `1.5px solid ${a.color}` : "none" }}
       onPointerDown={(e) => { e.stopPropagation(); onSelect(); }}
     >
       {selected && (

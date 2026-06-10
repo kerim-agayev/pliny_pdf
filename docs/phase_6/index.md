@@ -3,7 +3,7 @@
 ## Current Status
 
 - Phase: 6 (Edit PDF Final Polish & Features)
-- Active wave: Wave 6D — Annotation & Shape Fixes
+- Active wave: Wave 6D — Annotation & Shape Fixes (implemented, awaiting GATE 6D)
 - Last completed: Wave 6C — Links & Whiteout Improvements (✅ GATE PASSED 2026-06-10)
 
 ## Wave Status
@@ -13,7 +13,7 @@
 | 6A | Text & Movement | ✅ COMPLETE (2026-06-09) |
 | 6B | Images & Stamps | ✅ GATE PASSED (2026-06-10) |
 | 6C | Links & Whiteout Improvements | ✅ GATE PASSED (2026-06-10) |
-| 6D | Annotation & Shape Fixes | pending |
+| 6D | Annotation & Shape Fixes | 🔨 implemented, GATE pending |
 | 6E | Comprehensive QA & Performance | pending |
 
 ## Key Files

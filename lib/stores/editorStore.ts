@@ -11,14 +11,16 @@ export type Tool =
   | "strike"
   | "draw"
   | "shapes"
-  | "comment";
+  | "comment"
+  | "mark";
 export type ShapeType = "rectangle" | "circle" | "arrow" | "line";
+export type MarkType = "check" | "cross" | "circle";
 export type TextAlign = "left" | "center" | "right";
 
 /** Client-only overlay annotations (highlight/draw/etc). Burned into the PDF in Wave 4C+6B. */
 export type Annotation = {
   id: string;
-  type: "highlight" | "strike" | "underline" | "draw" | "shape" | "comment" | "image" | "stamp" | "whiteout" | "link";
+  type: "highlight" | "strike" | "underline" | "draw" | "shape" | "comment" | "image" | "stamp" | "whiteout" | "link" | "mark";
   pageNum: number;
   x: number;
   y: number;
@@ -27,6 +29,10 @@ export type Annotation = {
   color: string;
   strokeWidth?: number;
   shapeType?: ShapeType;
+  /** filled (vs outline-only) for rectangle/circle shapes (Wave 6D) */
+  fill?: boolean;
+  /** quick-mark glyph type for "mark" annotations (Wave 6D) */
+  markType?: MarkType;
   path?: string; // SVG path for freehand draw
   /** actual end point (PDF points) for arrow/line shapes — preserves drag direction */
   x2?: number;
@@ -78,6 +84,7 @@ interface EditorState {
   // selection / editing
   tool: Tool;
   shapeType: ShapeType;
+  markType: MarkType;
   selectedBlock: string | null;
   /** additional blocks selected via Select-All (current page); single selection stays in selectedBlock */
   multiSelected: string[];
@@ -98,6 +105,11 @@ interface EditorState {
 
   // whiteout / blackout fill color (Wave 6C)
   whiteoutColor: string;
+
+  // Wave 6D tool settings
+  highlightColor: string;
+  commentColor: string;
+  shapeFill: boolean;
 
   // mutations
   changes: Map<string, BlockChange>;
@@ -128,6 +140,7 @@ interface EditorState {
 
   setTool: (tool: Tool) => void;
   setShapeType: (s: ShapeType) => void;
+  setMarkType: (m: MarkType) => void;
   setZoom: (z: number) => void;
   setCurrentPage: (p: number) => void;
 
@@ -145,6 +158,9 @@ interface EditorState {
   setFormat: (patch: Partial<Pick<EditorState, "fontFamily" | "fontSize" | "fontColor" | "bold" | "italic" | "underline" | "textAlign">>) => void;
   setStroke: (patch: Partial<Pick<EditorState, "strokeColor" | "strokeWidth">>) => void;
   setWhiteout: (patch: Partial<Pick<EditorState, "whiteoutColor">>) => void;
+  setHighlightColor: (c: string) => void;
+  setCommentColor: (c: string) => void;
+  setShapeFill: (fill: boolean) => void;
 
   addAnnotation: (a: Annotation) => void;
   /** add several annotations as one undo step (Wave 6C: whiteout duplicate-to-all-pages) */
@@ -178,6 +194,7 @@ const INITIAL = {
   sessionExpiresAt: null,
   tool: "select" as Tool,
   shapeType: "rectangle" as ShapeType,
+  markType: "check" as MarkType,
   selectedBlock: null,
   multiSelected: [] as string[],
   editingBlock: null,
@@ -191,6 +208,9 @@ const INITIAL = {
   strokeColor: "#F43F5E",
   strokeWidth: 3,
   whiteoutColor: "#FFFFFF",
+  highlightColor: "#FBBF24",
+  commentColor: "#FBBF24",
+  shapeFill: false,
   changes: new Map<string, BlockChange>(),
   annotations: [] as Annotation[],
   blockPositions: {} as Record<string, { x: number; y: number }>,
@@ -231,6 +251,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
 
   setTool: (tool) => set({ tool, selectedBlock: tool === "select" ? get().selectedBlock : null, multiSelected: [], editingBlock: null }),
   setShapeType: (shapeType) => set({ shapeType }),
+  setMarkType: (markType) => set({ markType, tool: "mark", selectedBlock: null, multiSelected: [], editingBlock: null }),
   setZoom: (z) => set({ zoom: Math.min(200, Math.max(50, Math.round(z))) }),
   setCurrentPage: (p) => set({ currentPage: Math.min(get().pageCount - 1, Math.max(0, p)) }),
 
@@ -331,6 +352,9 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   },
   setStroke: (patch) => set(patch),
   setWhiteout: (patch) => set(patch),
+  setHighlightColor: (highlightColor) => set({ highlightColor }),
+  setCommentColor: (commentColor) => set({ commentColor }),
+  setShapeFill: (shapeFill) => set({ shapeFill }),
 
   addAnnotation: (a) =>
     set((s) => ({

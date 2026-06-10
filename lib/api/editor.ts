@@ -51,7 +51,7 @@ export type BlockChange = {
 
 /** A client overlay annotation serialized for the server to burn into the PDF (Wave 4C+6B). */
 export type AnnotationChange = {
-  type: "highlight" | "strike" | "draw" | "shape" | "comment" | "stamp" | "image" | "whiteout" | "link";
+  type: "highlight" | "strike" | "draw" | "shape" | "comment" | "stamp" | "image" | "whiteout" | "link" | "mark";
   pageNum: number;
   x: number;
   y: number;
@@ -60,6 +60,10 @@ export type AnnotationChange = {
   color?: string;
   strokeWidth?: number;
   shapeType?: "rectangle" | "circle" | "arrow" | "line";
+  /** filled rect/circle (Wave 6D) */
+  fill?: boolean;
+  /** quick-mark glyph type (Wave 6D) */
+  markType?: "check" | "cross" | "circle";
   path?: string;
   x2?: number;
   y2?: number;

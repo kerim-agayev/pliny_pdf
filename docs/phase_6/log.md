@@ -89,3 +89,31 @@ Links & Whiteout Improvements verified:
 - Border feature removed (D6-9) ✅
 Feature 12 (edit/remove existing links) deferred (D6-8).
 Commits: 084142e (impl), 351df0d (GATE feedback). Wave 6D next.
+
+## 2026-06-10 — Wave 6D implemented (GATE pending)
+
+- #15 Shape drag preview (Bug A): VERIFIED already fixed in Wave 6A
+  (EditorCanvas.tsx per-tool drag preview). No code change.
+- #16 Highlight color: dedicated 6-color pastel palette (#FBBF24/#34D399/#60A5FA/
+  #F472B6/#FB923C/#FCA5A5) shown when highlight tool active; new `highlightColor`
+  store state; commitDrag uses it. Existing highlights now selectable + recolorable
+  (HighlightTool recolor menu wired); ~40% on-screen opacity. Backend already honored
+  change.color @ 0.35.
+- #17 Sticky note: toolbar 4-color palette + `commentColor` state; pin uses chosen
+  color; pin drags to reposition (>4px = move, else toggle bubble); hover-✕ on pin +
+  Del key delete; color burned into PDF (annot.set_colors). Bubble resize SKIPPED
+  (user decision — textarea keeps vertical resize).
+- #18 Shapes fill: `shapeFill` store state + "Fill" toggle (rect/circle only);
+  fill = stroke color @ 20% (FE overlay + drag preview); backend _apply_shape
+  draw_rect/draw_oval fill=rgb, fill_opacity=0.2.
+- #19 Marks: new `mark` annotation type + `markType` (check/cross/circle) + `mark`
+  tool. Toolbar "Marks" dropdown (✓ green / ✗ red / ○ blue). Click-to-place at click
+  point, 24×24, draggable + resizable (MarkOverlay) + Del. Backend _apply_mark
+  (draw_polyline / two diagonals / draw_oval) + cmd_apply dispatch.
+- Plumbing: AnnotationChange + Annotation types gain fill?/markType?; index.tsx
+  serializes them; editor.ts ANNOT_TYPES += "mark".
+- i18n en/tr/ru: toolMark, markCheck, markCross, markCircle, fill, highlightColor,
+  commentColor. `bun run build` ✅ green (no MISSING_MESSAGE). Python py_compile ✅.
+- NOTE: CLAUDE_6 §7 said 6D is "frontend only" — incorrect; pdf-editor.py changed
+  (#17/#18/#19) → Hetzner backend deploy required.
+- NOT committed — awaiting GATE 6D confirmation.

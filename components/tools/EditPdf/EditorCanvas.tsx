@@ -122,6 +122,53 @@ function StampOverlay({ a, scale, selected, onDrag, onResize, onDelete, onSelect
   );
 }
 
+// ── MarkOverlay ──────────────────────────────────────────────────────────────
+// Quick-mark glyph (✓ / ✗ / ○) — placed at click, draggable + resizable. Burned as
+// a drawn annotation on save (Wave 6D).
+function MarkGlyph({ type, color }: { type: string; color: string }) {
+  const common = { stroke: color, strokeWidth: 2.4, strokeLinecap: "round" as const, strokeLinejoin: "round" as const, fill: "none" };
+  return (
+    <svg viewBox="0 0 24 24" width="100%" height="100%" style={{ display: "block", pointerEvents: "none" }}>
+      {type === "circle" && <ellipse cx={12} cy={12} rx={10} ry={10} {...common} />}
+      {type === "cross" && (<><line x1={4} y1={4} x2={20} y2={20} {...common} /><line x1={20} y1={4} x2={4} y2={20} {...common} /></>)}
+      {type === "check" && <polyline points="4.3,13.2 10,19.2 20.4,4.8" {...common} />}
+    </svg>
+  );
+}
+
+function MarkOverlay({ a, scale, selected, onDrag, onResize, onDelete, onSelect }: {
+  a: Annotation; scale: number; selected: boolean;
+  onDrag: (e: React.PointerEvent) => void;
+  onResize: (e: React.PointerEvent) => void;
+  onDelete: () => void;
+  onSelect: () => void;
+}) {
+  const [hovered, setHovered] = useState(false);
+  const show = hovered || selected;
+  return (
+    <div
+      onPointerDown={onDrag}
+      onClick={onSelect}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        position: "absolute", left: a.x * scale, top: a.y * scale,
+        width: a.w * scale, height: a.h * scale,
+        cursor: "move", outline: selected ? "2px solid #6B5CE7" : show ? "1.5px dashed #6B5CE7" : "none",
+        outlineOffset: 2,
+      }}
+    >
+      <MarkGlyph type={a.markType || "check"} color={a.color} />
+      {show && (
+        <>
+          <button type="button" style={DELETE_BTN} onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); onDelete(); }}>✕</button>
+          <div style={RESIZE_HANDLE} onPointerDown={(e) => { e.stopPropagation(); onResize(e); }} />
+        </>
+      )}
+    </div>
+  );
+}
+
 // ── WhiteoutOverlay ──────────────────────────────────────────────────────────
 
 function WhiteoutOverlay({ a, scale, selected, dupLabel, onDrag, onResize, onDelete, onSelect, onDuplicateAll }: {
@@ -207,6 +254,7 @@ let annId = 0;
 const nextId = () => `a${++annId}`;
 
 const dragTools = new Set(["whiteout", "highlight", "strike", "shapes"]);
+const MARK_COLOR: Record<string, string> = { check: "#16A34A", cross: "#DC2626", circle: "#2563EB" };
 
 /** Approximate a text run's width (PDF points) for a freshly-placed block's bbox. */
 let measureCanvas: HTMLCanvasElement | null = null;
@@ -260,10 +308,12 @@ export function EditorCanvas() {
       const el = document.activeElement as HTMLElement | null;
       if (el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable)) return;
       const a = s.annotations.find((x) => x.id === selectedAnnotId);
-      if (a?.type === "image" || a?.type === "stamp" || a?.type === "whiteout" || a?.type === "link") {
+      if (a?.type === "image" || a?.type === "stamp" || a?.type === "whiteout" || a?.type === "link"
+          || a?.type === "highlight" || a?.type === "comment" || a?.type === "mark") {
         e.preventDefault();
         s.removeAnnotation(selectedAnnotId);
         setSelectedAnnotId(null);
+        setOpenComment((v) => (v === selectedAnnotId ? null : v));
       }
     }
     window.addEventListener("keydown", onKey);
@@ -326,6 +376,27 @@ export function EditorCanvas() {
     window.addEventListener("pointerup", up);
   }
 
+  // ---- comment pin: drag to reposition, or toggle the bubble on a plain click ----
+  function beginCommentDrag(e: React.PointerEvent, a: Annotation) {
+    e.stopPropagation();
+    setSelectedAnnotId(a.id);
+    const start = { x: e.clientX, y: e.clientY };
+    const orig = { x: a.x, y: a.y };
+    let moved = false;
+    const move = (ev: PointerEvent) => {
+      if (!moved && Math.abs(ev.clientX - start.x) + Math.abs(ev.clientY - start.y) < 4) return;
+      moved = true;
+      s.updateAnnotation(a.id, { x: orig.x + (ev.clientX - start.x) / scale, y: orig.y + (ev.clientY - start.y) / scale });
+    };
+    const up = () => {
+      window.removeEventListener("pointermove", move);
+      window.removeEventListener("pointerup", up);
+      if (!moved) setOpenComment((v) => (v === a.id ? null : a.id));
+    };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+  }
+
   // ---- drag gesture (whiteout / highlight / strike / shapes) ----
   function beginDrag(start: Pt, tool: string) {
     setDrag({ start, cur: start, tool });
@@ -362,7 +433,7 @@ export function EditorCanvas() {
         color: s.whiteoutColor,
       });
     } else if (tool === "highlight") {
-      s.addAnnotation({ id: nextId(), type: "highlight", pageNum: page.pageNum, x, y, w: Math.max(w, 8), h: Math.max(h, 10), color: s.strokeColor });
+      s.addAnnotation({ id: nextId(), type: "highlight", pageNum: page.pageNum, x, y, w: Math.max(w, 8), h: Math.max(h, 10), color: s.highlightColor });
     } else if (tool === "strike") {
       s.addAnnotation({ id: nextId(), type: "strike", pageNum: page.pageNum, x, y, w: Math.max(w, 8), h: Math.max(h, 6), color: s.strokeColor, strokeWidth: s.strokeWidth });
     } else if (tool === "shapes") {
@@ -370,7 +441,7 @@ export function EditorCanvas() {
         // keep the true start→end so the arrowhead points the right way
         s.addAnnotation({ id: nextId(), type: "shape", shapeType: s.shapeType, pageNum: page.pageNum, x: start.x, y: start.y, w, h, x2: cur.x, y2: cur.y, color: s.strokeColor, strokeWidth: s.strokeWidth });
       } else {
-        s.addAnnotation({ id: nextId(), type: "shape", shapeType: s.shapeType, pageNum: page.pageNum, x, y, w, h, color: s.strokeColor, strokeWidth: s.strokeWidth });
+        s.addAnnotation({ id: nextId(), type: "shape", shapeType: s.shapeType, pageNum: page.pageNum, x, y, w, h, color: s.strokeColor, strokeWidth: s.strokeWidth, fill: s.shapeFill });
       }
     }
   }
@@ -410,9 +481,16 @@ export function EditorCanvas() {
       return;
     }
     if (tool === "comment") {
-      const a: Annotation = { id: nextId(), type: "comment", pageNum: page.pageNum, x: p.x, y: p.y, w: 0, h: 0, color: "#F59E0B", text: "" };
+      const a: Annotation = { id: nextId(), type: "comment", pageNum: page.pageNum, x: p.x, y: p.y, w: 0, h: 0, color: s.commentColor, text: "" };
       s.addAnnotation(a);
       setOpenComment(a.id);
+      setSelectedAnnotId(a.id);
+      return;
+    }
+    if (tool === "mark") {
+      const id = nextId();
+      s.addAnnotation({ id, type: "mark", markType: s.markType, pageNum: page.pageNum, x: p.x - 12, y: p.y - 12, w: 24, h: 24, color: MARK_COLOR[s.markType] });
+      setSelectedAnnotId(id);
       return;
     }
     if (tool === "draw") { beginDraw(p); return; }
@@ -477,7 +555,7 @@ export function EditorCanvas() {
 
   const cursor =
     s.tool === "text" ? "text"
-    : s.tool === "whiteout" || s.tool === "shapes" || s.tool === "draw" || s.tool === "highlight" || s.tool === "strike" ? "crosshair"
+    : s.tool === "whiteout" || s.tool === "shapes" || s.tool === "draw" || s.tool === "highlight" || s.tool === "strike" || s.tool === "mark" ? "crosshair"
     : s.tool === "comment" ? "copy"
     : "default";
 
@@ -544,12 +622,25 @@ export function EditorCanvas() {
 
         {/* annotation overlays */}
         {pageAnns.map((a) => {
-          if (a.type === "highlight" || a.type === "strike" || a.type === "underline")
-            return <HighlightTool key={a.id} a={a} scale={scale} interactive={interactive} selected={false} onSelect={() => {}} onRemove={() => s.removeAnnotation(a.id)} onRecolor={() => {}} />;
+          if (a.type === "highlight" || a.type === "strike" || a.type === "underline") {
+            const isHl = a.type === "highlight";
+            return <HighlightTool key={a.id} a={a} scale={scale} interactive={interactive} selected={isHl && selectedAnnotId === a.id} onSelect={() => { if (isHl) setSelectedAnnotId(a.id); }} onRemove={() => { s.removeAnnotation(a.id); setSelectedAnnotId(null); }} onRecolor={(c) => s.updateAnnotation(a.id, { color: c })} />;
+          }
           if (a.type === "draw" || a.type === "shape")
             return <DrawingTool key={a.id} a={a} scale={scale} interactive={interactive} selected={false} onSelect={() => {}} />;
           if (a.type === "comment")
-            return <CommentTool key={a.id} a={a} scale={scale} interactive={interactive} open={openComment === a.id} onToggle={() => setOpenComment((v) => (v === a.id ? null : a.id))} onChangeText={(text) => s.updateAnnotation(a.id, { text })} onRemove={() => { s.removeAnnotation(a.id); setOpenComment(null); }} />;
+            return <CommentTool key={a.id} a={a} scale={scale} interactive={interactive} open={openComment === a.id} selected={selectedAnnotId === a.id} onDrag={(e) => beginCommentDrag(e, a)} onChangeText={(text) => s.updateAnnotation(a.id, { text })} onRemove={() => { s.removeAnnotation(a.id); setOpenComment(null); setSelectedAnnotId(null); }} />;
+          if (a.type === "mark")
+            return (
+              <MarkOverlay
+                key={a.id} a={a} scale={scale}
+                selected={selectedAnnotId === a.id}
+                onDrag={(e) => beginAnnotDrag(e, a)}
+                onResize={(e) => beginAnnotResize(e, a)}
+                onDelete={() => { s.removeAnnotation(a.id); setSelectedAnnotId(null); }}
+                onSelect={() => setSelectedAnnotId(a.id)}
+              />
+            );
           if (a.type === "image" && a.imageId)
             return (
               <ImageOverlay
@@ -624,8 +715,9 @@ export function EditorCanvas() {
           }
           if (drag.tool === "shapes") {
             const st = s.shapeType;
-            if (st === "rectangle") return <div style={{ position: "absolute", left: x, top: y, width: w, height: h, border: `${sw}px solid ${sc}`, borderRadius: 4, pointerEvents: "none" }} />;
-            if (st === "circle") return <div style={{ position: "absolute", left: x, top: y, width: w, height: h, border: `${sw}px solid ${sc}`, borderRadius: "50%", pointerEvents: "none" }} />;
+            const fillBg = s.shapeFill ? `${sc}33` : "transparent";
+            if (st === "rectangle") return <div style={{ position: "absolute", left: x, top: y, width: w, height: h, border: `${sw}px solid ${sc}`, background: fillBg, borderRadius: 4, pointerEvents: "none" }} />;
+            if (st === "circle") return <div style={{ position: "absolute", left: x, top: y, width: w, height: h, border: `${sw}px solid ${sc}`, background: fillBg, borderRadius: "50%", pointerEvents: "none" }} />;
             // arrow / line: use exact drag start→end in PDF coords
             const ang = Math.atan2(drag.cur.y - drag.start.y, drag.cur.x - drag.start.x);
             const head = Math.max(9, sw * 3);

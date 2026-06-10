@@ -471,10 +471,12 @@ def _apply_shape(doc, change, affected):
     rgb = _hex_to_rgb01(change.get("color", "#000000"))
     width = change.get("strokeWidth") or 2
     shape = change.get("shapeType", "rectangle")
+    # Optional fill for rect/circle (Wave 6D): fill = stroke color @ 20% opacity, outline 100%.
+    fill = rgb if change.get("fill") else None
     if shape == "rectangle":
-        page.draw_rect(pymupdf.Rect(x, y, x + w, y + h), color=rgb, width=width)
+        page.draw_rect(pymupdf.Rect(x, y, x + w, y + h), color=rgb, width=width, fill=fill, fill_opacity=0.2)
     elif shape == "circle":
-        page.draw_oval(pymupdf.Rect(x, y, x + w, y + h), color=rgb, width=width)
+        page.draw_oval(pymupdf.Rect(x, y, x + w, y + h), color=rgb, width=width, fill=fill, fill_opacity=0.2)
     else:  # line / arrow — use the true start→end points
         x2 = change.get("x2", x + w)
         y2 = change.get("y2", y + h)
@@ -496,9 +498,39 @@ def _apply_comment(doc, change, affected):
     annot = page.add_text_annot(point, change.get("text") or "")
     try:
         annot.set_info(title="You")
+        # Burn the chosen sticky-note color (Wave 6D); default amber matches the UI.
+        annot.set_colors(stroke=_hex_to_rgb01(change.get("color") or "#FBBF24"))
         annot.update()
     except Exception:
         pass
+
+
+def _apply_mark(doc, change, affected):
+    """Quick-mark glyph (Wave 6D): checkmark / cross / circle, drawn to fit (x,y,w,h)."""
+    page = _annot_page(doc, change, affected)
+    if page is None:
+        return
+    x, y = change.get("x", 0), change.get("y", 0)
+    w, h = change.get("w", 24), change.get("h", 24)
+    rgb = _hex_to_rgb01(change.get("color") or "#16A34A")
+    width = max(1.5, min(w, h) * 0.1)
+    mark = change.get("markType", "check")
+    if mark == "circle":
+        page.draw_oval(pymupdf.Rect(x, y, x + w, y + h), color=rgb, width=width)
+    elif mark == "cross":
+        pad = min(w, h) * 0.15
+        page.draw_line(pymupdf.Point(x + pad, y + pad), pymupdf.Point(x + w - pad, y + h - pad), color=rgb, width=width)
+        page.draw_line(pymupdf.Point(x + w - pad, y + pad), pymupdf.Point(x + pad, y + h - pad), color=rgb, width=width)
+    else:  # check
+        page.draw_polyline(
+            [
+                pymupdf.Point(x + 0.18 * w, y + 0.55 * h),
+                pymupdf.Point(x + 0.42 * w, y + 0.80 * h),
+                pymupdf.Point(x + 0.85 * w, y + 0.20 * h),
+            ],
+            color=rgb,
+            width=width,
+        )
 
 
 _STAMP_COLORS = {
@@ -605,6 +637,8 @@ def cmd_apply(session_dir):
                 _apply_shape(doc, change, affected)
             elif ctype == "comment":
                 _apply_comment(doc, change, affected)
+            elif ctype == "mark":
+                _apply_mark(doc, change, affected)
             elif ctype == "stamp":
                 _apply_stamp(doc, change, affected)
             elif ctype == "image":

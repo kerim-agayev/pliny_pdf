@@ -3,14 +3,14 @@
 import { useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
-import { useEditorStore, type ShapeType } from "@/lib/stores/editorStore";
+import { useEditorStore, type ShapeType, type MarkType } from "@/lib/stores/editorStore";
 import { addText as apiAddText, uploadImage as apiUploadImage } from "@/lib/api/editor";
 import {
   IconCursor, IconTextPlus, IconWhiteout, IconHighlight, IconStrike, IconPen, IconShapes,
   IconMessage, IconBold, IconItalic, IconUnderlineText, IconAlignLeft, IconAlignCenter,
   IconAlignRight, IconTrash, IconUndo, IconRedo, IconChevron, IconX, IconPlus,
   IconCopy, IconRect, IconCircleShape, IconArrowDraw, IconLineShape,
-  IconImage, IconBolt, IconLink, type IconProps,
+  IconImage, IconBolt, IconLink, IconCheck, type IconProps,
 } from "@/components/shared/icons";
 import { LinkDialog } from "./LinkDialog";
 import type { ComponentType } from "react";
@@ -47,10 +47,16 @@ const TBDiv = () => <div style={{ width: 1, height: 20, background: "var(--line)
 
 const FONTS = ["Helvetica", "Times", "Courier", "Noto Sans", "Noto Serif", "Noto Sans Mono"];
 const SIZES = [8, 9, 10, 11, 12, 14, 16, 18, 20, 24, 28, 32];
-// shared palette + stroke widths for the drawing tools (Draw / Shapes / Highlight / Strike)
+// shared palette + stroke widths for the drawing tools (Draw / Shapes / Strike)
 const DRAW_COLORS = ["#0F0F0F", "#F43F5E", "#3B82F6", "#10B981", "#FACC15", "#FFFFFF"];
 const STROKES = [1, 3, 6];
-const DRAW_TOOLS = new Set(["draw", "shapes", "highlight", "strike"]);
+const DRAW_TOOLS = new Set(["draw", "shapes", "strike"]);
+// Highlight gets its own pastel palette @ ~40% (Wave 6D).
+const HIGHLIGHT_PALETTE = ["#FBBF24", "#34D399", "#60A5FA", "#F472B6", "#FB923C", "#FCA5A5"];
+// Sticky-note colors (Wave 6D).
+const COMMENT_PALETTE = ["#FBBF24", "#34D399", "#60A5FA", "#F472B6"];
+// Quick-mark glyphs (Wave 6D): fixed default color per type.
+const MARK_COLOR: Record<MarkType, string> = { check: "#16A34A", cross: "#DC2626", circle: "#2563EB" };
 
 const STAMP_COLOR: Record<string, string> = {
   DRAFT: "#EF4444", VOID: "#EF4444", CONFIDENTIAL: "#EF4444",
@@ -80,6 +86,7 @@ export function EditorToolbar() {
   const whiteoutColorRef = useRef<HTMLInputElement>(null);
   const [shapesOpen, setShapesOpen] = useState(false);
   const [stampOpen, setStampOpen] = useState(false);
+  const [marksOpen, setMarksOpen] = useState(false);
   const [linkOpen, setLinkOpen] = useState(false);
 
   async function duplicateBlock() {
@@ -181,6 +188,7 @@ export function EditorToolbar() {
         <TBtn icon={IconImage} label={t("toolImage")} disabled={!s.sessionId} onClick={() => imageInputRef.current?.click()} />
         <input ref={imageInputRef} type="file" accept="image/jpeg,image/png,image/gif,image/bmp,image/webp" style={{ display: "none" }} onChange={handleImageUpload} />
         <TBtn icon={IconBolt} label={t("toolStamp")} hasCaret active={stampOpen} onClick={() => setStampOpen((v) => !v)} disabled={!s.sessionId} />
+        <TBtn icon={IconCheck} label={t("toolMark")} hasCaret active={s.tool === "mark" || marksOpen} onClick={() => setMarksOpen((v) => !v)} />
 
         {DRAW_TOOLS.has(s.tool) && (
           <>
@@ -200,6 +208,40 @@ export function EditorToolbar() {
                 >
                   <span style={{ width: 12, height: w, background: s.strokeWidth === w ? "#BFB5FF" : "var(--text-3)", borderRadius: 2 }} />
                 </button>
+              ))}
+              {s.tool === "shapes" && (s.shapeType === "rectangle" || s.shapeType === "circle") && (
+                <>
+                  <div style={{ width: 1, height: 18, background: "var(--line)", margin: "0 2px" }} />
+                  <TBtn icon={IconRect} label={t("fill")} active={s.shapeFill} onClick={() => s.setShapeFill(!s.shapeFill)} />
+                </>
+              )}
+            </div>
+          </>
+        )}
+
+        {s.tool === "highlight" && (
+          <>
+            <TBDiv />
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              {HIGHLIGHT_PALETTE.map((c) => (
+                <button
+                  key={c} type="button" title={c} onClick={() => s.setHighlightColor(c)}
+                  style={{ width: 18, height: 18, borderRadius: 5, background: c, border: 0, cursor: "pointer", boxShadow: s.highlightColor === c ? `0 0 0 2px var(--card), 0 0 0 3.5px ${c}` : "none" }}
+                />
+              ))}
+            </div>
+          </>
+        )}
+
+        {s.tool === "comment" && (
+          <>
+            <TBDiv />
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              {COMMENT_PALETTE.map((c) => (
+                <button
+                  key={c} type="button" title={c} onClick={() => s.setCommentColor(c)}
+                  style={{ width: 18, height: 18, borderRadius: 5, background: c, border: 0, cursor: "pointer", boxShadow: s.commentColor === c ? `0 0 0 2px var(--card), 0 0 0 3.5px ${c}` : "none" }}
+                />
               ))}
             </div>
           </>
@@ -271,6 +313,29 @@ export function EditorToolbar() {
               >
                 <span style={{ width: 10, height: 10, borderRadius: 3, border: `2px solid ${STAMP_COLOR[lbl]}`, flexShrink: 0 }} />
                 <span style={{ color: STAMP_COLOR[lbl], fontWeight: 700, fontSize: 12, letterSpacing: "0.05em" }}>{lbl}</span>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {marksOpen && (
+          <div
+            style={{
+              position: "absolute", right: 40, top: 46, zIndex: 40, width: 180, background: "var(--card)",
+              border: "1px solid var(--line-2)", borderRadius: 12, padding: 6, boxShadow: "0 16px 40px -12px rgba(0,0,0,0.6)",
+            }}
+          >
+            {([["check", IconCheck, t("markCheck")], ["cross", IconX, t("markCross")], ["circle", IconCircleShape, t("markCircle")]] as [MarkType, ComponentType<IconProps>, string][]).map(([k, Ic, label]) => (
+              <button
+                key={k} type="button" className="pp-related"
+                onClick={() => { s.setMarkType(k); setMarksOpen(false); }}
+                style={{
+                  width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "8px 10px", borderRadius: 8,
+                  background: s.tool === "mark" && s.markType === k ? "rgba(107,92,231,0.14)" : "transparent", border: 0,
+                  color: "var(--text)", fontSize: 13, cursor: "pointer", fontFamily: "inherit",
+                }}
+              >
+                <span style={{ color: MARK_COLOR[k], display: "inline-flex" }}><Ic size={17} sw={2.4} /></span> {label}
               </button>
             ))}
           </div>

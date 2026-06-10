@@ -50,11 +50,13 @@ export function DrawingTool({
   };
   const onDown = (e: React.PointerEvent) => { e.stopPropagation(); onSelect(); };
 
+  // fill = stroke color @ ~20% opacity (Wave 6D); outline stays full opacity.
+  const fillBg = a.fill ? a.color + "33" : "transparent";
   if (a.shapeType === "rectangle") {
-    return <div style={{ ...wrap, border: `${sw}px solid ${a.color}`, borderRadius: 4 }} onPointerDown={onDown} />;
+    return <div style={{ ...wrap, border: `${sw}px solid ${a.color}`, background: fillBg, borderRadius: 4 }} onPointerDown={onDown} />;
   }
   if (a.shapeType === "circle") {
-    return <div style={{ ...wrap, border: `${sw}px solid ${a.color}`, borderRadius: "50%" }} onPointerDown={onDown} />;
+    return <div style={{ ...wrap, border: `${sw}px solid ${a.color}`, background: fillBg, borderRadius: "50%" }} onPointerDown={onDown} />;
   }
 
   // arrow / line — drawn from the true start (a.x,a.y) to end (a.x2,a.y2) so the

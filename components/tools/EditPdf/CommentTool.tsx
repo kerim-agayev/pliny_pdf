@@ -1,19 +1,22 @@
 "use client";
 
+import { useState } from "react";
 import type { Annotation } from "@/lib/stores/editorStore";
 import { IconMessage, IconX } from "@/components/shared/icons";
 
 /**
- * A sticky-note comment: an amber pin plus an expandable bubble whose text is the
+ * A sticky-note comment: a colored pin plus an expandable bubble whose text is the
  * comment body. The body is burned into the PDF as an interactive text annotation
- * on save (Wave 4C).
+ * on save (Wave 4C); the pin color is chosen in the toolbar and burned too (Wave 6D).
+ * The pin drags to reposition or, on a plain click, toggles the bubble (Wave 6D).
  */
 export function CommentTool({
   a,
   scale,
   open,
   interactive,
-  onToggle,
+  selected,
+  onDrag,
   onRemove,
   onChangeText,
   authorInitials = "You",
@@ -22,29 +25,51 @@ export function CommentTool({
   scale: number;
   open: boolean;
   interactive: boolean;
-  onToggle: () => void;
+  selected: boolean;
+  onDrag: (e: React.PointerEvent) => void;
   onRemove: () => void;
   onChangeText: (text: string) => void;
   authorInitials?: string;
 }) {
   const left = a.x * scale;
   const top = a.y * scale;
+  const [hovered, setHovered] = useState(false);
+  const showDelete = hovered || selected;
 
   return (
     <>
-      <button
-        type="button"
-        onMouseDown={(e) => { e.stopPropagation(); onToggle(); }}
-        style={{
-          position: "absolute", left, top, width: 26, height: 26,
-          background: "#F59E0B", borderRadius: "4px 12px 12px 12px", border: 0,
-          display: "flex", alignItems: "center", justifyContent: "center",
-          boxShadow: "0 6px 16px -4px rgba(245,158,11,0.6)", cursor: "pointer",
-          pointerEvents: interactive || open ? "auto" : "none",
-        }}
+      <div
+        style={{ position: "absolute", left, top, width: 26, height: 26, pointerEvents: interactive || open ? "auto" : "none" }}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
       >
-        <IconMessage size={13} color="white" sw={2} />
-      </button>
+        <button
+          type="button"
+          onPointerDown={onDrag}
+          style={{
+            width: 26, height: 26,
+            background: a.color || "#FBBF24", borderRadius: "4px 12px 12px 12px", border: 0,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            boxShadow: "0 6px 16px -4px rgba(0,0,0,0.35)", cursor: "move",
+          }}
+        >
+          <IconMessage size={13} color="white" sw={2} />
+        </button>
+        {showDelete && (
+          <button
+            type="button"
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => { e.stopPropagation(); onRemove(); }}
+            style={{
+              position: "absolute", top: -8, right: -8, width: 16, height: 16, borderRadius: "50%",
+              background: "#EF4444", color: "white", border: "1.5px solid white", padding: 0,
+              display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", zIndex: 2,
+            }}
+          >
+            <IconX size={9} sw={2.5} />
+          </button>
+        )}
+      </div>
 
       {open && (
         <div
