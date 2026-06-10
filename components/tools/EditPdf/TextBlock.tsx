@@ -171,7 +171,13 @@ export function TextBlock({
     <>
       {/* White ghost pinned at the ORIGINAL position masks the stale PNG text — both
           while the block floats (moveOffset) and after it has settled at a new spot
-          (pos), since the PNG isn't re-rendered until save. */}
+          (pos), since the PNG isn't re-rendered until save.
+          z-index is intentionally left at `auto` (NOT positive): by DOM order it
+          paints above the page PNG (so the stale text is masked) but below every
+          annotation overlay (draw/whiteout/shape/highlight, all `auto`, rendered
+          later in the DOM) — otherwise the ghost would white-out annotations placed
+          over the old position. See decisions.md D6-11. The moved block itself keeps
+          zIndex 100 to stay above this ghost. */}
       {(moveOffset !== null || pos) && (
         <div
           style={{
@@ -180,7 +186,6 @@ export function TextBlock({
             top: origTop,
             transform: undefined,
             background: "#fff",
-            zIndex: 99,
             pointerEvents: "none",
             border: "1px solid transparent",
           }}
@@ -224,7 +229,7 @@ export function TextBlock({
           cursor: moveOffset ? "move" : (editing ? "text" : "pointer"),
           transition: moveOffset ? "none" : "border-color 0.12s, background 0.12s",
           transform: moveOffset ? `translate(${moveOffset.dx}px, ${moveOffset.dy}px)` : undefined,
-          // Stay above the original-position ghost (zIndex 99) both while dragging
+          // Stay above the original-position ghost (now `auto`) both while dragging
           // and after settling at a new spot — else, for a small move, the ghost
           // overlaps the new position and its white paints over the block's text.
           zIndex: moveOffset || pos ? 100 : undefined,

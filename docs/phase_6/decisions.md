@@ -137,3 +137,30 @@ verified: `get_links()` returns `xref`, `delete_link(dict)` works (PyMuPDF 1.27.
 - **Links get a visible blue underline in the PDF** — `_apply_link` now draws a
   `#2563EB` line under the linked rect after `insert_link`, so the hyperlink is obvious
   in the downloaded PDF (standard hyperlink look), not just a clickable invisible area.
+
+## D6-10 — Find & Replace re-enabled in 6E, full QA deferred to Phase 7
+
+Find & Replace re-enabled in Wave 6E but full QA deferred to Phase 7 — may be
+reworked or removed then. The button (Row 3 + ⌘H) and `FindReplaceModal` stay
+wired as-is. Two interaction bugs were fixed during 6E (missing `bumpRender()`
+after replace; duplicate Replace/Replace-All buttons consolidated), but the
+feature has not been put through the full QA matrix and is not gating Phase 6.
+
+## D6-11 — Moved-text ghost mask: z-index lowered, not removed (GATE 6E feedback)
+
+**Decision**: The white "ghost" div that masks stale PNG text at a moved block's
+ORIGINAL position (D6-5) had `zIndex: 99`, which placed it in the positive z-index
+group — above every annotation overlay (all `auto`). So draw/whiteout/shape/
+highlight placed over a moved block's old spot rendered *under* the ghost and
+vanished. Fixed by removing the explicit z-index so the ghost falls back to `auto`:
+by DOM order it still paints above the page PNG (mask preserved) but below all
+annotation overlays (which come later in the DOM). The moved block keeps
+`zIndex: 100` to stay above its own ghost.
+
+**Why not delete the ghost** (as first proposed): the move is not applied
+server-side until Save, and `bumpRender()` only cache-busts the `<img>` URL — the
+server returns the same PNG with the text still at the old position. Removing the
+ghost would show the original text at the old spot AND the moved copy at the new
+spot (duplicate text) until save. The z-index fix solves the functional problem
+(tools no longer blocked) without that regression. The ghost is white-on-white on
+a normal page, so it's invisible except where it was covering annotations.
