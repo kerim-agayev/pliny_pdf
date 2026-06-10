@@ -5,7 +5,6 @@ import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { useEditorStore, type ShapeType } from "@/lib/stores/editorStore";
 import { addText as apiAddText, uploadImage as apiUploadImage } from "@/lib/api/editor";
-import { cssFont } from "./TextBlock";
 import {
   IconCursor, IconTextPlus, IconWhiteout, IconHighlight, IconStrike, IconPen, IconShapes,
   IconMessage, IconBold, IconItalic, IconUnderlineText, IconAlignLeft, IconAlignCenter,
@@ -74,17 +73,6 @@ const nextStampId = () => `stamp${++annStampId}`;
 
 // Each date stamp stacks below the previous one so multiple stamps never overlap.
 let dateStackCount = 0;
-
-/** Measure a string's rendered width (px ≈ PDF points at scale 1) for an exact block bbox. */
-let measureCanvas: HTMLCanvasElement | null = null;
-function measureDateWidth(text: string, fontSize: number, fontName: string): number {
-  if (typeof document === "undefined") return text.length * fontSize * 0.85;
-  if (!measureCanvas) measureCanvas = document.createElement("canvas");
-  const ctx = measureCanvas.getContext("2d");
-  if (!ctx) return text.length * fontSize * 0.85;
-  ctx.font = `${fontSize}px ${cssFont(fontName)}`;
-  return ctx.measureText(text).width;
-}
 
 export function EditorToolbar() {
   const t = useTranslations("ToolPages.editPdf");
@@ -183,10 +171,11 @@ export function EditorToolbar() {
         pageNum: page.pageNum, x: xTop, y: yTop + fs,
         text, fontSize: fs, fontName: s.fontFamily, color: s.fontColor,
       });
-      // Measure the real text width so the editable overlay (which clips to w×h with
-      // overflow:hidden once masked) never cuts the date off at any font size.
-      const w = Math.ceil(measureDateWidth(text, fs, s.fontFamily)) + 20;
-      const h = Math.ceil(fs * 1.8);
+      // Generously size the editable block so the date never clips (the overlay clips
+      // to w×h with overflow:hidden once masked). Date strings are short/predictable
+      // (max ~16 chars), so fontSize×15 always fits any format at any size.
+      const w = Math.ceil(fs * 15);
+      const h = Math.ceil(fs * 2.5);
       s.addLocalBlock({ blockId, x: xTop, y: yTop, w, h, text, fontSize: fs, fontName: s.fontFamily, color: s.fontColor, bold: false, italic: false });
       s.bumpRender();
     } catch (err) {
