@@ -66,8 +66,6 @@ export type AnnotationChange = {
   text?: string;
   imageId?: string;
   label?: string;
-  border?: boolean;
-  borderColor?: string;
   uri?: string;
 };
 

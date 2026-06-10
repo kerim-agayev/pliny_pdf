@@ -333,9 +333,8 @@ def _apply_add_text(doc, change, affected):
 
 
 def _apply_whiteout(doc, change, affected):
-    """Whiteout/blackout: redact (TRUE removal) filled with the chosen color, then
-    optionally draw a border. Wave 6C — driven by a client annotation, so it carries
-    color/border/borderColor; defaults keep the legacy white behavior."""
+    """Whiteout/blackout: redact (TRUE removal) filled with the chosen color. Wave 6C —
+    driven by a client annotation carrying `color`; default white keeps legacy behavior."""
     page_num = change.get("pageNum", 0)
     if page_num < 0 or page_num >= doc.page_count:
         return
@@ -347,14 +346,12 @@ def _apply_whiteout(doc, change, affected):
     fill = _hex_to_rgb01(change.get("color") or "#FFFFFF")
     page.add_redact_annot(rect, fill=fill)
     page.apply_redactions()
-    if change.get("border"):
-        # Draw AFTER apply_redactions — redaction clears anything inside the rect.
-        page.draw_rect(rect, color=_hex_to_rgb01(change.get("borderColor") or "#D1D5DB"), width=1)
 
 
 def _apply_link(doc, change, affected):
-    """Insert a URI hyperlink over a rect (Wave 6C). Run in a second pass after all
-    redactions so an overlapping whiteout's apply_redactions can't strip it."""
+    """Insert a URI hyperlink over a rect + draw a blue underline so the link is visually
+    obvious in the saved PDF (Wave 6C). Run in a second pass after all redactions so an
+    overlapping whiteout's apply_redactions can't strip it."""
     page = _annot_page(doc, change, affected)
     if page is None:
         return
@@ -365,6 +362,8 @@ def _apply_link(doc, change, affected):
     w, h = change.get("w", 0), change.get("h", 0)
     try:
         page.insert_link({"kind": pymupdf.LINK_URI, "from": pymupdf.Rect(x, y, x + w, y + h), "uri": uri})
+        # Standard hyperlink look: a blue underline under the linked text rect.
+        page.draw_line(pymupdf.Point(x, y + h), pymupdf.Point(x + w, y + h), color=(0.15, 0.39, 0.92), width=1)
     except Exception as e:
         sys.stderr.write(f"[pdf-editor] insert_link error: {e}\n")
 

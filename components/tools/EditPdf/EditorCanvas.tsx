@@ -14,6 +14,7 @@ import { HighlightTool } from "./HighlightTool";
 import { DrawingTool } from "./DrawingTool";
 import { CommentTool } from "./CommentTool";
 import { ContextMenu, type ContextMenuState } from "./ContextMenu";
+import { ConfirmDialog } from "./ConfirmDialog";
 
 type Pt = { x: number; y: number };
 const FIND_COLOR = "#F97316";
@@ -143,7 +144,6 @@ function WhiteoutOverlay({ a, scale, selected, dupLabel, onDrag, onResize, onDel
         position: "absolute", left: a.x * scale, top: a.y * scale,
         width: a.w * scale, height: a.h * scale,
         background: a.color || "#FFFFFF",
-        border: a.border ? `1px solid ${a.borderColor || "#D1D5DB"}` : "1px solid transparent",
         cursor: "move", boxSizing: "border-box",
         outline: selected ? "2px solid #6B5CE7" : show ? "1.5px dashed #6B5CE7" : "none",
         outlineOffset: 1,
@@ -236,6 +236,7 @@ export function EditorCanvas() {
   const [ctx, setCtx] = useState<ContextMenuState | null>(null);
   const [openComment, setOpenComment] = useState<string | null>(null);
   const [selectedAnnotId, setSelectedAnnotId] = useState<string | null>(null);
+  const [dupConfirm, setDupConfirm] = useState<Annotation | null>(null);
   const draftInputRef = useRef<HTMLInputElement>(null);
   // true once the draft is settled — guards against the focus-race blur that fires
   // the instant the autofocused input mounts (which would clear the box immediately).
@@ -340,6 +341,7 @@ export function EditorCanvas() {
   }
 
   // ---- whiteout: copy the selected box to every other page (one undo step) ----
+  // Behind a confirmation (Wave 6C) — duplicating to a 500-page doc is hard to undo.
   function duplicateWhiteoutAllPages(a: Annotation) {
     const copies = s.pages
       .filter((pg) => pg.pageNum !== a.pageNum)
@@ -357,7 +359,7 @@ export function EditorCanvas() {
       s.addAnnotation({
         id: nextId(), type: "whiteout", pageNum: page.pageNum, x, y,
         w: Math.max(w, 6), h: Math.max(h, 6),
-        color: s.whiteoutColor, border: s.whiteoutBorder, borderColor: s.whiteoutBorderColor,
+        color: s.whiteoutColor,
       });
     } else if (tool === "highlight") {
       s.addAnnotation({ id: nextId(), type: "highlight", pageNum: page.pageNum, x, y, w: Math.max(w, 8), h: Math.max(h, 10), color: s.strokeColor });
@@ -579,7 +581,7 @@ export function EditorCanvas() {
                 onResize={(e) => beginAnnotResize(e, a)}
                 onDelete={() => { s.removeAnnotation(a.id); setSelectedAnnotId(null); }}
                 onSelect={() => setSelectedAnnotId(a.id)}
-                onDuplicateAll={() => duplicateWhiteoutAllPages(a)}
+                onDuplicateAll={() => setDupConfirm(a)}
               />
             );
           if (a.type === "link")
@@ -676,6 +678,15 @@ export function EditorCanvas() {
           onEdit={() => ctx.blockId && (s.setTool("select"), s.setEditing(ctx.blockId))}
         />
       )}
+
+      <ConfirmDialog
+        open={dupConfirm !== null}
+        message={t("whiteoutDuplicateConfirm", { count: Math.max(0, s.pages.length - 1) })}
+        confirmLabel={t("whiteoutDuplicateAll")}
+        cancelLabel={t("cancel")}
+        onConfirm={() => { if (dupConfirm) duplicateWhiteoutAllPages(dupConfirm); setDupConfirm(null); }}
+        onCancel={() => setDupConfirm(null)}
+      />
     </div>
   );
 }

@@ -78,7 +78,6 @@ export function EditorToolbar() {
   const colorRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const whiteoutColorRef = useRef<HTMLInputElement>(null);
-  const whiteoutBorderColorRef = useRef<HTMLInputElement>(null);
   const [shapesOpen, setShapesOpen] = useState(false);
   const [stampOpen, setStampOpen] = useState(false);
   const [linkOpen, setLinkOpen] = useState(false);
@@ -222,21 +221,6 @@ export function EditorToolbar() {
               >
                 <input ref={whiteoutColorRef} type="color" value={s.whiteoutColor} onChange={(e) => s.setWhiteout({ whiteoutColor: e.target.value })} style={{ position: "absolute", width: 0, height: 0, opacity: 0, pointerEvents: "none" }} />
               </button>
-              <div style={{ width: 1, height: 18, background: "var(--line)", margin: "0 2px" }} />
-              <button
-                type="button" title={t("whiteoutBorder")} onClick={() => s.setWhiteout({ whiteoutBorder: !s.whiteoutBorder })}
-                style={{ height: 24, padding: "0 8px", borderRadius: 6, fontSize: 11.5, cursor: "pointer", fontFamily: "inherit", border: s.whiteoutBorder ? "1px solid var(--indigo)" : "1px solid var(--line)", background: s.whiteoutBorder ? "rgba(107,92,231,0.14)" : "transparent", color: s.whiteoutBorder ? "#BFB5FF" : "var(--text-2)" }}
-              >
-                {t("whiteoutBorder")}
-              </button>
-              {s.whiteoutBorder && (
-                <button
-                  type="button" title={t("whiteoutBorderColor")} onClick={() => whiteoutBorderColorRef.current?.click()}
-                  style={{ width: 18, height: 18, borderRadius: 5, background: s.whiteoutBorderColor, border: "1px solid var(--line-2)", cursor: "pointer", position: "relative" }}
-                >
-                  <input ref={whiteoutBorderColorRef} type="color" value={s.whiteoutBorderColor} onChange={(e) => s.setWhiteout({ whiteoutBorderColor: e.target.value })} style={{ position: "absolute", width: 0, height: 0, opacity: 0, pointerEvents: "none" }} />
-                </button>
-              )}
             </div>
           </>
         )}

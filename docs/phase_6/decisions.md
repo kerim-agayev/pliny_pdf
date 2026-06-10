@@ -125,3 +125,15 @@ verified: `get_links()` returns `xref`, `delete_link(dict)` works (PyMuPDF 1.27.
 
 **Legacy `/whiteout` route + `whiteout()` client/service** left in place unused
 (back-compat, zero refs) — removable in a later cleanup.
+
+## D6-9 — Whiteout border removed; duplicate confirm; link underline (GATE 6C feedback)
+
+- **Whiteout border feature removed** — not useful to the user. Dropped the border
+  toggle + border-color picker and all `border`/`borderColor` plumbing (store, API,
+  route schema, Python `_apply_whiteout`, i18n).
+- **Duplicate-to-all-pages now behind a confirmation** (`ConfirmDialog`) — accidentally
+  copying a whiteout to a 500-page doc is hard to undo. Shows "…copy to all {count}
+  other pages. Are you sure?" with Cancel / Duplicate.
+- **Links get a visible blue underline in the PDF** — `_apply_link` now draws a
+  `#2563EB` line under the linked rect after `insert_link`, so the hyperlink is obvious
+  in the downloaded PDF (standard hyperlink look), not just a clickable invisible area.

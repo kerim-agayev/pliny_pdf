@@ -70,3 +70,11 @@ Wave 6C (Links & Whiteout Improvements) starts next.
 - Python smoke test ✅: blackout removes underlying text; link inserted + survives.
 - Feature 12 (edit/remove existing links) DEFERRED (D6-8).
 - NOT committed — awaiting GATE 6C confirmation.
+
+## 2026-06-10 — Wave 6C GATE feedback round 1
+
+- Removed whiteout border feature (D6-9) — store/API/route/Python/i18n.
+- Duplicate-to-all-pages now requires confirmation (new ConfirmDialog.tsx).
+- Links now draw a blue underline in the saved PDF (visible hyperlink look).
+- `bun run build` ✅; Python smoke test ✅ (link + blue underline drawing present).
+- NOT marking GATE passed — awaiting re-test.

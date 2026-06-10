@@ -34,9 +34,7 @@ export type Annotation = {
   text?: string; // comment body / link href
   imageId?: string; // uploaded image reference (Wave 6B)
   label?: string;   // stamp label e.g. "DRAFT" (Wave 6B)
-  border?: boolean;       // whiteout: draw a border rect on save (Wave 6C)
-  borderColor?: string;   // whiteout border color (Wave 6C)
-  uri?: string;           // link target URL (Wave 6C)
+  uri?: string;     // link target URL (Wave 6C)
 };
 
 type Snapshot = { changes: Map<string, BlockChange>; annotations: Annotation[] };
@@ -98,10 +96,8 @@ interface EditorState {
   strokeColor: string;
   strokeWidth: number;
 
-  // whiteout / blackout tool settings (Wave 6C)
+  // whiteout / blackout fill color (Wave 6C)
   whiteoutColor: string;
-  whiteoutBorder: boolean;
-  whiteoutBorderColor: string;
 
   // mutations
   changes: Map<string, BlockChange>;
@@ -148,7 +144,7 @@ interface EditorState {
 
   setFormat: (patch: Partial<Pick<EditorState, "fontFamily" | "fontSize" | "fontColor" | "bold" | "italic" | "underline" | "textAlign">>) => void;
   setStroke: (patch: Partial<Pick<EditorState, "strokeColor" | "strokeWidth">>) => void;
-  setWhiteout: (patch: Partial<Pick<EditorState, "whiteoutColor" | "whiteoutBorder" | "whiteoutBorderColor">>) => void;
+  setWhiteout: (patch: Partial<Pick<EditorState, "whiteoutColor">>) => void;
 
   addAnnotation: (a: Annotation) => void;
   /** add several annotations as one undo step (Wave 6C: whiteout duplicate-to-all-pages) */
@@ -195,8 +191,6 @@ const INITIAL = {
   strokeColor: "#F43F5E",
   strokeWidth: 3,
   whiteoutColor: "#FFFFFF",
-  whiteoutBorder: false,
-  whiteoutBorderColor: "#D1D5DB",
   changes: new Map<string, BlockChange>(),
   annotations: [] as Annotation[],
   blockPositions: {} as Record<string, { x: number; y: number }>,
