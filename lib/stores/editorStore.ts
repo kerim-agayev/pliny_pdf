@@ -15,10 +15,10 @@ export type Tool =
 export type ShapeType = "rectangle" | "circle" | "arrow" | "line";
 export type TextAlign = "left" | "center" | "right";
 
-/** Client-only overlay annotations (highlight/draw/etc). Burned into the PDF in Wave 4C. */
+/** Client-only overlay annotations (highlight/draw/etc). Burned into the PDF in Wave 4C+6B. */
 export type Annotation = {
   id: string;
-  type: "highlight" | "strike" | "underline" | "draw" | "shape" | "comment";
+  type: "highlight" | "strike" | "underline" | "draw" | "shape" | "comment" | "image" | "stamp";
   pageNum: number;
   x: number;
   y: number;
@@ -32,6 +32,8 @@ export type Annotation = {
   x2?: number;
   y2?: number;
   text?: string; // comment body / link href
+  imageId?: string; // uploaded image reference (Wave 6B)
+  label?: string;   // stamp label e.g. "DRAFT" (Wave 6B)
 };
 
 type Snapshot = { changes: Map<string, BlockChange>; annotations: Annotation[] };

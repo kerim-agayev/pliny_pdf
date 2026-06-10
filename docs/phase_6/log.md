@@ -23,3 +23,17 @@ All 10 gate criteria confirmed green after multiple re-test rounds. Final commit
 - `19eb2d9` — Small move z-index fix (ghost no longer covers new position for tiny moves)
 
 Wave 6B starts next session.
+
+## 2026-06-10 — Wave 6B implementation complete (GATE pending)
+
+- Downloaded NotoSerif-Regular.ttf + NotoSerif-Bold.ttf (pre-existing bug fix — files were missing)
+- Python: `_apply_stamp()` (PyMuPDF draw_rect + insert_textbox), `_apply_image()` (page.insert_image), dispatch in cmd_apply
+- Backend: `uploadImage()`, `getSessionImage()` in editor.ts; `ANNOT_TYPES` expanded to include "image" and "stamp"
+- Routes: POST `/api/editor/upload-image`, GET `/api/editor/image/:sessionId/:imageId`, save schema additions (imageId, label)
+- Frontend: `AnnotationChange` type extended, `uploadImage()` + `imagePreviewUrl()` client functions
+- Store: `Annotation` type extended with "image" | "stamp", imageId?, label?
+- Toolbar: Image button (file picker, auto aspect ratio), Stamp dropdown (8 labels, colored), Date dropdown (3 formats)
+- Canvas: `ImageOverlay` + `StampOverlay` components with drag, resize, hover ✕ + Del key delete
+- index.tsx: annotationList passes imageId and label on save
+- All 3 locales (en/tr/ru) updated with toolImage, toolStamp, toolDate keys
+- `bun run build` ✅ green

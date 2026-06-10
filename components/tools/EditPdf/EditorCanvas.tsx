@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { useEditorStore, computeMatches, type Annotation } from "@/lib/stores/editorStore";
-import { pagePngUrl, addText as apiAddText, whiteout as apiWhiteout } from "@/lib/api/editor";
+import { pagePngUrl, addText as apiAddText, whiteout as apiWhiteout, imagePreviewUrl } from "@/lib/api/editor";
 import { usePinchZoom } from "@/lib/touch";
 import { analytics } from "@/lib/analytics";
 import { TextBlock, cssFont } from "./TextBlock";
@@ -17,6 +17,104 @@ import { ContextMenu, type ContextMenuState } from "./ContextMenu";
 
 type Pt = { x: number; y: number };
 const FIND_COLOR = "#F97316";
+
+// ── Shared overlay style helpers ─────────────────────────────────────────────
+
+const RESIZE_HANDLE: React.CSSProperties = {
+  position: "absolute", right: -5, bottom: -5, width: 12, height: 12,
+  background: "#6B5CE7", borderRadius: 3, cursor: "se-resize",
+  boxShadow: "0 1px 4px rgba(0,0,0,0.4)",
+};
+
+const DELETE_BTN: React.CSSProperties = {
+  position: "absolute", top: -10, right: -10, width: 20, height: 20,
+  background: "#EF4444", borderRadius: "50%", border: 0, cursor: "pointer",
+  display: "flex", alignItems: "center", justifyContent: "center",
+  color: "#fff", fontSize: 12, fontWeight: 700, lineHeight: 1, zIndex: 2,
+  boxShadow: "0 1px 4px rgba(0,0,0,0.4)",
+};
+
+// ── ImageOverlay ─────────────────────────────────────────────────────────────
+
+function ImageOverlay({ a, scale, sessionId, selected, onDrag, onResize, onDelete, onSelect }: {
+  a: Annotation; scale: number; sessionId: string; selected: boolean;
+  onDrag: (e: React.PointerEvent) => void;
+  onResize: (e: React.PointerEvent) => void;
+  onDelete: () => void;
+  onSelect: () => void;
+}) {
+  const [hovered, setHovered] = useState(false);
+  const show = hovered || selected;
+  return (
+    <div
+      onPointerDown={onDrag}
+      onClick={onSelect}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        position: "absolute", left: a.x * scale, top: a.y * scale,
+        width: a.w * scale, height: a.h * scale,
+        cursor: "move", outline: selected ? "2px solid #6B5CE7" : show ? "1.5px dashed #6B5CE7" : "none",
+        outlineOffset: 1,
+      }}
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={imagePreviewUrl(sessionId, a.imageId!)}
+        alt=""
+        draggable={false}
+        style={{ width: "100%", height: "100%", display: "block", objectFit: "fill", userSelect: "none", pointerEvents: "none" }}
+      />
+      {show && (
+        <>
+          <button type="button" style={DELETE_BTN} onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); onDelete(); }}>✕</button>
+          <div style={RESIZE_HANDLE} onPointerDown={(e) => { e.stopPropagation(); onResize(e); }} />
+        </>
+      )}
+    </div>
+  );
+}
+
+// ── StampOverlay ─────────────────────────────────────────────────────────────
+
+function StampOverlay({ a, scale, selected, onDrag, onResize, onDelete, onSelect }: {
+  a: Annotation; scale: number; selected: boolean;
+  onDrag: (e: React.PointerEvent) => void;
+  onResize: (e: React.PointerEvent) => void;
+  onDelete: () => void;
+  onSelect: () => void;
+}) {
+  const [hovered, setHovered] = useState(false);
+  const show = hovered || selected;
+  const col = a.color || "#3B82F6";
+  const fs = Math.min(a.h * 0.55, 24) * scale;
+  return (
+    <div
+      onPointerDown={onDrag}
+      onClick={onSelect}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        position: "absolute", left: a.x * scale, top: a.y * scale,
+        width: a.w * scale, height: a.h * scale,
+        border: `2.5px solid ${col}`,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        cursor: "move", background: "transparent",
+        outline: selected ? `2px solid ${col}66` : "none", outlineOffset: 3,
+      }}
+    >
+      <span style={{ color: col, fontWeight: 700, fontSize: fs, letterSpacing: "0.06em", userSelect: "none", pointerEvents: "none" }}>
+        {a.label}
+      </span>
+      {show && (
+        <>
+          <button type="button" style={DELETE_BTN} onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); onDelete(); }}>✕</button>
+          <div style={RESIZE_HANDLE} onPointerDown={(e) => { e.stopPropagation(); onResize(e); }} />
+        </>
+      )}
+    </div>
+  );
+}
 
 let annId = 0;
 const nextId = () => `a${++annId}`;
@@ -51,6 +149,7 @@ export function EditorCanvas() {
   const [drawPts, setDrawPts] = useState<Pt[]>([]);
   const [ctx, setCtx] = useState<ContextMenuState | null>(null);
   const [openComment, setOpenComment] = useState<string | null>(null);
+  const [selectedAnnotId, setSelectedAnnotId] = useState<string | null>(null);
   const draftInputRef = useRef<HTMLInputElement>(null);
   // true once the draft is settled — guards against the focus-race blur that fires
   // the instant the autofocused input mounts (which would clear the box immediately).
@@ -64,6 +163,21 @@ export function EditorCanvas() {
     const id = setTimeout(() => { draftReady.current = true; }, 250);
     return () => clearTimeout(id);
   }, [draft]);
+
+  // Del key removes the selected image/stamp annotation
+  useEffect(() => {
+    function onKey(e: KeyboardEvent) {
+      if (e.key === "Delete" && selectedAnnotId) {
+        const a = s.annotations.find((x) => x.id === selectedAnnotId);
+        if (a?.type === "image" || a?.type === "stamp") {
+          s.removeAnnotation(selectedAnnotId);
+          setSelectedAnnotId(null);
+        }
+      }
+    }
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [selectedAnnotId, s]);
 
   const matches = useMemo(
     () => computeMatches(s.pages, s.findReplaceOpen ? s.findQuery : "", s.findCaseSensitive),
@@ -88,6 +202,38 @@ export function EditorCanvas() {
     const b = page.textBlocks.find((x) => x.blockId === id);
     return s.changes.get(id)?.newText ?? b?.text ?? "";
   };
+
+  // ---- drag/resize for image and stamp overlays ----
+  function beginAnnotDrag(e: React.PointerEvent, a: Annotation) {
+    e.stopPropagation();
+    setSelectedAnnotId(a.id);
+    const start = { x: e.clientX, y: e.clientY };
+    const orig = { x: a.x, y: a.y };
+    const move = (ev: PointerEvent) => {
+      s.updateAnnotation(a.id, {
+        x: orig.x + (ev.clientX - start.x) / scale,
+        y: orig.y + (ev.clientY - start.y) / scale,
+      });
+    };
+    const up = () => { window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+  }
+
+  function beginAnnotResize(e: React.PointerEvent, a: Annotation) {
+    e.stopPropagation();
+    const start = { x: e.clientX, y: e.clientY };
+    const orig = { w: a.w, h: a.h };
+    const move = (ev: PointerEvent) => {
+      s.updateAnnotation(a.id, {
+        w: Math.max(40, orig.w + (ev.clientX - start.x) / scale),
+        h: Math.max(20, orig.h + (ev.clientY - start.y) / scale),
+      });
+    };
+    const up = () => { window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); };
+    window.addEventListener("pointermove", move);
+    window.addEventListener("pointerup", up);
+  }
 
   // ---- drag gesture (whiteout / highlight / strike / shapes) ----
   function beginDrag(start: Pt, tool: string) {
@@ -156,6 +302,7 @@ export function EditorCanvas() {
     if (tool === "select") {
       s.selectBlock(null);
       s.setEditing(null);
+      setSelectedAnnotId(null);
       return;
     }
     const p = toPt(e);
@@ -310,6 +457,28 @@ export function EditorCanvas() {
             return <DrawingTool key={a.id} a={a} scale={scale} interactive={interactive} selected={false} onSelect={() => {}} />;
           if (a.type === "comment")
             return <CommentTool key={a.id} a={a} scale={scale} interactive={interactive} open={openComment === a.id} onToggle={() => setOpenComment((v) => (v === a.id ? null : a.id))} onChangeText={(text) => s.updateAnnotation(a.id, { text })} onRemove={() => { s.removeAnnotation(a.id); setOpenComment(null); }} />;
+          if (a.type === "image" && a.imageId)
+            return (
+              <ImageOverlay
+                key={a.id} a={a} scale={scale} sessionId={s.sessionId!}
+                selected={selectedAnnotId === a.id}
+                onDrag={(e) => beginAnnotDrag(e, a)}
+                onResize={(e) => beginAnnotResize(e, a)}
+                onDelete={() => { s.removeAnnotation(a.id); setSelectedAnnotId(null); }}
+                onSelect={() => setSelectedAnnotId(a.id)}
+              />
+            );
+          if (a.type === "stamp")
+            return (
+              <StampOverlay
+                key={a.id} a={a} scale={scale}
+                selected={selectedAnnotId === a.id}
+                onDrag={(e) => beginAnnotDrag(e, a)}
+                onResize={(e) => beginAnnotResize(e, a)}
+                onDelete={() => { s.removeAnnotation(a.id); setSelectedAnnotId(null); }}
+                onSelect={() => setSelectedAnnotId(a.id)}
+              />
+            );
           return null;
         })}
 

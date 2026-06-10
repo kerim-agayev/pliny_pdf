@@ -157,8 +157,8 @@ async function apply(dir: string): Promise<ApplyResult> {
   return JSON.parse(stdout) as ApplyResult;
 }
 
-/** Annotation change types (Wave 4C) — burned into the PDF, replaced wholesale on each save. */
-const ANNOT_TYPES = new Set(["highlight", "strike", "draw", "shape", "comment"]);
+/** Annotation change types — burned into the PDF, replaced wholesale on each save. */
+const ANNOT_TYPES = new Set(["highlight", "strike", "draw", "shape", "comment", "stamp", "image"]);
 
 /**
  * Persist the batch of inline text edits + overlay annotations and return the rebuilt
@@ -255,6 +255,39 @@ export async function findReplace(
   params: { find: string; replace: string; caseSensitive: boolean; wholeWord: boolean },
 ): Promise<ApplyResult> {
   return appendAndApply(sessionId, { type: "find-replace", ...params });
+}
+
+/** Store an uploaded image in the session dir; returns the imageId (UUID). */
+export async function uploadImage(
+  sessionId: string,
+  bytes: Uint8Array,
+  ext: string,
+): Promise<string> {
+  const imageId = crypto.randomUUID();
+  const dir = sessionDir(sessionId);
+  await writeFile(join(dir, `img-${imageId}.${ext}`), bytes);
+  return imageId;
+}
+
+/** Serve a stored image file from a session dir. Returns [bytes, mimeType] or null. */
+export async function getSessionImage(
+  sessionId: string,
+  imageId: string,
+): Promise<[Uint8Array, string] | null> {
+  const dir = sessionDir(sessionId);
+  const mimeMap: Record<string, string> = {
+    jpg: "image/jpeg", jpeg: "image/jpeg", png: "image/png",
+    gif: "image/gif", bmp: "image/bmp", webp: "image/webp",
+  };
+  for (const [ext, mime] of Object.entries(mimeMap)) {
+    try {
+      const bytes = new Uint8Array(await readFile(join(dir, `img-${imageId}.${ext}`)));
+      return [bytes, mime];
+    } catch {
+      /* try next ext */
+    }
+  }
+  return null;
 }
 
 /** Delete a session's work dir. */

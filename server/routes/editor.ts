@@ -9,6 +9,8 @@ import {
   closeSession,
   sessionAgeOk,
   sweepExpired,
+  uploadImage,
+  getSessionImage,
   type Change,
 } from "../services/editor";
 import { getRequester } from "../services/session";
@@ -176,6 +178,8 @@ export const editor = new Elysia({ prefix: "/api/editor" })
               x2: t.Optional(t.Number()),
               y2: t.Optional(t.Number()),
               text: t.Optional(t.String()),
+              imageId: t.Optional(t.String()),
+              label: t.Optional(t.String()),
             }),
           ),
         ),
@@ -282,6 +286,46 @@ export const editor = new Elysia({ prefix: "/api/editor" })
         caseSensitive: t.Optional(t.Boolean()),
         wholeWord: t.Optional(t.Boolean()),
       }),
+    },
+  )
+
+  // Upload an image asset into the session dir; returns imageId for use in annotations.
+  .post(
+    "/upload-image",
+    async ({ body, set }) => {
+      if (!(await sessionAgeOk(body.sessionId).catch(() => false))) {
+        set.status = 410;
+        return { error: "sessionExpired" };
+      }
+      const name = body.file.name ?? "image.jpg";
+      const ext = name.split(".").pop()?.toLowerCase() ?? "jpg";
+      const allowed = ["jpg", "jpeg", "png", "gif", "bmp", "webp"];
+      if (!allowed.includes(ext)) {
+        set.status = 400;
+        return { error: "unsupportedImageType", message: "Supported formats: JPG, PNG, GIF, BMP, WEBP." };
+      }
+      const bytes = new Uint8Array(await body.file.arrayBuffer());
+      const imageId = await uploadImage(body.sessionId, bytes, ext);
+      return { imageId };
+    },
+    { body: t.Object({ sessionId: t.String(), file: t.File() }) },
+  )
+
+  // Serve a stored image (so the canvas <img> can preview it before save).
+  .get(
+    "/image/:sessionId/:imageId",
+    async ({ params, set }) => {
+      if (!(await sessionAgeOk(params.sessionId).catch(() => false))) {
+        set.status = 410;
+        return { error: "sessionExpired" };
+      }
+      const result = await getSessionImage(params.sessionId, params.imageId);
+      if (!result) {
+        set.status = 404;
+        return { error: "imageNotFound" };
+      }
+      const [bytes, mime] = result;
+      return new Response(bytes as BlobPart, { headers: { "content-type": mime } });
     },
   )
 

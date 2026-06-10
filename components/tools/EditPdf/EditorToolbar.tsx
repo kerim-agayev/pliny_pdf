@@ -4,12 +4,13 @@ import { useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { useEditorStore, type ShapeType } from "@/lib/stores/editorStore";
-import { addText as apiAddText } from "@/lib/api/editor";
+import { addText as apiAddText, uploadImage as apiUploadImage } from "@/lib/api/editor";
 import {
   IconCursor, IconTextPlus, IconWhiteout, IconHighlight, IconStrike, IconPen, IconShapes,
   IconMessage, IconBold, IconItalic, IconUnderlineText, IconAlignLeft, IconAlignCenter,
   IconAlignRight, IconTrash, IconUndo, IconRedo, IconChevron, IconX, IconPlus,
-  IconCopy, IconRect, IconCircleShape, IconArrowDraw, IconLineShape, type IconProps,
+  IconCopy, IconRect, IconCircleShape, IconArrowDraw, IconLineShape,
+  IconImage, IconBolt, IconClock, type IconProps,
 } from "@/components/shared/icons";
 import type { ComponentType } from "react";
 
@@ -50,6 +51,26 @@ const DRAW_COLORS = ["#0F0F0F", "#F43F5E", "#3B82F6", "#10B981", "#FACC15", "#FF
 const STROKES = [1, 3, 6];
 const DRAW_TOOLS = new Set(["draw", "shapes", "highlight", "strike"]);
 
+const STAMP_COLOR: Record<string, string> = {
+  DRAFT: "#EF4444", VOID: "#EF4444", CONFIDENTIAL: "#EF4444",
+  APPROVED: "#10B981",
+  COPY: "#3B82F6", FINAL: "#3B82F6", RECEIVED: "#3B82F6", REVIEWED: "#3B82F6",
+};
+const STAMP_LABELS = ["DRAFT", "APPROVED", "CONFIDENTIAL", "COPY", "FINAL", "VOID", "RECEIVED", "REVIEWED"] as const;
+
+function formatDate(fmt: "long" | "dmy" | "iso"): string {
+  const now = new Date();
+  const d = now.getDate().toString().padStart(2, "0");
+  const m = (now.getMonth() + 1).toString().padStart(2, "0");
+  const y = now.getFullYear();
+  if (fmt === "long") return now.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+  if (fmt === "dmy") return `${d}/${m}/${y}`;
+  return `${y}-${m}-${d}`;
+}
+
+let annStampId = 0;
+const nextStampId = () => `stamp${++annStampId}`;
+
 export function EditorToolbar() {
   const t = useTranslations("ToolPages.editPdf");
   const s = useEditorStore();
@@ -58,7 +79,10 @@ export function EditorToolbar() {
   const textMode = s.tool === "text";
   const fmtEnabled = enabled || textMode;
   const colorRef = useRef<HTMLInputElement>(null);
+  const imageInputRef = useRef<HTMLInputElement>(null);
   const [shapesOpen, setShapesOpen] = useState(false);
+  const [stampOpen, setStampOpen] = useState(false);
+  const [dateOpen, setDateOpen] = useState(false);
 
   async function duplicateBlock() {
     const id = s.selectedBlock;
@@ -89,6 +113,62 @@ export function EditorToolbar() {
     }
   }
 
+  async function handleImageUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+    if (!file || !s.sessionId) return;
+    const page = s.pages[s.currentPage];
+    if (!page) return;
+    try {
+      const { imageId } = await apiUploadImage(s.sessionId, file);
+      // Determine initial size preserving aspect ratio (max side = 150 PDF pts).
+      const img = new Image();
+      const url = URL.createObjectURL(file);
+      const [w, h] = await new Promise<[number, number]>((resolve) => {
+        img.onload = () => { URL.revokeObjectURL(url); resolve([img.naturalWidth, img.naturalHeight]); };
+        img.onerror = () => { URL.revokeObjectURL(url); resolve([150, 150]); };
+        img.src = url;
+      });
+      const MAX = 150;
+      const ratio = w / h;
+      const iw = ratio >= 1 ? MAX : MAX * ratio;
+      const ih = ratio >= 1 ? MAX / ratio : MAX;
+      const cx = (page.width - iw) / 2;
+      const cy = (page.height - ih) / 2;
+      s.addAnnotation({ id: `img-${imageId}`, type: "image", pageNum: page.pageNum, x: cx, y: cy, w: iw, h: ih, color: "", imageId });
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t("saveFailed"));
+    }
+  }
+
+  function addStamp(label: string) {
+    const page = s.pages[s.currentPage];
+    if (!page) return;
+    setStampOpen(false);
+    const color = STAMP_COLOR[label] ?? "#3B82F6";
+    const w = 160, h = 50;
+    const cx = (page.width - w) / 2;
+    const cy = (page.height - h) / 2;
+    s.addAnnotation({ id: nextStampId(), type: "stamp", pageNum: page.pageNum, x: cx, y: cy, w, h, color, label });
+  }
+
+  async function addDateStamp(fmt: "long" | "dmy" | "iso") {
+    setDateOpen(false);
+    const page = s.pages[s.currentPage];
+    if (!page || !s.sessionId) return;
+    const text = formatDate(fmt);
+    try {
+      const { blockId } = await apiAddText(s.sessionId, {
+        pageNum: page.pageNum, x: 72, y: 72 + s.fontSize,
+        text, fontSize: s.fontSize, fontName: s.fontFamily, color: s.fontColor,
+      });
+      s.addLocalBlock({ blockId, x: 72, y: 72, w: text.length * s.fontSize * 0.55 + 6, h: s.fontSize * 1.25, text, fontSize: s.fontSize, fontName: s.fontFamily, color: s.fontColor, bold: false, italic: false });
+      s.bumpRender();
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : t("saveFailed"));
+    }
+  }
+
   return (
     <div style={{ position: "relative" }}>
       {/* Row 1 — tools */}
@@ -103,6 +183,11 @@ export function EditorToolbar() {
         <TBtn icon={IconPen} label={t("toolDraw")} active={s.tool === "draw"} onClick={() => s.setTool("draw")} />
         <TBtn icon={IconShapes} label={t("toolShapes")} hasCaret active={s.tool === "shapes"} onClick={() => { s.setTool("shapes"); setShapesOpen((v) => !v); }} />
         <TBtn icon={IconMessage} label={t("toolComment")} active={s.tool === "comment"} onClick={() => s.setTool("comment")} />
+        <TBDiv />
+        <TBtn icon={IconImage} label={t("toolImage")} disabled={!s.sessionId} onClick={() => imageInputRef.current?.click()} />
+        <input ref={imageInputRef} type="file" accept="image/jpeg,image/png,image/gif,image/bmp,image/webp" style={{ display: "none" }} onChange={handleImageUpload} />
+        <TBtn icon={IconBolt} label={t("toolStamp")} hasCaret active={stampOpen} onClick={() => { setStampOpen((v) => !v); setDateOpen(false); }} disabled={!s.sessionId} />
+        <TBtn icon={IconClock} label={t("toolDate")} hasCaret active={dateOpen} onClick={() => { setDateOpen((v) => !v); setStampOpen(false); }} disabled={!s.sessionId} />
 
         {DRAW_TOOLS.has(s.tool) && (
           <>
@@ -150,6 +235,51 @@ export function EditorToolbar() {
                 }}
               >
                 <Ic size={16} sw={1.7} /> {label}
+              </button>
+            ))}
+          </div>
+        )}
+
+        {stampOpen && (
+          <div
+            style={{
+              position: "absolute", right: 116, top: 46, zIndex: 40, width: 200, background: "var(--card)",
+              border: "1px solid var(--line-2)", borderRadius: 12, padding: 6, boxShadow: "0 16px 40px -12px rgba(0,0,0,0.6)",
+            }}
+          >
+            {STAMP_LABELS.map((lbl) => (
+              <button
+                key={lbl} type="button" className="pp-related"
+                onClick={() => addStamp(lbl)}
+                style={{
+                  width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "8px 10px", borderRadius: 8,
+                  background: "transparent", border: 0, color: "var(--text)", fontSize: 13, cursor: "pointer", fontFamily: "inherit",
+                }}
+              >
+                <span style={{ width: 10, height: 10, borderRadius: 3, border: `2px solid ${STAMP_COLOR[lbl]}`, flexShrink: 0 }} />
+                <span style={{ color: STAMP_COLOR[lbl], fontWeight: 700, fontSize: 12, letterSpacing: "0.05em" }}>{lbl}</span>
+              </button>
+            ))}
+          </div>
+        )}
+
+        {dateOpen && (
+          <div
+            style={{
+              position: "absolute", right: 74, top: 46, zIndex: 40, width: 196, background: "var(--card)",
+              border: "1px solid var(--line-2)", borderRadius: 12, padding: 6, boxShadow: "0 16px 40px -12px rgba(0,0,0,0.6)",
+            }}
+          >
+            {([["long", formatDate("long")], ["dmy", formatDate("dmy")], ["iso", formatDate("iso")]] as const).map(([fmt, display]) => (
+              <button
+                key={fmt} type="button" className="pp-related"
+                onClick={() => addDateStamp(fmt)}
+                style={{
+                  width: "100%", display: "flex", alignItems: "center", padding: "8px 10px", borderRadius: 8,
+                  background: "transparent", border: 0, color: "var(--text)", fontSize: 13, cursor: "pointer", fontFamily: "inherit",
+                }}
+              >
+                {display}
               </button>
             ))}
           </div>

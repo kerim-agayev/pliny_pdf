@@ -49,9 +49,9 @@ export type BlockChange = {
   y?: number;
 };
 
-/** A client overlay annotation serialized for the server to burn into the PDF (Wave 4C). */
+/** A client overlay annotation serialized for the server to burn into the PDF (Wave 4C+6B). */
 export type AnnotationChange = {
-  type: "highlight" | "strike" | "draw" | "shape" | "comment";
+  type: "highlight" | "strike" | "draw" | "shape" | "comment" | "stamp" | "image";
   pageNum: number;
   x: number;
   y: number;
@@ -64,6 +64,8 @@ export type AnnotationChange = {
   x2?: number;
   y2?: number;
   text?: string;
+  imageId?: string;
+  label?: string;
 };
 
 /** Error from an editor endpoint, carrying the HTTP status + backend error code. */
@@ -150,6 +152,24 @@ export function whiteout(
   params: { pageNum: number; x: number; y: number; w: number; h: number },
 ): Promise<{ ok: true }> {
   return postJson("/whiteout", { sessionId, ...params });
+}
+
+/** Upload an image to the session; returns imageId for use in an "image" annotation. */
+export async function uploadImage(
+  sessionId: string,
+  file: File,
+): Promise<{ imageId: string }> {
+  const form = new FormData();
+  form.append("sessionId", sessionId);
+  form.append("file", file);
+  const res = await fetch(`${base}/upload-image`, { method: "POST", body: form, credentials: "include" });
+  if (!res.ok) throw await asError(res);
+  return (await res.json()) as { imageId: string };
+}
+
+/** URL to preview an uploaded image inside the editor (before save). */
+export function imagePreviewUrl(sessionId: string, imageId: string): string {
+  return `${base}/image/${sessionId}/${imageId}`;
 }
 
 export function findReplace(

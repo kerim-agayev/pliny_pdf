@@ -476,6 +476,53 @@ def _apply_comment(doc, change, affected):
         pass
 
 
+_STAMP_COLORS = {
+    "DRAFT": "#EF4444",
+    "VOID": "#EF4444",
+    "CONFIDENTIAL": "#EF4444",
+    "APPROVED": "#10B981",
+    "COPY": "#3B82F6",
+    "FINAL": "#3B82F6",
+    "RECEIVED": "#3B82F6",
+    "REVIEWED": "#3B82F6",
+}
+
+
+def _apply_stamp(doc, change, affected):
+    page = _annot_page(doc, change, affected)
+    if page is None:
+        return
+    x, y = change.get("x", 0), change.get("y", 0)
+    w, h = change.get("w", 160), change.get("h", 50)
+    label = change.get("label", "DRAFT")
+    color_hex = change.get("color") or _STAMP_COLORS.get(label, "#3B82F6")
+    rgb = _hex_to_rgb01(color_hex)
+    rect = pymupdf.Rect(x, y, x + w, y + h)
+    page.draw_rect(rect, color=rgb, width=2.5)
+    font_size = min(h * 0.55, w / max(len(label), 1) * 1.3)
+    font_size = max(8.0, min(font_size, 36.0))
+    page.insert_textbox(rect, label, fontname="hebo", fontsize=font_size, color=rgb, align=1)
+
+
+def _apply_image(doc, change, affected, session_dir):
+    page = _annot_page(doc, change, affected)
+    if page is None:
+        return
+    x, y = change.get("x", 0), change.get("y", 0)
+    w, h = change.get("w", 150), change.get("h", 150)
+    image_id = change.get("imageId", "")
+    if not image_id:
+        return
+    for ext in ("jpg", "jpeg", "png", "gif", "bmp", "webp"):
+        path = os.path.join(session_dir, f"img-{image_id}.{ext}")
+        if os.path.exists(path):
+            try:
+                page.insert_image(pymupdf.Rect(x, y, x + w, y + h), filename=path)
+            except Exception as e:
+                sys.stderr.write(f"[pdf-editor] insert_image error: {e}\n")
+            return
+
+
 def cmd_apply(session_dir):
     original = os.path.join(session_dir, "original.pdf")
     working = os.path.join(session_dir, "working.pdf")
@@ -515,6 +562,10 @@ def cmd_apply(session_dir):
                 _apply_shape(doc, change, affected)
             elif ctype == "comment":
                 _apply_comment(doc, change, affected)
+            elif ctype == "stamp":
+                _apply_stamp(doc, change, affected)
+            elif ctype == "image":
+                _apply_image(doc, change, affected, session_dir)
         doc.save(working, garbage=3, deflate=True)
         # Re-render only the pages the change set touched.
         for page_num in sorted(affected):
