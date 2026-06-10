@@ -1,6 +1,6 @@
 # Wave 6B — Images & Stamps
 
-**Status**: ✅ COMPLETE (2026-06-10)
+**Status**: ✅ COMPLETE — GATE 6B PASSED (2026-06-10)
 
 ## Features shipped
 
@@ -23,10 +23,10 @@ Already possible via the Whiteout tool — documented, no new code needed.
 - Canvas overlay: draggable + resizable + hover ✕ + Del key
 - Burn: `_apply_stamp()` → PyMuPDF `draw_rect` + `insert_textbox` (no external PNG assets)
 
-### 10. Date stamp
-- Toolbar "Date stamp" dropdown (clock icon + caret) — 3 formats: "June 10, 2026" / "10/06/2026" / "2026-06-10"
-- Calls `addText` API at (72, 72) on current page using current font/size/color settings
-- No new backend code — reuses existing `add-text` structural op
+### 10. Date stamp — REMOVED (D6-7)
+Built, then removed from the UI per user decision (not needed). The Date dropdown,
+its handler, and the `toolDate` i18n key were deleted. No backend impact — it had
+reused the existing `add-text` op, which stays for the Text tool + Duplicate.
 
 ## Pre-existing bug fixed
 **NotoSerif fonts missing** — `NotoSerif-Regular.ttf` and `NotoSerif-Bold.ttf` were referenced in pdf-editor.py but missing from `public/fonts/`. Downloaded from notofonts GitHub repo and committed.
@@ -38,7 +38,7 @@ Already possible via the Whiteout tool — documented, no new code needed.
 - `server/routes/editor.ts` — `/upload-image` POST, `/image/:sessionId/:imageId` GET, schema additions (`imageId`, `label`)
 - `lib/api/editor.ts` — `AnnotationChange` type additions, `uploadImage()`, `imagePreviewUrl()`
 - `lib/stores/editorStore.ts` — `Annotation` type: added `"image" | "stamp"`, `imageId?`, `label?`
-- `components/tools/EditPdf/EditorToolbar.tsx` — Image button, Stamp dropdown, Date dropdown
+- `components/tools/EditPdf/EditorToolbar.tsx` — Image button, Stamp dropdown (Date dropdown later removed, D6-7)
 - `components/tools/EditPdf/EditorCanvas.tsx` — `ImageOverlay`, `StampOverlay` components, drag/resize logic, Del key handler
 - `components/tools/EditPdf/index.tsx` — `annotationList()` passes `imageId` and `label`
 - `messages/en.json`, `tr.json`, `ru.json` — `toolImage`, `toolStamp`, `toolDate` keys
@@ -48,11 +48,19 @@ Already possible via the Whiteout tool — documented, no new code needed.
 - **Image upload**: Immediate (at picker time), `imageId` reference in annotation, not base64
 - **Image/stamp burn**: In `ANNOT_TYPES` → replaced wholesale on save (same pattern as highlight/draw)
 
-## GATE 6B checklist
-- [ ] `bun run build` green ✅
-- [ ] Upload JPG → overlay appears, drag, resize, save → PDF contains image
-- [ ] All 8 stamps work, drag, resize, save → PDF contains stamp
-- [ ] Date stamp: all 3 formats insert correct text
-- [ ] Undo/redo works for all three features
-- [ ] NotoSerif font works in save (no FileNotFoundError)
-- [ ] Hetzner deploy with new NotoSerif TTFs
+## GATE 6B checklist — ✅ PASSED (2026-06-10)
+- [x] `bun run build` green
+- [x] Upload JPG → overlay appears, drag, resize, save → PDF contains image
+- [x] All 8 stamps work (correct colors), drag, resize, save → PDF contains stamp
+- [x] Delete: hover ✕ + Del/Backspace key removes image/stamp
+- [x] Undo works for image + stamp
+- [x] NotoSerif font works in save (no FileNotFoundError)
+- [x] Hetzner deploy with new NotoSerif TTFs
+- Date stamp: removed from UI (D6-7) — not part of the gate
+
+## Post-gate bug fixes (during GATE 6B testing)
+- Stamps: long labels (CONFIDENTIAL/RECEIVED) came out as empty rectangles —
+  `insert_textbox` silently drops a single word wider than the box. Switched to
+  width-measured `insert_text` (centred, min 5pt) + overlay font bounded by width.
+- Delete: keydown now accepts Backspace (laptop/Mac delete key) + input-focus guard.
+- Date stamp: clipping + overlap fixes, then feature removed entirely (D6-7).

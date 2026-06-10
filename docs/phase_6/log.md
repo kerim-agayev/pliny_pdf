@@ -37,3 +37,19 @@ Wave 6B starts next session.
 - index.tsx: annotationList passes imageId and label on save
 - All 3 locales (en/tr/ru) updated with toolImage, toolStamp, toolDate keys
 - `bun run build` ✅ green
+
+## 2026-06-10 — GATE 6B PASSED ✅
+
+Verified after several post-implementation bug-fix rounds:
+- Image: add (auto aspect), drag, resize, ✕/Del delete, PDF burn ✅
+- Stamps (8): correct colors, drag, resize, PDF burn — fixed empty-rectangle bug
+  for long labels (insert_textbox silently dropped CONFIDENTIAL/RECEIVED; now
+  width-measured insert_text) ✅
+- Delete: hover ✕ + Del/Backspace key (added Backspace + input-focus guard) ✅
+- NotoSerif: no FileNotFoundError on save ✅
+- Undo: multi-step for image + stamp ✅
+- Date stamp: built then REMOVED from UI per user (D6-7) — clipping/overlap issues
+  + not needed.
+
+Commits: 0cd4a45, ed87e7a, 3cfd591, 5a3cb69 (date fixes), fa6e8f8 (date removal).
+Wave 6C (Links & Whiteout Improvements) starts next.

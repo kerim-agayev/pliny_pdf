@@ -4,14 +4,14 @@
 
 - Phase: 6 (Edit PDF Final Polish & Features)
 - Active wave: Wave 6C — Links & Whiteout Improvements
-- Last completed: Wave 6B — Images & Stamps (GATE pending 2026-06-10)
+- Last completed: Wave 6B — Images & Stamps (✅ GATE PASSED 2026-06-10)
 
 ## Wave Status
 
 | Wave | Title | Status |
 |---|---|---|
 | 6A | Text & Movement | ✅ COMPLETE (2026-06-09) |
-| 6B | Images & Stamps | ✅ COMPLETE (2026-06-10) |
+| 6B | Images & Stamps | ✅ GATE PASSED (2026-06-10) |
 | 6C | Links & Whiteout Improvements | pending |
 | 6D | Annotation & Shape Fixes | pending |
 | 6E | Comprehensive QA & Performance | pending |
