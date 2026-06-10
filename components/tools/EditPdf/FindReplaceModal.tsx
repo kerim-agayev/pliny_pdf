@@ -13,6 +13,7 @@ export function FindReplaceModal() {
   const sessionId = useEditorStore((s) => s.sessionId);
   const pages = useEditorStore((s) => s.pages);
   const replacePages = useEditorStore((s) => s.replacePages);
+  const bumpRender = useEditorStore((s) => s.bumpRender);
   const close = useEditorStore((s) => s.closeFindReplace);
   const findIndex = useEditorStore((s) => s.findIndex);
   const setFindIndex = useEditorStore((s) => s.setFindIndex);
@@ -56,6 +57,7 @@ export function FindReplaceModal() {
     try {
       const res = await findReplace(sessionId, { find, replace, caseSensitive, wholeWord });
       replacePages(res.pages);
+      bumpRender(); // cache-bust the page <img> so the replaced text actually re-renders
       setDone(res.replacements);
       toast.success(t("replacedToast", { count: res.replacements }));
     } catch (e) {
@@ -121,9 +123,8 @@ export function FindReplaceModal() {
         </div>
 
         <div style={{ display: "flex", gap: 10 }}>
-          <button type="button" className="pp-btn pp-btn-ghost" style={{ flex: 1, justifyContent: "center" }} disabled={busy || !find || !total} onClick={run}>
-            {t("replace")}
-          </button>
+          {/* Replace is whole-document (server replaces every match), so a single
+              honest "Replace All" action — not two buttons that did the same thing. */}
           <button type="button" className="pp-btn" style={{ flex: 1, justifyContent: "center" }} disabled={busy || !find || !total} onClick={run}>
             {busy ? <Spinner size={15} /> : t("replaceAll")}
           </button>

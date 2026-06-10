@@ -43,7 +43,12 @@ export type Annotation = {
   uri?: string;     // link target URL (Wave 6C)
 };
 
-type Snapshot = { changes: Map<string, BlockChange>; annotations: Annotation[] };
+type Snapshot = {
+  changes: Map<string, BlockChange>;
+  annotations: Annotation[];
+  blockPositions: Record<string, { x: number; y: number }>;
+  blockStyles: Record<string, { underline?: boolean; textAlign?: TextAlign }>;
+};
 
 /** A Find&Replace hit, located at its text block's bbox (PDF points). */
 export type FindMatch = { pageNum: number; blockId: string; x: number; y: number; w: number; h: number };
@@ -230,7 +235,12 @@ const INITIAL = {
 };
 
 function snapshot(s: EditorState): Snapshot {
-  return { changes: new Map(s.changes), annotations: [...s.annotations] };
+  return {
+    changes: new Map(s.changes),
+    annotations: [...s.annotations],
+    blockPositions: { ...s.blockPositions },
+    blockStyles: { ...s.blockStyles },
+  };
 }
 
 export const useEditorStore = create<EditorState>((set, get) => ({
@@ -325,7 +335,13 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     }),
 
   moveBlock: (blockId, x, y) =>
-    set((s) => ({ blockPositions: { ...s.blockPositions, [blockId]: { x, y } }, hasUnsavedChanges: true })),
+    set((s) => ({
+      // onMove fires once on pointer-up (TextBlock), so one drag = one undo step.
+      undoStack: [...s.undoStack, snapshot(s)],
+      redoStack: [],
+      blockPositions: { ...s.blockPositions, [blockId]: { x, y } },
+      hasUnsavedChanges: true,
+    })),
 
   setFormat: (patch) => {
     set(patch);
@@ -337,12 +353,16 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       if (patch.fontColor !== undefined) map.color = patch.fontColor;
       if (patch.bold !== undefined) map.bold = patch.bold;
       if (patch.italic !== undefined) map.italic = patch.italic;
-      if (Object.keys(map).length) get().editBlock(id, map);
+      const hadMapChange = Object.keys(map).length > 0;
+      if (hadMapChange) get().editBlock(id, map);
       // underline + alignment live in a client-side per-block style map. Underline is
       // merged into the save payload (changeList) and burned into the PDF as a drawn
       // line server-side; textAlign remains visual-only (no server support).
       if (patch.underline !== undefined || patch.textAlign !== undefined) {
         set((s) => ({
+          // editBlock already pushed an undo snapshot for map changes; for a
+          // style-only toggle (no map keys) push one here so it's undoable too.
+          ...(hadMapChange ? {} : { undoStack: [...s.undoStack, snapshot(s)], redoStack: [], hasUnsavedChanges: true }),
           blockStyles: {
             ...s.blockStyles,
             [id]: {
@@ -405,6 +425,8 @@ export const useEditorStore = create<EditorState>((set, get) => ({
         redoStack: [...s.redoStack, snapshot(s)],
         changes: prev.changes,
         annotations: prev.annotations,
+        blockPositions: prev.blockPositions,
+        blockStyles: prev.blockStyles,
         hasUnsavedChanges: true,
       };
     }),
@@ -417,6 +439,8 @@ export const useEditorStore = create<EditorState>((set, get) => ({
         undoStack: [...s.undoStack, snapshot(s)],
         changes: next.changes,
         annotations: next.annotations,
+        blockPositions: next.blockPositions,
+        blockStyles: next.blockStyles,
         hasUnsavedChanges: true,
       };
     }),

@@ -697,6 +697,7 @@
       "fill": "Заливка",
       "highlightColor": "Цвет выделения",
       "commentColor": "Цвет заметки",
+      "commentAuthorYou": "Вы",
       "toolLink": "Ссылка",
       "whiteoutColor": "Цвет заливки",
       "whiteoutDuplicateAll": "Скопировать на все страницы",

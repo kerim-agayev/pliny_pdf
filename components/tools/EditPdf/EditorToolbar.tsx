@@ -10,7 +10,7 @@ import {
   IconMessage, IconBold, IconItalic, IconUnderlineText, IconAlignLeft, IconAlignCenter,
   IconAlignRight, IconTrash, IconUndo, IconRedo, IconChevron, IconX, IconPlus,
   IconCopy, IconRect, IconCircleShape, IconArrowDraw, IconLineShape,
-  IconImage, IconBolt, IconLink, IconCheck, type IconProps,
+  IconImage, IconBolt, IconLink, IconCheck, IconSearch, type IconProps,
 } from "@/components/shared/icons";
 import { LinkDialog } from "./LinkDialog";
 import type { ComponentType } from "react";
@@ -401,6 +401,8 @@ export function EditorToolbar() {
       <div className="pp-ed-row" style={{ ...ROW, height: 46, gap: 5 }}>
         <TBtn icon={IconUndo} label={t("undo")} kbd="⌘Z" disabled={!s.undoStack.length} onClick={s.undo} />
         <TBtn icon={IconRedo} label={t("redo")} kbd="⌘⇧Z" disabled={!s.redoStack.length} onClick={s.redo} />
+        <TBDiv />
+        <TBtn icon={IconSearch} label={t("findReplace")} kbd="⌘H" active={s.findReplaceOpen} onClick={s.openFindReplace} />
         <div style={{ flex: 1 }} />
         <div style={{ display: "flex", alignItems: "center", gap: 2, padding: 3, background: "var(--bg-2)", border: "1px solid var(--line)", borderRadius: 8 }}>
           <button type="button" className="pp-edtool" onClick={() => s.setZoom(s.zoom - 10)}

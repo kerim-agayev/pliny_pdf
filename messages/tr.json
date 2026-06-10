@@ -697,6 +697,7 @@
       "fill": "Dolgu",
       "highlightColor": "Vurgu rengi",
       "commentColor": "Not rengi",
+      "commentAuthorYou": "Siz",
       "toolLink": "Bağlantı",
       "whiteoutColor": "Dolgu rengi",
       "whiteoutDuplicateAll": "Tüm sayfalara kopyala",

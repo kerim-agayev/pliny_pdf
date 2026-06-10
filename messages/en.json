@@ -697,6 +697,7 @@
       "fill": "Fill",
       "highlightColor": "Highlight color",
       "commentColor": "Note color",
+      "commentAuthorYou": "You",
       "toolLink": "Link",
       "whiteoutColor": "Fill color",
       "whiteoutDuplicateAll": "Duplicate to all pages",

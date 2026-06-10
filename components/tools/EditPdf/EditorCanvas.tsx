@@ -632,7 +632,7 @@ export function EditorCanvas() {
           if (a.type === "draw" || a.type === "shape")
             return <DrawingTool key={a.id} a={a} scale={scale} interactive={interactive} selected={false} onSelect={() => {}} />;
           if (a.type === "comment")
-            return <CommentTool key={a.id} a={a} scale={scale} interactive={interactive} open={openComment === a.id} selected={selectedAnnotId === a.id} onDrag={(e) => beginCommentDrag(e, a)} onChangeText={(text) => s.updateAnnotation(a.id, { text })} onRemove={() => { s.removeAnnotation(a.id); setOpenComment(null); setSelectedAnnotId(null); }} />;
+            return <CommentTool key={a.id} a={a} scale={scale} interactive={interactive} open={openComment === a.id} selected={selectedAnnotId === a.id} authorInitials={t("commentAuthorYou")} onDrag={(e) => beginCommentDrag(e, a)} onChangeText={(text) => s.updateAnnotation(a.id, { text })} onRemove={() => { s.removeAnnotation(a.id); setOpenComment(null); setSelectedAnnotId(null); }} />;
           if (a.type === "mark")
             return (
               <MarkOverlay

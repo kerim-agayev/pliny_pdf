@@ -146,3 +146,22 @@ Annotation & Shape Fixes verified green:
 Commits: 90411bd (impl), b05910e (GATE round 1: comment typing, mark types/fill in PDF
 via /save schema, highlight recolor via store-backed selection). Backend deployed to
 Hetzner. Wave 6E (comprehensive QA & performance) starts next session.
+
+## 2026-06-11 — Wave 6E code audit + pre-QA fixes (GATE pending)
+
+- 3-pass code audit (frontend / store+API / backend): code in strong shape, no
+  critical bugs. Full results in waves/wave_6e.md.
+- Two scope-gap decisions confirmed by user: re-enable Find & Replace; full undo.
+- Fixes (no backend/Python changes → no Hetzner redeploy):
+  - A1 Find & Replace re-enabled: Row-3 toolbar button + ⌘H (EditorToolbar.tsx,
+    index.tsx). Fixed FindReplaceModal: missing `bumpRender()` after replace (stale
+    PNG) + consolidated duplicate Replace/Replace-All buttons into one "Replace All".
+  - A2 Full undo: Snapshot now carries blockPositions + blockStyles; moveBlock +
+    underline/align-only setFormat push snapshots; undo/redo restore them
+    (editorStore.ts). Supersedes D6-5.
+  - A3 CommentTool "You" → commentAuthorYou i18n (en/tr/ru), passed from EditorCanvas.
+  - A4 setTimeout cleanup already present — no change.
+- `bun run build` ✅ green, no MISSING_MESSAGE.
+- Perf to measure in QA: 100-page open may exceed <10s (A5). 500-page Pro open
+  exceeds 120s subprocess timeout → known limitation (out of QA scope).
+- NOT committed — awaiting user QA pass (B1–B3) + GATE 6E confirmation.
