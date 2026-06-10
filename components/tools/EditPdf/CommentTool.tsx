@@ -73,7 +73,12 @@ export function CommentTool({
 
       {open && (
         <div
+          // The bubble lives inside the canvas, whose onPointerDown places a new
+          // comment. Stop pointer/mouse/click here so typing in the bubble (or hitting
+          // its buttons) never bubbles up and drops another sticky note (Wave 6D fix).
+          onPointerDown={(e) => e.stopPropagation()}
           onMouseDown={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
           style={{
             position: "absolute", left: left + 34, top, width: 230,
             background: "var(--card)", border: "1px solid var(--line-2)", borderRadius: 12,

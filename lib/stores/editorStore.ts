@@ -89,6 +89,8 @@ interface EditorState {
   /** additional blocks selected via Select-All (current page); single selection stays in selectedBlock */
   multiSelected: string[];
   editingBlock: string | null;
+  /** currently selected overlay annotation (image/stamp/whiteout/link/highlight/comment/mark) */
+  selectedAnnotId: string | null;
 
   // text formatting (applies to the selected block)
   fontFamily: string;
@@ -145,6 +147,7 @@ interface EditorState {
   setCurrentPage: (p: number) => void;
 
   selectBlock: (id: string | null) => void;
+  selectAnnot: (id: string | null) => void;
   selectAllOnPage: (ids: string[]) => void;
   setEditing: (id: string | null) => void;
   editBlock: (blockId: string, patch: Partial<BlockChange>) => void;
@@ -198,6 +201,7 @@ const INITIAL = {
   selectedBlock: null,
   multiSelected: [] as string[],
   editingBlock: null,
+  selectedAnnotId: null as string | null,
   fontFamily: "Helvetica",
   fontSize: 12,
   fontColor: "#1f1f1f",
@@ -249,7 +253,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
 
   reset: () => set({ ...INITIAL, changes: new Map(), annotations: [], undoStack: [], redoStack: [], blockPositions: {} }),
 
-  setTool: (tool) => set({ tool, selectedBlock: tool === "select" ? get().selectedBlock : null, multiSelected: [], editingBlock: null }),
+  setTool: (tool) => set({ tool, selectedBlock: tool === "select" ? get().selectedBlock : null, multiSelected: [], editingBlock: null, selectedAnnotId: null }),
   setShapeType: (shapeType) => set({ shapeType }),
   setMarkType: (markType) => set({ markType, tool: "mark", selectedBlock: null, multiSelected: [], editingBlock: null }),
   setZoom: (z) => set({ zoom: Math.min(200, Math.max(50, Math.round(z))) }),
@@ -273,9 +277,10 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     } else {
       set({ selectedBlock: id, editingBlock: id ? get().editingBlock : null });
     }
-    set({ multiSelected: [] });
+    set({ multiSelected: [], selectedAnnotId: null });
   },
-  selectAllOnPage: (ids) => set({ multiSelected: ids, selectedBlock: ids[0] ?? null, editingBlock: null }),
+  selectAnnot: (id) => set({ selectedAnnotId: id, selectedBlock: id ? null : get().selectedBlock, multiSelected: [], editingBlock: id ? null : get().editingBlock }),
+  selectAllOnPage: (ids) => set({ multiSelected: ids, selectedBlock: ids[0] ?? null, editingBlock: null, selectedAnnotId: null }),
   setEditing: (id) => set({ editingBlock: id, selectedBlock: id ?? get().selectedBlock, multiSelected: [] }),
 
   editBlock: (blockId, patch) =>

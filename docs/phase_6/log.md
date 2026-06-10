@@ -116,4 +116,20 @@ Commits: 084142e (impl), 351df0d (GATE feedback). Wave 6D next.
   commentColor. `bun run build` ✅ green (no MISSING_MESSAGE). Python py_compile ✅.
 - NOTE: CLAUDE_6 §7 said 6D is "frontend only" — incorrect; pdf-editor.py changed
   (#17/#18/#19) → Hetzner backend deploy required.
-- NOT committed — awaiting GATE 6D confirmation.
+- Committed 90411bd + pushed (user testing on Vercel).
+
+## 2026-06-10 — Wave 6D GATE feedback round 1 (3 bugs)
+
+- Bug 1 (comment can't type): bubble lived inside canvas; only stopped onMouseDown,
+  so onPointerDown bubbled to canvas → placed a new note. Fixed: bubble now stops
+  onPointerDown/onMouseDown/onClick (CommentTool.tsx).
+- Bug 2 (marks all render as ✓ in PDF): ROOT CAUSE = Elysia /save annotation schema
+  (server/routes/editor.ts) whitelisted fields and lacked `markType`+`fill`, so Elysia
+  stripped them → markType undefined → default "check" for all (and shape fill silently
+  dropped too). Added markType+fill to the schema. Added [mark] stderr logging.
+- Bug 3 (highlight recolor): selectedAnnotId was local to EditorCanvas, so the toolbar
+  couldn't react. Promoted to store (selectedAnnotId + selectAnnot); toolbar now shows
+  the highlight palette when a highlight is selected and recolors it via updateAnnotation.
+- `bun run build` ✅ green; py_compile ✅.
+- Python changed (Bug 2) → Hetzner deploy required.
+- NOT marking GATE 6D passed — awaiting re-test.

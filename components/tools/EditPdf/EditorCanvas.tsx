@@ -283,7 +283,10 @@ export function EditorCanvas() {
   const [drawPts, setDrawPts] = useState<Pt[]>([]);
   const [ctx, setCtx] = useState<ContextMenuState | null>(null);
   const [openComment, setOpenComment] = useState<string | null>(null);
-  const [selectedAnnotId, setSelectedAnnotId] = useState<string | null>(null);
+  // Selected overlay annotation lives in the store so the toolbar can react (e.g. recolor
+  // a selected highlight). Aliased here so existing call-sites stay unchanged.
+  const selectedAnnotId = s.selectedAnnotId;
+  const setSelectedAnnotId = s.selectAnnot;
   const [dupConfirm, setDupConfirm] = useState<Annotation | null>(null);
   const draftInputRef = useRef<HTMLInputElement>(null);
   // true once the draft is settled — guards against the focus-race blur that fires

@@ -78,6 +78,9 @@ export function EditorToolbar() {
   const t = useTranslations("ToolPages.editPdf");
   const s = useEditorStore();
   const enabled = s.selectedBlock !== null;
+  // A selected highlight annotation → toolbar shows the highlight palette so it can be
+  // recolored from the toolbar (Wave 6D, GATE feedback).
+  const selHighlight = s.annotations.find((a) => a.id === s.selectedAnnotId && a.type === "highlight") ?? null;
   // Text+ active → keep font/size/color live so the user styles the *next* new block
   const textMode = s.tool === "text";
   const fmtEnabled = enabled || textMode;
@@ -219,16 +222,22 @@ export function EditorToolbar() {
           </>
         )}
 
-        {s.tool === "highlight" && (
+        {(s.tool === "highlight" || selHighlight) && (
           <>
             <TBDiv />
             <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-              {HIGHLIGHT_PALETTE.map((c) => (
-                <button
-                  key={c} type="button" title={c} onClick={() => s.setHighlightColor(c)}
-                  style={{ width: 18, height: 18, borderRadius: 5, background: c, border: 0, cursor: "pointer", boxShadow: s.highlightColor === c ? `0 0 0 2px var(--card), 0 0 0 3.5px ${c}` : "none" }}
-                />
-              ))}
+              {HIGHLIGHT_PALETTE.map((c) => {
+                const activeColor = selHighlight ? selHighlight.color : s.highlightColor;
+                return (
+                  <button
+                    key={c} type="button" title={c}
+                    // Recolor the selected highlight if one is selected; always update the
+                    // default so the next new highlight uses the chosen color too (Wave 6D).
+                    onClick={() => { s.setHighlightColor(c); if (selHighlight) s.updateAnnotation(selHighlight.id, { color: c }); }}
+                    style={{ width: 18, height: 18, borderRadius: 5, background: c, border: 0, cursor: "pointer", boxShadow: activeColor === c ? `0 0 0 2px var(--card), 0 0 0 3.5px ${c}` : "none" }}
+                  />
+                );
+              })}
             </div>
           </>
         )}

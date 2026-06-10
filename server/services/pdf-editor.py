@@ -515,6 +515,7 @@ def _apply_mark(doc, change, affected):
     rgb = _hex_to_rgb01(change.get("color") or "#16A34A")
     width = max(1.5, min(w, h) * 0.1)
     mark = change.get("markType", "check")
+    sys.stderr.write("[mark] type=%s x=%.1f y=%.1f w=%.1f h=%.1f\n" % (mark, x, y, w, h))
     if mark == "circle":
         page.draw_oval(pymupdf.Rect(x, y, x + w, y + h), color=rgb, width=width)
     elif mark == "cross":

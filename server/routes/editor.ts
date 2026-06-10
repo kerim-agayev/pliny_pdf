@@ -174,6 +174,8 @@ export const editor = new Elysia({ prefix: "/api/editor" })
               color: t.Optional(t.String()),
               strokeWidth: t.Optional(t.Number()),
               shapeType: t.Optional(t.String()),
+              fill: t.Optional(t.Boolean()),
+              markType: t.Optional(t.String()),
               path: t.Optional(t.String()),
               x2: t.Optional(t.Number()),
               y2: t.Optional(t.Number()),
