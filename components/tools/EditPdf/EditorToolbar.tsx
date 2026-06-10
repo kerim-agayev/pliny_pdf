@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { useEditorStore, type ShapeType } from "@/lib/stores/editorStore";
 import { addText as apiAddText, uploadImage as apiUploadImage } from "@/lib/api/editor";
+import { cssFont } from "./TextBlock";
 import {
   IconCursor, IconTextPlus, IconWhiteout, IconHighlight, IconStrike, IconPen, IconShapes,
   IconMessage, IconBold, IconItalic, IconUnderlineText, IconAlignLeft, IconAlignCenter,
@@ -70,6 +71,20 @@ function formatDate(fmt: "long" | "dmy" | "iso"): string {
 
 let annStampId = 0;
 const nextStampId = () => `stamp${++annStampId}`;
+
+// Each date stamp stacks below the previous one so multiple stamps never overlap.
+let dateStackCount = 0;
+
+/** Measure a string's rendered width (px ≈ PDF points at scale 1) for an exact block bbox. */
+let measureCanvas: HTMLCanvasElement | null = null;
+function measureDateWidth(text: string, fontSize: number, fontName: string): number {
+  if (typeof document === "undefined") return text.length * fontSize * 0.85;
+  if (!measureCanvas) measureCanvas = document.createElement("canvas");
+  const ctx = measureCanvas.getContext("2d");
+  if (!ctx) return text.length * fontSize * 0.85;
+  ctx.font = `${fontSize}px ${cssFont(fontName)}`;
+  return ctx.measureText(text).width;
+}
 
 export function EditorToolbar() {
   const t = useTranslations("ToolPages.editPdf");
@@ -157,16 +172,22 @@ export function EditorToolbar() {
     const page = s.pages[s.currentPage];
     if (!page || !s.sessionId) return;
     const text = formatDate(fmt);
+    const fs = s.fontSize;
+    // Stack each new date below the previous so two stamps don't land on the same
+    // fixed spot (which overlaps in both the overlay and the baked PNG).
+    const n = dateStackCount++;
+    const xTop = 72;
+    const yTop = 72 + n * Math.round(Math.max(fs * 1.8, 28));
     try {
       const { blockId } = await apiAddText(s.sessionId, {
-        pageNum: page.pageNum, x: 72, y: 72 + s.fontSize,
-        text, fontSize: s.fontSize, fontName: s.fontFamily, color: s.fontColor,
+        pageNum: page.pageNum, x: xTop, y: yTop + fs,
+        text, fontSize: fs, fontName: s.fontFamily, color: s.fontColor,
       });
-      // Size the editable block generously so the whole date fits at any font size —
-      // the overlay clips to w×h (overflow:hidden) once the block is edited/masked.
-      const w = Math.ceil(text.length * s.fontSize * 0.65) + 12;
-      const h = Math.ceil(s.fontSize * 1.5);
-      s.addLocalBlock({ blockId, x: 72, y: 72, w, h, text, fontSize: s.fontSize, fontName: s.fontFamily, color: s.fontColor, bold: false, italic: false });
+      // Measure the real text width so the editable overlay (which clips to w×h with
+      // overflow:hidden once masked) never cuts the date off at any font size.
+      const w = Math.ceil(measureDateWidth(text, fs, s.fontFamily)) + 20;
+      const h = Math.ceil(fs * 1.8);
+      s.addLocalBlock({ blockId, x: xTop, y: yTop, w, h, text, fontSize: fs, fontName: s.fontFamily, color: s.fontColor, bold: false, italic: false });
       s.bumpRender();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : t("saveFailed"));
