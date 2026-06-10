@@ -165,3 +165,25 @@ Hetzner. Wave 6E (comprehensive QA & performance) starts next session.
 - Perf to measure in QA: 100-page open may exceed <10s (A5). 500-page Pro open
   exceeds 120s subprocess timeout → known limitation (out of QA scope).
 - NOT committed — awaiting user QA pass (B1–B3) + GATE 6E confirmation.
+
+## 2026-06-11 — GATE 6E PASSED ✅ — Phase 6 COMPLETE
+
+Comprehensive QA pass done. Pre-QA fixes verified + two ghost-layering bugs found
+during QA and fixed:
+- A1 Find & Replace re-enabled (button + ⌘H); F&R full QA **deferred to Phase 7**
+  (D6-10) — may be reworked/removed then.
+- A2 Full undo coverage (move + underline/align) ✅.
+- A3 comment author i18n ✅.
+- Ghost bug round 1 (D6-11): moved-text ghost mask had zIndex:99 → covered all
+  annotation overlays at the OLD position. Lowered ghost to `auto` (masks PNG by DOM
+  order, paints below annotations). Kept (not deleted) — deleting would expose
+  duplicate stale text until save.
+- Ghost bug round 2 (D6-12): settled moved block kept zIndex:100 → blocked tools at
+  the NEW position. Now `moveOffset ? 100 : undefined` (100 only during active drag,
+  `auto` once settled). Annotations always paint above text blocks via DOM order.
+
+Commits: 6550822 (A1/A2/A3 impl), b40e495 (ghost z-index D6-11), eedd14c (settled
+block z-index D6-12). All frontend-only → Vercel auto-deploy, no Hetzner redeploy.
+`bun run build` ✅ green throughout.
+
+Phase 6 (Edit PDF Final Polish & Features) is complete — all waves 6A–6E gate-passed.

@@ -2,9 +2,9 @@
 
 ## Current Status
 
-- Phase: 6 (Edit PDF Final Polish & Features)
-- Active wave: Wave 6E — Comprehensive QA & Performance (not started)
-- Last completed: Wave 6D — Annotation & Shape Fixes (✅ GATE PASSED 2026-06-10)
+- Phase: 6 (Edit PDF Final Polish & Features) — ✅ **COMPLETE** (GATE 6E passed 2026-06-11)
+- Active wave: none — all waves 6A–6E gate-passed
+- Last completed: Wave 6E — Comprehensive QA & Performance (✅ GATE PASSED 2026-06-11)
 
 ## Wave Status
 
@@ -14,7 +14,7 @@
 | 6B | Images & Stamps | ✅ GATE PASSED (2026-06-10) |
 | 6C | Links & Whiteout Improvements | ✅ GATE PASSED (2026-06-10) |
 | 6D | Annotation & Shape Fixes | ✅ GATE PASSED (2026-06-10) |
-| 6E | Comprehensive QA & Performance | pending |
+| 6E | Comprehensive QA & Performance | ✅ GATE PASSED (2026-06-11) |
 
 ## Key Files
 
