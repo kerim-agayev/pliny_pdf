@@ -229,10 +229,13 @@ export function TextBlock({
           cursor: moveOffset ? "move" : (editing ? "text" : "pointer"),
           transition: moveOffset ? "none" : "border-color 0.12s, background 0.12s",
           transform: moveOffset ? `translate(${moveOffset.dx}px, ${moveOffset.dy}px)` : undefined,
-          // Stay above the original-position ghost (now `auto`) both while dragging
-          // and after settling at a new spot — else, for a small move, the ghost
-          // overlaps the new position and its white paints over the block's text.
-          zIndex: moveOffset || pos ? 100 : undefined,
+          // Only lift the block above everything while it is ACTIVELY dragging
+          // (clear drag feedback). After it settles at a new spot we leave z-index
+          // `auto`: the block is rendered after its ghost in the DOM so it still
+          // paints above the ghost (mask) by DOM order, while annotation overlays
+          // (rendered later still) paint above the settled block — so draw/whiteout/
+          // shape work at the new position too. See decisions.md D6-11/D6-12.
+          zIndex: moveOffset ? 100 : undefined,
           // editing always stays interactive; otherwise only in select mode so
           // whiteout/highlight/text drags can start over existing text.
           pointerEvents: interactive || editing ? "auto" : "none",

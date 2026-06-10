@@ -164,3 +164,19 @@ ghost would show the original text at the old spot AND the moved copy at the new
 spot (duplicate text) until save. The z-index fix solves the functional problem
 (tools no longer blocked) without that regression. The ghost is white-on-white on
 a normal page, so it's invisible except where it was covering annotations.
+
+## D6-12 — Settled moved block drops to z-index `auto` (GATE 6E feedback round 2)
+
+**Decision**: After D6-11, the moved TextBlock div still used `zIndex: 100` for
+both `moveOffset` (active drag) AND `pos` (settled). The settled `100` put the block
+in the positive group, above all annotation overlays — so draw/whiteout/shape placed
+at the block's NEW position rendered under it. Changed to `zIndex: moveOffset ? 100 :
+undefined`: the block is lifted to 100 only while actively dragging (clear feedback);
+once settled it is `auto`.
+
+**Why `auto` is safe for the ghost**: within the TextBlock fragment the ghost is
+rendered before the block div, so by DOM order the settled block still paints above
+its own ghost (no need for a positive z-index). Annotation overlays are rendered
+after all text blocks in EditorCanvas, so at `auto` they paint above the settled
+block — annotations always sit above text blocks (the user's Option C: DOM order, no
+z-index numbers). Consistent with non-moved edited blocks, which were already `auto`.
