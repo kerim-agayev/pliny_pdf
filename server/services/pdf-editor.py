@@ -494,14 +494,32 @@ def _apply_stamp(doc, change, affected):
         return
     x, y = change.get("x", 0), change.get("y", 0)
     w, h = change.get("w", 160), change.get("h", 50)
-    label = change.get("label", "DRAFT")
+    label = (change.get("label") or "DRAFT").strip() or "DRAFT"
     color_hex = change.get("color") or _STAMP_COLORS.get(label, "#3B82F6")
     rgb = _hex_to_rgb01(color_hex)
     rect = pymupdf.Rect(x, y, x + w, y + h)
     page.draw_rect(rect, color=rgb, width=2.5)
-    font_size = min(h * 0.55, w / max(len(label), 1) * 1.3)
-    font_size = max(8.0, min(font_size, 36.0))
-    page.insert_textbox(rect, label, fontname="hebo", fontsize=font_size, color=rgb, align=1)
+    # Size the single-line label to fit the box. insert_textbox renders NOTHING
+    # when a long word (e.g. CONFIDENTIAL) is wider than the box, so we measure the
+    # exact width with get_text_length, shrink to fit, and place it ourselves with
+    # insert_text (which never silently drops) — centered in the rect.
+    fontname = "hebo"  # Helvetica-Bold (base-14)
+    pad = max(4.0, w * 0.07)
+    avail_w = max(1.0, w - 2 * pad)
+    try:
+        unit = pymupdf.get_text_length(label, fontname=fontname, fontsize=1.0)
+    except Exception:
+        unit = len(label) * 0.55  # rough fallback
+    unit = unit or len(label) * 0.55
+    font_size = min(h * 0.6, 40.0)
+    if unit * font_size > avail_w:
+        font_size = avail_w / unit
+    font_size = max(5.0, min(font_size, 40.0))
+    text_w = unit * font_size
+    tx = x + (w - text_w) / 2.0
+    ty = y + h / 2.0 + font_size * 0.35  # baseline ≈ vertical centre
+    sys.stderr.write("[stamp] label=%s size=%.1f w=%.1f text_w=%.1f\n" % (label, font_size, w, text_w))
+    page.insert_text(pymupdf.Point(tx, ty), label, fontname=fontname, fontsize=font_size, color=rgb)
 
 
 def _apply_image(doc, change, affected, session_dir):

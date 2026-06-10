@@ -87,7 +87,12 @@ function StampOverlay({ a, scale, selected, onDrag, onResize, onDelete, onSelect
   const [hovered, setHovered] = useState(false);
   const show = hovered || selected;
   const col = a.color || "#3B82F6";
-  const fs = Math.min(a.h * 0.55, 24) * scale;
+  const label = a.label || "";
+  // Fit the single-line label to the box: bound by height AND width so long words
+  // (CONFIDENTIAL, RECEIVED) shrink instead of overflowing. 0.62 ≈ bold-Helvetica
+  // avg glyph width / fontsize — matches the server's get_text_length sizing.
+  const widthBound = label.length ? (a.w * 0.86) / (label.length * 0.62) : a.h * 0.6;
+  const fs = Math.max(5, Math.min(a.h * 0.6, widthBound, 40)) * scale;
   return (
     <div
       onPointerDown={onDrag}
@@ -99,12 +104,12 @@ function StampOverlay({ a, scale, selected, onDrag, onResize, onDelete, onSelect
         width: a.w * scale, height: a.h * scale,
         border: `2.5px solid ${col}`,
         display: "flex", alignItems: "center", justifyContent: "center",
-        cursor: "move", background: "transparent",
+        cursor: "move", background: "transparent", overflow: "hidden",
         outline: selected ? `2px solid ${col}66` : "none", outlineOffset: 3,
       }}
     >
-      <span style={{ color: col, fontWeight: 700, fontSize: fs, letterSpacing: "0.06em", userSelect: "none", pointerEvents: "none" }}>
-        {a.label}
+      <span style={{ color: col, fontWeight: 700, fontSize: fs, letterSpacing: "0.04em", whiteSpace: "nowrap", userSelect: "none", pointerEvents: "none" }}>
+        {label}
       </span>
       {show && (
         <>
@@ -164,15 +169,19 @@ export function EditorCanvas() {
     return () => clearTimeout(id);
   }, [draft]);
 
-  // Del key removes the selected image/stamp annotation
+  // Delete/Backspace removes the selected image/stamp annotation (laptop/Mac
+  // keyboards send Backspace as the delete key). Ignored while typing in a field.
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (e.key === "Delete" && selectedAnnotId) {
-        const a = s.annotations.find((x) => x.id === selectedAnnotId);
-        if (a?.type === "image" || a?.type === "stamp") {
-          s.removeAnnotation(selectedAnnotId);
-          setSelectedAnnotId(null);
-        }
+      if (e.key !== "Delete" && e.key !== "Backspace") return;
+      if (!selectedAnnotId) return;
+      const el = document.activeElement as HTMLElement | null;
+      if (el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable)) return;
+      const a = s.annotations.find((x) => x.id === selectedAnnotId);
+      if (a?.type === "image" || a?.type === "stamp") {
+        e.preventDefault();
+        s.removeAnnotation(selectedAnnotId);
+        setSelectedAnnotId(null);
       }
     }
     window.addEventListener("keydown", onKey);
