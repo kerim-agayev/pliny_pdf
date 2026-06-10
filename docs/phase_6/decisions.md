@@ -98,3 +98,30 @@ Date stamp removed from UI — not needed by user. The Date dropdown button,
 its handler, and the `toolDate` i18n key (en/tr/ru) were removed from
 `EditorToolbar.tsx`. No backend changes — the feature reused the existing
 `add-text` op, which stays intact for the Text tool and Duplicate.
+
+## D6-8 — Whiteout re-architected to an editable annotation (Wave 6C)
+
+**Decision**: Whiteout changed from an immediate, permanent structural op into a
+client annotation (`type:"whiteout"`), like image/stamp. It's selectable, movable,
+recolorable, bordered, duplicable, deletable, and undoable in the editor; on **save**
+it burns as a redaction (`add_redact_annot(fill=color)` + `apply_redactions()`),
+preserving TRUE content removal — then draws a border rect if requested.
+
+**Why**: The requested whiteout features (color picker, border, duplicate-to-all-pages,
+select/delete) are impossible while whiteout is an immediate fire-and-forget redaction.
+The annotation model gives all of them for free (same pattern as Wave 6B).
+
+**Blackout** = a whiteout annotation with `color:"#000000"` — no separate tool/type.
+Redaction fill is black, so underlying text is genuinely removed (privacy), verified by
+text extraction in the smoke test.
+
+**Links — two-pass**: `cmd_apply` inserts links in a second pass after all other
+changes, so an overlapping whiteout's `apply_redactions()` (which clears everything in
+its rect) can't strip a freshly inserted link.
+
+**Feature 12 (edit/remove EXISTING links) deferred** to a later wave. Existing links are
+preserved automatically (rebuild from original.pdf) but not yet editable. Feasibility
+verified: `get_links()` returns `xref`, `delete_link(dict)` works (PyMuPDF 1.27.2).
+
+**Legacy `/whiteout` route + `whiteout()` client/service** left in place unused
+(back-compat, zero refs) — removable in a later cleanup.

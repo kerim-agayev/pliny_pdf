@@ -158,7 +158,7 @@ async function apply(dir: string): Promise<ApplyResult> {
 }
 
 /** Annotation change types — burned into the PDF, replaced wholesale on each save. */
-const ANNOT_TYPES = new Set(["highlight", "strike", "draw", "shape", "comment", "stamp", "image"]);
+const ANNOT_TYPES = new Set(["highlight", "strike", "draw", "shape", "comment", "stamp", "image", "whiteout", "link"]);
 
 /**
  * Persist the batch of inline text edits + overlay annotations and return the rebuilt

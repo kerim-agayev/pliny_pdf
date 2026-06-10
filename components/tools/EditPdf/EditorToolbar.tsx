@@ -10,8 +10,9 @@ import {
   IconMessage, IconBold, IconItalic, IconUnderlineText, IconAlignLeft, IconAlignCenter,
   IconAlignRight, IconTrash, IconUndo, IconRedo, IconChevron, IconX, IconPlus,
   IconCopy, IconRect, IconCircleShape, IconArrowDraw, IconLineShape,
-  IconImage, IconBolt, type IconProps,
+  IconImage, IconBolt, IconLink, type IconProps,
 } from "@/components/shared/icons";
+import { LinkDialog } from "./LinkDialog";
 import type { ComponentType } from "react";
 
 const ROW: React.CSSProperties = {
@@ -61,6 +62,12 @@ const STAMP_LABELS = ["DRAFT", "APPROVED", "CONFIDENTIAL", "COPY", "FINAL", "VOI
 let annStampId = 0;
 const nextStampId = () => `stamp${++annStampId}`;
 
+let annLinkId = 0;
+const nextLinkId = () => `link${++annLinkId}`;
+
+// Whiteout / blackout fill swatches (white default, black = blackout, + custom via picker).
+const WHITEOUT_COLORS = ["#FFFFFF", "#000000", "#FEF08A", "#F87171"];
+
 export function EditorToolbar() {
   const t = useTranslations("ToolPages.editPdf");
   const s = useEditorStore();
@@ -70,8 +77,11 @@ export function EditorToolbar() {
   const fmtEnabled = enabled || textMode;
   const colorRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
+  const whiteoutColorRef = useRef<HTMLInputElement>(null);
+  const whiteoutBorderColorRef = useRef<HTMLInputElement>(null);
   const [shapesOpen, setShapesOpen] = useState(false);
   const [stampOpen, setStampOpen] = useState(false);
+  const [linkOpen, setLinkOpen] = useState(false);
 
   async function duplicateBlock() {
     const id = s.selectedBlock;
@@ -130,6 +140,19 @@ export function EditorToolbar() {
     }
   }
 
+  function addLink(uri: string) {
+    setLinkOpen(false);
+    const id = s.selectedBlock;
+    const page = s.pages[s.currentPage];
+    if (!id || !page) return;
+    const block = page.textBlocks.find((b) => b.blockId === id);
+    if (!block) return;
+    const pos = s.blockPositions[id];
+    const x = pos?.x ?? block.x;
+    const y = pos?.y ?? block.y;
+    s.addAnnotation({ id: nextLinkId(), type: "link", pageNum: page.pageNum, x, y, w: block.w, h: block.h, color: "#2563EB", uri });
+  }
+
   function addStamp(label: string) {
     const page = s.pages[s.currentPage];
     if (!page) return;
@@ -179,6 +202,41 @@ export function EditorToolbar() {
                   <span style={{ width: 12, height: w, background: s.strokeWidth === w ? "#BFB5FF" : "var(--text-3)", borderRadius: 2 }} />
                 </button>
               ))}
+            </div>
+          </>
+        )}
+
+        {s.tool === "whiteout" && (
+          <>
+            <TBDiv />
+            <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+              {WHITEOUT_COLORS.map((c) => (
+                <button
+                  key={c} type="button" title={c === "#000000" ? t("blackout") : c} onClick={() => s.setWhiteout({ whiteoutColor: c })}
+                  style={{ width: 18, height: 18, borderRadius: 5, background: c, border: c === "#FFFFFF" ? "1px solid var(--line-2)" : 0, cursor: "pointer", boxShadow: s.whiteoutColor === c ? `0 0 0 2px var(--card), 0 0 0 3.5px ${c === "#FFFFFF" ? "#6B5CE7" : c}` : "none" }}
+                />
+              ))}
+              <button
+                type="button" title={t("whiteoutColor")} onClick={() => whiteoutColorRef.current?.click()}
+                style={{ width: 18, height: 18, borderRadius: 5, background: s.whiteoutColor, border: "1px solid var(--line-2)", cursor: "pointer", position: "relative" }}
+              >
+                <input ref={whiteoutColorRef} type="color" value={s.whiteoutColor} onChange={(e) => s.setWhiteout({ whiteoutColor: e.target.value })} style={{ position: "absolute", width: 0, height: 0, opacity: 0, pointerEvents: "none" }} />
+              </button>
+              <div style={{ width: 1, height: 18, background: "var(--line)", margin: "0 2px" }} />
+              <button
+                type="button" title={t("whiteoutBorder")} onClick={() => s.setWhiteout({ whiteoutBorder: !s.whiteoutBorder })}
+                style={{ height: 24, padding: "0 8px", borderRadius: 6, fontSize: 11.5, cursor: "pointer", fontFamily: "inherit", border: s.whiteoutBorder ? "1px solid var(--indigo)" : "1px solid var(--line)", background: s.whiteoutBorder ? "rgba(107,92,231,0.14)" : "transparent", color: s.whiteoutBorder ? "#BFB5FF" : "var(--text-2)" }}
+              >
+                {t("whiteoutBorder")}
+              </button>
+              {s.whiteoutBorder && (
+                <button
+                  type="button" title={t("whiteoutBorderColor")} onClick={() => whiteoutBorderColorRef.current?.click()}
+                  style={{ width: 18, height: 18, borderRadius: 5, background: s.whiteoutBorderColor, border: "1px solid var(--line-2)", cursor: "pointer", position: "relative" }}
+                >
+                  <input ref={whiteoutBorderColorRef} type="color" value={s.whiteoutBorderColor} onChange={(e) => s.setWhiteout({ whiteoutBorderColor: e.target.value })} style={{ position: "absolute", width: 0, height: 0, opacity: 0, pointerEvents: "none" }} />
+                </button>
+              )}
             </div>
           </>
         )}
@@ -276,6 +334,7 @@ export function EditorToolbar() {
           ))}
         </div>
         <div style={{ flex: 1 }} />
+        <TBtn icon={IconLink} label={t("toolLink")} disabled={!enabled} onClick={() => setLinkOpen(true)} />
         <TBtn icon={IconCopy} label={t("duplicate")} disabled={!enabled} onClick={duplicateBlock} />
         <TBtn icon={IconTrash} label={t("deleteBlock")} danger disabled={!enabled} kbd="Del" onClick={() => s.selectedBlock && s.deleteBlock(s.selectedBlock)} />
       </div>
@@ -297,6 +356,8 @@ export function EditorToolbar() {
           </button>
         </div>
       </div>
+
+      <LinkDialog open={linkOpen} onConfirm={addLink} onClose={() => setLinkOpen(false)} />
     </div>
   );
 }

@@ -5,7 +5,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { useEditorStore, computeMatches, type Annotation } from "@/lib/stores/editorStore";
-import { pagePngUrl, addText as apiAddText, whiteout as apiWhiteout, imagePreviewUrl } from "@/lib/api/editor";
+import { pagePngUrl, addText as apiAddText, imagePreviewUrl } from "@/lib/api/editor";
 import { usePinchZoom } from "@/lib/touch";
 import { analytics } from "@/lib/analytics";
 import { TextBlock, cssFont } from "./TextBlock";
@@ -121,6 +121,88 @@ function StampOverlay({ a, scale, selected, onDrag, onResize, onDelete, onSelect
   );
 }
 
+// ── WhiteoutOverlay ──────────────────────────────────────────────────────────
+
+function WhiteoutOverlay({ a, scale, selected, dupLabel, onDrag, onResize, onDelete, onSelect, onDuplicateAll }: {
+  a: Annotation; scale: number; selected: boolean; dupLabel: string;
+  onDrag: (e: React.PointerEvent) => void;
+  onResize: (e: React.PointerEvent) => void;
+  onDelete: () => void;
+  onSelect: () => void;
+  onDuplicateAll: () => void;
+}) {
+  const [hovered, setHovered] = useState(false);
+  const show = hovered || selected;
+  return (
+    <div
+      onPointerDown={onDrag}
+      onClick={onSelect}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        position: "absolute", left: a.x * scale, top: a.y * scale,
+        width: a.w * scale, height: a.h * scale,
+        background: a.color || "#FFFFFF",
+        border: a.border ? `1px solid ${a.borderColor || "#D1D5DB"}` : "1px solid transparent",
+        cursor: "move", boxSizing: "border-box",
+        outline: selected ? "2px solid #6B5CE7" : show ? "1.5px dashed #6B5CE7" : "none",
+        outlineOffset: 1,
+      }}
+    >
+      {show && (
+        <>
+          <button type="button" style={DELETE_BTN} onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); onDelete(); }}>✕</button>
+          <div style={RESIZE_HANDLE} onPointerDown={(e) => { e.stopPropagation(); onResize(e); }} />
+          <button
+            type="button"
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => { e.stopPropagation(); onDuplicateAll(); }}
+            style={{
+              position: "absolute", left: 0, top: -26, whiteSpace: "nowrap",
+              background: "var(--card)", border: "1px solid var(--line-2)", borderRadius: 6,
+              padding: "3px 8px", fontSize: 11, color: "var(--text)", cursor: "pointer",
+              boxShadow: "0 6px 18px -6px rgba(0,0,0,0.5)", fontFamily: "inherit",
+            }}
+          >
+            {dupLabel}
+          </button>
+        </>
+      )}
+    </div>
+  );
+}
+
+// ── LinkOverlay ──────────────────────────────────────────────────────────────
+
+function LinkOverlay({ a, scale, selected, onDelete, onSelect }: {
+  a: Annotation; scale: number; selected: boolean;
+  onDelete: () => void;
+  onSelect: () => void;
+}) {
+  const [hovered, setHovered] = useState(false);
+  const show = hovered || selected;
+  const col = a.color || "#2563EB";
+  return (
+    <div
+      onClick={(e) => { e.stopPropagation(); onSelect(); }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      title={a.uri}
+      style={{
+        position: "absolute", left: a.x * scale, top: a.y * scale,
+        width: a.w * scale, height: a.h * scale,
+        background: `${col}14`, borderBottom: `2px solid ${col}`,
+        cursor: "pointer",
+        outline: selected ? `2px solid ${col}66` : "none", outlineOffset: 1,
+      }}
+    >
+      {show && (
+        <button type="button" style={DELETE_BTN} onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); onDelete(); }}>✕</button>
+      )}
+    </div>
+  );
+}
+
 let annId = 0;
 const nextId = () => `a${++annId}`;
 
@@ -148,7 +230,6 @@ export function EditorCanvas() {
   usePinchZoom(scrollRef, { getScale: () => s.zoom, setScale: (z) => s.setZoom(z), panTarget: () => scrollRef.current });
 
   const [drag, setDrag] = useState<{ start: Pt; cur: Pt; tool: string } | null>(null);
-  const [whiteoutOverlays, setWhiteoutOverlays] = useState<{ pageNum: number; x: number; y: number; w: number; h: number }[]>([]);
   const [draft, setDraft] = useState<Pt | null>(null);
   const [draftText, setDraftText] = useState("");
   const [drawPts, setDrawPts] = useState<Pt[]>([]);
@@ -178,7 +259,7 @@ export function EditorCanvas() {
       const el = document.activeElement as HTMLElement | null;
       if (el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable)) return;
       const a = s.annotations.find((x) => x.id === selectedAnnotId);
-      if (a?.type === "image" || a?.type === "stamp") {
+      if (a?.type === "image" || a?.type === "stamp" || a?.type === "whiteout" || a?.type === "link") {
         e.preventDefault();
         s.removeAnnotation(selectedAnnotId);
         setSelectedAnnotId(null);
@@ -258,20 +339,26 @@ export function EditorCanvas() {
     window.addEventListener("pointerup", up);
   }
 
-  async function commitDrag(tool: string, start: Pt, cur: Pt) {
+  // ---- whiteout: copy the selected box to every other page (one undo step) ----
+  function duplicateWhiteoutAllPages(a: Annotation) {
+    const copies = s.pages
+      .filter((pg) => pg.pageNum !== a.pageNum)
+      .map((pg) => ({ ...a, id: nextId(), pageNum: pg.pageNum }));
+    s.addAnnotations(copies);
+  }
+
+  function commitDrag(tool: string, start: Pt, cur: Pt) {
     const x = Math.min(start.x, cur.x), y = Math.min(start.y, cur.y);
     const w = Math.abs(cur.x - start.x), h = Math.abs(cur.y - start.y);
     if (w < 2 && h < 2) return; // ignore an accidental click without a real drag
     if (tool === "whiteout") {
-      try {
-        await apiWhiteout(s.sessionId!, { pageNum: page.pageNum, x, y, w, h });
-        s.bumpRender();
-        // Render a client-side white cover above text-block overlays so edited blocks
-        // are immediately hidden without waiting for the PNG reload.
-        setWhiteoutOverlays((prev) => [...prev, { pageNum: page.pageNum, x, y, w, h }]);
-      } catch (e) {
-        toast.error(e instanceof Error ? e.message : t("saveFailed"));
-      }
+      // Whiteout/blackout is now an editable annotation (Wave 6C): selectable, movable,
+      // recolorable, deletable, and burned as a redaction on save.
+      s.addAnnotation({
+        id: nextId(), type: "whiteout", pageNum: page.pageNum, x, y,
+        w: Math.max(w, 6), h: Math.max(h, 6),
+        color: s.whiteoutColor, border: s.whiteoutBorder, borderColor: s.whiteoutBorderColor,
+      });
     } else if (tool === "highlight") {
       s.addAnnotation({ id: nextId(), type: "highlight", pageNum: page.pageNum, x, y, w: Math.max(w, 8), h: Math.max(h, 10), color: s.strokeColor });
     } else if (tool === "strike") {
@@ -453,11 +540,6 @@ export function EditorCanvas() {
           />
         ))}
 
-        {/* committed whiteout covers — renders above text-block overlays */}
-        {whiteoutOverlays.filter((r) => r.pageNum === page.pageNum).map((r, i) => (
-          <div key={`wo-${i}`} style={{ position: "absolute", left: r.x * scale, top: r.y * scale, width: r.w * scale, height: r.h * scale, background: "#fff", pointerEvents: "none" }} />
-        ))}
-
         {/* annotation overlays */}
         {pageAnns.map((a) => {
           if (a.type === "highlight" || a.type === "strike" || a.type === "underline")
@@ -484,6 +566,27 @@ export function EditorCanvas() {
                 selected={selectedAnnotId === a.id}
                 onDrag={(e) => beginAnnotDrag(e, a)}
                 onResize={(e) => beginAnnotResize(e, a)}
+                onDelete={() => { s.removeAnnotation(a.id); setSelectedAnnotId(null); }}
+                onSelect={() => setSelectedAnnotId(a.id)}
+              />
+            );
+          if (a.type === "whiteout")
+            return (
+              <WhiteoutOverlay
+                key={a.id} a={a} scale={scale} dupLabel={t("whiteoutDuplicateAll")}
+                selected={selectedAnnotId === a.id}
+                onDrag={(e) => beginAnnotDrag(e, a)}
+                onResize={(e) => beginAnnotResize(e, a)}
+                onDelete={() => { s.removeAnnotation(a.id); setSelectedAnnotId(null); }}
+                onSelect={() => setSelectedAnnotId(a.id)}
+                onDuplicateAll={() => duplicateWhiteoutAllPages(a)}
+              />
+            );
+          if (a.type === "link")
+            return (
+              <LinkOverlay
+                key={a.id} a={a} scale={scale}
+                selected={selectedAnnotId === a.id}
                 onDelete={() => { s.removeAnnotation(a.id); setSelectedAnnotId(null); }}
                 onSelect={() => setSelectedAnnotId(a.id)}
               />

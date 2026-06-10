@@ -333,6 +333,9 @@ def _apply_add_text(doc, change, affected):
 
 
 def _apply_whiteout(doc, change, affected):
+    """Whiteout/blackout: redact (TRUE removal) filled with the chosen color, then
+    optionally draw a border. Wave 6C — driven by a client annotation, so it carries
+    color/border/borderColor; defaults keep the legacy white behavior."""
     page_num = change.get("pageNum", 0)
     if page_num < 0 or page_num >= doc.page_count:
         return
@@ -340,7 +343,30 @@ def _apply_whiteout(doc, change, affected):
     affected.add(page_num)
     x, y = change.get("x", 0), change.get("y", 0)
     w, h = change.get("w", 0), change.get("h", 0)
-    _redact_rect(page, pymupdf.Rect(x, y, x + w, y + h))
+    rect = pymupdf.Rect(x, y, x + w, y + h)
+    fill = _hex_to_rgb01(change.get("color") or "#FFFFFF")
+    page.add_redact_annot(rect, fill=fill)
+    page.apply_redactions()
+    if change.get("border"):
+        # Draw AFTER apply_redactions — redaction clears anything inside the rect.
+        page.draw_rect(rect, color=_hex_to_rgb01(change.get("borderColor") or "#D1D5DB"), width=1)
+
+
+def _apply_link(doc, change, affected):
+    """Insert a URI hyperlink over a rect (Wave 6C). Run in a second pass after all
+    redactions so an overlapping whiteout's apply_redactions can't strip it."""
+    page = _annot_page(doc, change, affected)
+    if page is None:
+        return
+    uri = change.get("uri") or ""
+    if not uri:
+        return
+    x, y = change.get("x", 0), change.get("y", 0)
+    w, h = change.get("w", 0), change.get("h", 0)
+    try:
+        page.insert_link({"kind": pymupdf.LINK_URI, "from": pymupdf.Rect(x, y, x + w, y + h), "uri": uri})
+    except Exception as e:
+        sys.stderr.write(f"[pdf-editor] insert_link error: {e}\n")
 
 
 def _matches_constraints(page, rect, change):
@@ -584,6 +610,12 @@ def cmd_apply(session_dir):
                 _apply_stamp(doc, change, affected)
             elif ctype == "image":
                 _apply_image(doc, change, affected, session_dir)
+            # NB: "link" is handled in a second pass below — after all redactions.
+        # Second pass: insert links last so a whiteout's apply_redactions (which clears
+        # everything inside its rect) can't strip a freshly inserted overlapping link.
+        for change in changes:
+            if change.get("type") == "link":
+                _apply_link(doc, change, affected)
         doc.save(working, garbage=3, deflate=True)
         # Re-render only the pages the change set touched.
         for page_num in sorted(affected):

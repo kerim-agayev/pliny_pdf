@@ -100,6 +100,7 @@ export function EditPdf() {
           color: a.color, strokeWidth: a.strokeWidth, shapeType: a.shapeType,
           path: a.path, x2: a.x2, y2: a.y2, text: a.text,
           imageId: a.imageId, label: a.label,
+          border: a.border, borderColor: a.borderColor, uri: a.uri,
         }) as AnnotationChange),
     [s.annotations],
   );

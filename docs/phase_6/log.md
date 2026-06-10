@@ -53,3 +53,20 @@ Verified after several post-implementation bug-fix rounds:
 
 Commits: 0cd4a45, ed87e7a, 3cfd591, 5a3cb69 (date fixes), fa6e8f8 (date removal).
 Wave 6C (Links & Whiteout Improvements) starts next.
+
+## 2026-06-10 — Wave 6C implemented (GATE pending)
+
+- Whiteout re-architected: immediate structural op → editable client annotation
+  (color picker incl. black=blackout, border toggle+color, duplicate-to-all-pages,
+  select/✕/Del, undo). Burned on save as redaction (true removal) + optional border.
+- Blackout = black whiteout color (no separate tool).
+- Add URL link (feature 11): "Link" button on a selected block → LinkDialog → link
+  annotation → page.insert_link on save (real clickable hyperlink). LinkOverlay with
+  hover URL tooltip + delete.
+- Python: rewrote _apply_whiteout (color fill + border), added _apply_link, two-pass
+  (links after redactions) in cmd_apply.
+- Backend: ANNOT_TYPES += whiteout/link; /save schema += border/borderColor/uri.
+- i18n en/tr/ru added. `bun run build` ✅ green.
+- Python smoke test ✅: blackout removes underlying text; link inserted + survives.
+- Feature 12 (edit/remove existing links) DEFERRED (D6-8).
+- NOT committed — awaiting GATE 6C confirmation.

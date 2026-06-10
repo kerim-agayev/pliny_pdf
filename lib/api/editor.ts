@@ -51,7 +51,7 @@ export type BlockChange = {
 
 /** A client overlay annotation serialized for the server to burn into the PDF (Wave 4C+6B). */
 export type AnnotationChange = {
-  type: "highlight" | "strike" | "draw" | "shape" | "comment" | "stamp" | "image";
+  type: "highlight" | "strike" | "draw" | "shape" | "comment" | "stamp" | "image" | "whiteout" | "link";
   pageNum: number;
   x: number;
   y: number;
@@ -66,6 +66,9 @@ export type AnnotationChange = {
   text?: string;
   imageId?: string;
   label?: string;
+  border?: boolean;
+  borderColor?: string;
+  uri?: string;
 };
 
 /** Error from an editor endpoint, carrying the HTTP status + backend error code. */
