@@ -1,9 +1,9 @@
 # Phase 6 — Known Bugs
 
-## Bug A — Shape drag preview wrong (CRITICAL UX) — Wave 6D / 6A
+## Bug A — Shape drag preview wrong (CRITICAL UX) — Wave 6A / 6D
 
-**Status**: Fixed in Wave 6A — re-verified in Wave 6D (no regression; per-tool drag
-preview at EditorCanvas.tsx renders the correct shape during drag)
+**Status**: ✅ FIXED (Wave 6A) — re-verified at GATE 6D 2026-06-10 (no regression;
+per-tool drag preview at EditorCanvas.tsx renders the correct shape during drag)
 
 **Symptom**: Arrow, circle, line, and strikethrough all render as a generic dashed
 indigo rectangle during drag. Only after mouse release do they become the correct

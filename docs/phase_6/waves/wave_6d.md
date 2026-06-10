@@ -1,6 +1,6 @@
 # Wave 6D — Annotation & Shape Fixes
 
-Status: implemented 2026-06-10, awaiting GATE 6D.
+Status: ✅ DONE — GATE 6D PASSED 2026-06-10.
 
 ## Features & outcomes
 15. Shape drag preview (Bug A) — already fixed in Wave 6A; re-verified, no code change.

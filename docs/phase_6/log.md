@@ -132,4 +132,17 @@ Commits: 084142e (impl), 351df0d (GATE feedback). Wave 6D next.
   the highlight palette when a highlight is selected and recolors it via updateAnnotation.
 - `bun run build` ✅ green; py_compile ✅.
 - Python changed (Bug 2) → Hetzner deploy required.
-- NOT marking GATE 6D passed — awaiting re-test.
+- Commits: b05910e (round 1 fixes), pushed; Hetzner backend redeployed.
+
+## 2026-06-10 — GATE 6D PASSED ✅
+
+Annotation & Shape Fixes verified green:
+- #15 Shape drag preview (regression) — correct shape during drag ✅
+- #16 Highlight — 6-color palette for new highlights + toolbar recolor of selected ✅
+- #17 Sticky note — color choice, drag-reposition, hover-✕ + Del, color burned in PDF ✅
+- #18 Shapes fill — Fill toggle (rect/circle), 20% fill in overlay + downloaded PDF ✅
+- #19 Marks — ✓/✗/○ render as correct shapes in the downloaded PDF ✅
+
+Commits: 90411bd (impl), b05910e (GATE round 1: comment typing, mark types/fill in PDF
+via /save schema, highlight recolor via store-backed selection). Backend deployed to
+Hetzner. Wave 6E (comprehensive QA & performance) starts next session.
