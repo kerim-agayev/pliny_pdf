@@ -32,7 +32,7 @@ import {
 } from "@/components/shared/icons";
 
 export type ToolMode = "local" | "cloud";
-export type ToolCategory = "Organize" | "Convert" | "Edit" | "Secure" | "AI";
+export type ToolCategory = "Organize" | "Convert" | "Edit" | "Secure" | "AI"; // AI kept for type compat — no visible AI tools in Phase 7
 
 export interface Tool {
   /** stable id, also the i18n key under the `Tools` namespace */
@@ -51,7 +51,7 @@ export interface Tool {
   available: boolean;
 }
 
-export const CATEGORIES = ["All", "Organize", "Convert", "Edit", "Secure", "AI"] as const;
+export const CATEGORIES = ["All", "Organize", "Convert", "Edit", "Secure"] as const;
 export type FilterCategory = (typeof CATEGORIES)[number];
 
 export const TOOLS: Tool[] = [
@@ -83,7 +83,7 @@ export const TOOLS: Tool[] = [
   { id: "pdf-to-word", slug: "pdf-to-word", name: "PDF to Word", desc: "High-fidelity DOCX conversion.", cat: "Convert", mode: "cloud", icon: IconWord, accent: "#60A5FA", available: true },
   { id: "word-to-pdf", slug: "word-to-pdf", name: "Word to PDF", desc: "DOCX in, perfectly formatted PDF out.", cat: "Convert", mode: "cloud", icon: IconWord, accent: "#60A5FA", available: true },
   { id: "ocr-pdf", slug: "ocr-pdf", name: "OCR PDF", desc: "Make scanned PDFs searchable and selectable.", cat: "Convert", mode: "cloud", icon: IconScan, accent: "#60A5FA", available: true },
-  { id: "summarize", slug: "summarize", name: "AI Summary", desc: "Outline or executive summary in seconds.", cat: "AI", mode: "cloud", icon: IconSparkle, accent: "#BFB5FF", tag: "AI-powered", available: true },
+  { id: "summarize", slug: "summarize", name: "AI Summary", desc: "Outline or executive summary in seconds.", cat: "AI", mode: "cloud", icon: IconSparkle, accent: "#BFB5FF", tag: "AI-powered", available: false },
 ];
 
 export const toolById = (id: string) => TOOLS.find((t) => t.id === id);

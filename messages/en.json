@@ -1,6 +1,7 @@
 {
   "Nav": {
     "tools": "Tools",
+    "about": "About",
     "pricing": "Pricing",
     "privacy": "Privacy",
     "blog": "Blog",
@@ -29,8 +30,8 @@
     "forPrivacy": "for privacy"
   },
   "Support": {
-    "title": "Support & Refunds",
-    "intro": "Need help or a refund? We're a small team and reply within 24 hours.",
+    "title": "Support",
+    "intro": "Need help? We're a small team and reply within 24 hours.",
     "h": {
       "refunds": "Refunds",
       "contact": "Contact"
@@ -179,13 +180,13 @@
     "summarize": { "name": "AI Summary", "desc": "Outline or executive summary in seconds." }
   },
   "Home": {
-    "heroBadge": "AI summaries are now available",
-    "heroBadgeLink": "Read more",
-    "headlineStart": "Edit PDFs without",
-    "headlineAccent": "uploading them.",
-    "subhead": "All processing happens in your browser. Your files never touch our servers, our analytics, or our database.",
+    "heroBadge": "33 PDF tools — all free",
+    "heroBadgeLink": "No account needed",
+    "headlineStart": "33 PDF tools,",
+    "headlineAccent": "all free.",
+    "subhead": "Edit, convert, sign — without leaving your browser.",
     "ctaPrimary": "Start Free — No signup",
-    "ctaSecondary": "See all tools",
+    "ctaSecondary": "Explore Tools",
     "trustNoUploads": "No uploads",
     "trustNoLimits": "No limits",
     "trustNoWatermark": "No watermark",
@@ -201,7 +202,7 @@
     "whyPrivacySub": "No uploads · No tracking · No cookies",
     "whyAiTitle": "AI-powered summaries",
     "whyAiBody": "Drop a 200-page report and get the gist in seconds. Outline mode, executive summary, or per-section.",
-    "whyAiSub": "2 free per month · Unlimited on Pro",
+    "whyAiSub": "All in your browser · No account needed",
     "whyLangTitle": "Multilingual UI",
     "whyLangBody": "Full interface in English, Türkçe, and Русский — with localized error messages and date formats baked in.",
     "whyLangSub": "EN · TR · RU",
@@ -210,7 +211,7 @@
     "pricingSeeAll": "See full comparison",
     "ctaTitle1": "Your PDFs.",
     "ctaTitle2": "Your machine. Always.",
-    "ctaBody": "Try every tool, no signup required. Pro unlocks server-side conversion and unlimited AI.",
+    "ctaBody": "Try every tool, no account required. All 33 tools are free.",
     "ctaStart": "Start Free",
     "ctaPricing": "View pricing"
   },
@@ -228,8 +229,7 @@
       "Organize": "Organize",
       "Convert": "Convert",
       "Edit": "Edit",
-      "Secure": "Secure",
-      "AI": "AI"
+      "Secure": "Secure"
     }
   },
   "Errors": {
@@ -242,7 +242,7 @@
     "corruptPdf": "This PDF appears to be damaged or unreadable.",
     "passwordRequired": "This PDF is password protected.",
     "wrongPassword": "Incorrect password. Please try again.",
-    "rateLimited": "You've reached today's limit. Try again tomorrow or upgrade to Pro.",
+    "rateLimited": "You've reached today's limit. Try again tomorrow.",
     "networkError": "Network error. Check your connection and try again.",
     "unknownError": "Something went wrong. Please try again.",
     "ocrFailed": "Text recognition failed. Try a clearer scan or a different file.",
@@ -312,7 +312,7 @@
     "cloudNote": "Processed securely · file deleted within 24 hours",
     "cloudDeletedNote": "Your file is processed securely and deleted within 24 hours.",
     "wrongTypeWord": "Only Word documents (.docx) are supported.",
-    "rateLimited": "Daily limit reached. Sign in or upgrade to Pro for more.",
+    "rateLimited": "Daily limit reached. Sign in for more, or try again tomorrow.",
     "aiAnalyzing": "Reading and summarizing your PDF…",
     "signInRequired": "Please sign in to use AI Summary.",
     "signIn": "Sign in",
@@ -756,7 +756,7 @@
       "saveFailed": "Couldn't apply changes. Please try again.",
       "fileTooLarge": "File too large — the limit is {mb} MB.",
       "tooManyPages": "Too many pages — the limit is {limit}.",
-      "rateLimited": "Daily limit reached. Sign in or upgrade for more.",
+      "rateLimited": "Daily limit reached. Sign in for more, or try again tomorrow.",
       "copiedToast": "Copied to clipboard.",
       "cutToast": "Cut to clipboard.",
       "pastedToast": "Pasted.",
@@ -880,7 +880,10 @@
     "planFree": "FREE",
     "planPro": "PRO",
     "emptyActivity": "Nothing here yet. Run a tool to see it in your history.",
-    "emptyPrivacy": "Local tools don't appear here — your files never touch our servers. Only cloud tools (PDF↔Word, AI Summary) are recorded.",
+    "emptyPrivacy": "Local tools don't appear here — your files never touch our servers. Only cloud tools (PDF↔Word, OCR, Compress, Grayscale, Merge, Edit PDF, PDF to JPG) are recorded.",
+    "localToolsLabel": "Local tools",
+    "localToolsNote": "Unlimited · runs in your browser",
+    "exploreTools": "Explore all tools",
     "openTool": "Open",
     "historyRange": "Last {days} days",
     "thisMonth": "This month",

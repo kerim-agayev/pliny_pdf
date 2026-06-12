@@ -3,7 +3,6 @@ import { setRequestLocale } from "next-intl/server";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { ToolCard } from "@/components/shared/ToolCard";
-import { PlanCard } from "@/components/marketing/PlanCard";
 import { PrivacyBadge } from "@/components/shared/PrivacyBadge";
 import { pageMetadata } from "@/lib/seo";
 import {
@@ -169,25 +168,6 @@ function HomeContent() {
         </div>
       </section>
 
-      {/* Pricing preview */}
-      <section className="px-5 py-24 sm:px-10" style={{ borderTop: "1px solid var(--line)" }}>
-        <div className="mx-auto max-w-[1180px]">
-          <div className="mb-11 flex items-end justify-between gap-10">
-            <div>
-              <Kicker>{t("pricingKicker")}</Kicker>
-              <h2 className="text-[40px] tracking-[-0.025em]">{t("pricingTitle")}</h2>
-            </div>
-            <Link href="/pricing" className="inline-flex shrink-0 items-center gap-1.5 pb-2 text-sm" style={{ color: "var(--text-2)" }}>
-              {t("pricingSeeAll")} <IconArrow size={14} />
-            </Link>
-          </div>
-          <div className="grid grid-cols-1 gap-5 md:grid-cols-2">
-            <PlanCard plan="free" compact />
-            <PlanCard plan="pro" compact />
-          </div>
-        </div>
-      </section>
-
       {/* Footer CTA */}
       <section
         className="px-5 py-[120px] text-center sm:px-10"
@@ -209,8 +189,8 @@ function HomeContent() {
           <Link href="/tools" className="pp-btn pp-btn-lg">
             {t("ctaStart")} <IconArrow size={16} />
           </Link>
-          <Link href="/pricing" className="pp-btn pp-btn-lg pp-btn-ghost">
-            {t("ctaPricing")}
+          <Link href="/tools" className="pp-btn pp-btn-lg pp-btn-ghost">
+            {t("ctaSecondary")} <IconArrow size={16} />
           </Link>
         </div>
       </section>

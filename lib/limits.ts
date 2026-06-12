@@ -4,38 +4,60 @@ import type { Plan } from "./ratelimit";
  * File-size and page-count limits. Shared by the frontend dropzone (friendly
  * pre-upload check + badge) and the backend routes (authoritative enforcement).
  *
- * Per-plan (anon / free / pro), revised in Phase 5 Wave 5A so no tool exceeds
- * ~30 s for any tier:
- * - Local (browser) tools: 10 / 25 / 50 MB, 50 / 150 / 300 pages.
- * - Cloud tools: 25 / 100 / 250 MB, 50 / 300 / 1000 pages.
- * - Edit PDF has its own table (see EDITOR_MAX_* below).
+ * Two visible tiers (Phase 7): anon and free. Pro accounts get free-tier limits
+ * via effectivePlan() — graceful degradation, no breaking change for legacy accounts.
+ *
+ * - Local (browser) tools: 10 / 25 MB, 30 / 100 pages.
+ * - Cloud tools: 20 / 75 MB (default), 50 / 200 pages (default).
+ * - Per-tool overrides: Merge, Office (Word/OCR), PDF→JPG, Edit PDF.
  */
 
-export const LOCAL_MAX_MB = { anon: 10, free: 25, pro: 50 } as const;
-export const LOCAL_MAX_PAGES = { anon: 50, free: 150, pro: 300 } as const;
-
-export const CLOUD_MAX_MB = { anon: 25, free: 100, pro: 250 } as const;
-export const CLOUD_MAX_PAGES = { anon: 50, free: 300, pro: 1000 } as const;
-
-// PDF→JPG renders every page, so it's heavier than the other cloud tools and needs
-// a tighter page cap to stay fast (~<30s). Size still uses CLOUD_MAX_MB. (Wave 5B)
-export const PDF_TO_JPG_MAX_PAGES = { anon: 20, free: 50, pro: 200 } as const;
-
-// JPG→PDF is local but embeds each image; cap the count per plan. (Wave 5C)
-export const JPG_TO_PDF_MAX_IMAGES = { anon: 50, free: 100, pro: 200 } as const;
-
-const MB = 1024 * 1024;
-
-/** Resolve a plan to a tier key; `null`/`undefined` ⇒ anonymous. */
-function tier(plan: Plan | null | undefined): "anon" | "free" | "pro" {
-  if (plan === "pro") return "pro";
-  if (plan === "free") return "free";
+/** Maps legacy pro accounts to free-tier limits. Use in every limit lookup. */
+export function effectivePlan(plan: Plan | null | undefined): "anon" | "free" {
+  if (plan === "free" || plan === "pro") return "free";
   return "anon";
 }
 
-/** Local size limit (MB) for a plan. `null`/`undefined` ⇒ anonymous. */
+// ─── Local tools ───────────────────────────────────────────────────────────────
+
+export const LOCAL_MAX_MB = { anon: 10, free: 25 } as const;
+export const LOCAL_MAX_PAGES = { anon: 30, free: 100 } as const;
+
+// ─── Cloud tools (default — Compress, Grayscale, Merge MB) ────────────────────
+
+export const CLOUD_MAX_MB = { anon: 20, free: 75 } as const;
+export const CLOUD_MAX_PAGES = { anon: 50, free: 200 } as const;
+
+// PDF→JPG renders every page; page cap is tighter than the default. (Phase 5 Wave 5B)
+export const PDF_TO_JPG_MAX_PAGES = { anon: 15, free: 50 } as const;
+
+// Merge allows more pages than the default cloud cap.
+export const MERGE_MAX_PAGES = { anon: 100, free: 300 } as const;
+
+// PDF→Word, Word→PDF, OCR — heavier server-side work; tighter MB + page caps.
+export const OFFICE_MAX_MB = { anon: 15, free: 50 } as const;
+export const OFFICE_MAX_PAGES = { anon: 25, free: 75 } as const;
+
+// JPG→PDF is local but embeds each image; cap the image count. (Phase 5 Wave 5C)
+export const JPG_TO_PDF_MAX_IMAGES = { anon: 50, free: 100 } as const;
+
+// ─── New tools (Phase 7B–7D) — constants ready before components are built ────
+
+// Repeat Pages: max number of times a page can be repeated.
+export const REPEAT_MAX_COUNT = { anon: 50, free: 200 } as const;
+
+// N-up Layout: max number of output pages (input pages collapse onto sheets).
+export const NUP_MAX_OUTPUT_PAGES = { anon: 100, free: 300 } as const;
+
+// PDF to Text, Reverse Pages, PDF Booklet: use standard LOCAL_MAX_MB / LOCAL_MAX_PAGES.
+
+// ─── Helpers ───────────────────────────────────────────────────────────────────
+
+const MB = 1024 * 1024;
+
+/** Local size limit (MB) for a plan. */
 export function localMaxMB(plan: Plan | null | undefined): number {
-  return LOCAL_MAX_MB[tier(plan)];
+  return LOCAL_MAX_MB[effectivePlan(plan)];
 }
 
 /** Local size limit in bytes for a plan. */
@@ -45,12 +67,12 @@ export function localMaxBytes(plan: Plan | null | undefined): number {
 
 /** Maximum page count a local tool will accept for a plan. */
 export function localMaxPages(plan: Plan | null | undefined): number {
-  return LOCAL_MAX_PAGES[tier(plan)];
+  return LOCAL_MAX_PAGES[effectivePlan(plan)];
 }
 
-/** Cloud size limit (MB) for a plan. `null`/`undefined` ⇒ anonymous. */
+/** Cloud size limit (MB) for a plan (default — use officeMaxMB for Word/OCR). */
 export function cloudMaxMB(plan: Plan | null | undefined): number {
-  return CLOUD_MAX_MB[tier(plan)];
+  return CLOUD_MAX_MB[effectivePlan(plan)];
 }
 
 /** Cloud size limit in bytes for a plan. */
@@ -58,19 +80,49 @@ export function cloudMaxBytes(plan: Plan | null | undefined): number {
   return cloudMaxMB(plan) * MB;
 }
 
-/** Maximum page count a cloud tool will accept for a plan. */
+/** Maximum page count a cloud tool will accept for a plan (default). */
 export function cloudMaxPages(plan: Plan | null | undefined): number {
-  return CLOUD_MAX_PAGES[tier(plan)];
+  return CLOUD_MAX_PAGES[effectivePlan(plan)];
 }
 
 /** Maximum page count for PDF→JPG (tighter — every page is rendered). */
 export function pdfToJpgMaxPages(plan: Plan | null | undefined): number {
-  return PDF_TO_JPG_MAX_PAGES[tier(plan)];
+  return PDF_TO_JPG_MAX_PAGES[effectivePlan(plan)];
+}
+
+/** Maximum page count for Merge (higher anon cap than default cloud). */
+export function mergeMaxPages(plan: Plan | null | undefined): number {
+  return MERGE_MAX_PAGES[effectivePlan(plan)];
+}
+
+/** Size limit (MB) for Office tools (PDF→Word, Word→PDF, OCR). */
+export function officeMaxMB(plan: Plan | null | undefined): number {
+  return OFFICE_MAX_MB[effectivePlan(plan)];
+}
+
+/** Size limit in bytes for Office tools. */
+export function officeMaxBytes(plan: Plan | null | undefined): number {
+  return officeMaxMB(plan) * MB;
+}
+
+/** Maximum page count for Office tools (PDF→Word, Word→PDF, OCR). */
+export function officeMaxPages(plan: Plan | null | undefined): number {
+  return OFFICE_MAX_PAGES[effectivePlan(plan)];
 }
 
 /** Maximum number of images JPG→PDF will combine for a plan. */
 export function jpgToPdfMaxImages(plan: Plan | null | undefined): number {
-  return JPG_TO_PDF_MAX_IMAGES[tier(plan)];
+  return JPG_TO_PDF_MAX_IMAGES[effectivePlan(plan)];
+}
+
+/** Maximum repeat count for the Repeat Pages tool. */
+export function repeatMaxCount(plan: Plan | null | undefined): number {
+  return REPEAT_MAX_COUNT[effectivePlan(plan)];
+}
+
+/** Maximum output pages for the N-up Layout tool. */
+export function nupMaxOutputPages(plan: Plan | null | undefined): number {
+  return NUP_MAX_OUTPUT_PAGES[effectivePlan(plan)];
 }
 
 /** Round a byte count to one-decimal MB for display in error messages. */
@@ -78,21 +130,20 @@ export function bytesToMB(bytes: number): number {
   return Math.round((bytes / MB) * 10) / 10;
 }
 
+// ─── Edit PDF ──────────────────────────────────────────────────────────────────
+
 /**
- * Edit-PDF (Phase 4) limits. The cloud editor has its own table (CLAUDE_4 §3) —
- * stricter anon size than generic cloud tools, plus page-count and session-timeout
- * caps. Accepts "anon" as well as a Plan so callers can pass the session's stored
- * label directly.
+ * Edit-PDF (Phase 4) limits. Stricter than generic cloud tools.
+ * Accepts "anon" directly as well as a Plan.
  */
 type EditorPlan = Plan | "anon" | null | undefined;
 
-export const EDITOR_MAX_MB = { anon: 15, free: 50, pro: 200 } as const;
-export const EDITOR_MAX_PAGES = { anon: 20, free: 100, pro: 500 } as const;
-const EDITOR_TTL_MIN = { anon: 15, free: 30, pro: 60 } as const;
+export const EDITOR_MAX_MB = { anon: 10, free: 30 } as const;
+export const EDITOR_MAX_PAGES = { anon: 15, free: 50 } as const;
+const EDITOR_TTL_MIN = { anon: 15, free: 30 } as const;
 
-function editorTier(plan: EditorPlan): "anon" | "free" | "pro" {
-  if (plan === "pro") return "pro";
-  if (plan === "free") return "free";
+function editorTier(plan: EditorPlan): "anon" | "free" {
+  if (plan === "free" || plan === "pro") return "free";
   return "anon";
 }
 

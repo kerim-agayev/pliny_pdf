@@ -15,7 +15,7 @@ export function MobileNav() {
 
   const links = [
     { href: "/tools", label: t("tools") },
-    { href: "/pricing", label: t("pricing") },
+    { href: "/about", label: t("about") },
     { href: "/privacy", label: t("privacy") },
   ];
 

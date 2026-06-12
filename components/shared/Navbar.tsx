@@ -26,7 +26,7 @@ export function Navbar() {
           </Link>
           <div className="hidden items-center gap-1 md:flex">
             <Link href="/tools" className="pp-nav-link">{t("tools")}</Link>
-            <Link href="/pricing" className="pp-nav-link">{t("pricing")}</Link>
+            <Link href="/about" className="pp-nav-link">{t("about")}</Link>
             <Link href="/privacy" className="pp-nav-link">{t("privacy")}</Link>
           </div>
         </div>

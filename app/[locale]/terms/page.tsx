@@ -14,7 +14,7 @@ export async function generateMetadata({
     path: "/terms",
     title: "Terms of Service — PlinyPDF",
     description:
-      "PlinyPDF Terms of Service: acceptable use, billing via Lemonsqueezy, 14-day money-back guarantee, and how local and cloud tools handle your files.",
+      "PlinyPDF Terms of Service: acceptable use, how local and cloud tools handle your files, and your rights.",
   });
 }
 
@@ -28,8 +28,8 @@ export default async function TermsPage({ params }: { params: Promise<{ locale: 
       <LegalSection heading={t("h.service")}>
         <p>
           PlinyPDF provides online tools for working with PDF files — merging, splitting,
-          compressing, converting, annotating, and AI summarization. The service is offered as-is and
-          may change as we add or improve tools.
+          compressing, converting, annotating, and editing. The service is offered as-is and may
+          change as we add or improve tools.
         </p>
       </LegalSection>
 
@@ -48,20 +48,12 @@ export default async function TermsPage({ params }: { params: Promise<{ locale: 
         </ul>
       </LegalSection>
 
-      <LegalSection heading={t("h.billing")}>
-        <p>
-          Pro subscriptions are billed through <strong>Lemonsqueezy</strong>, our Merchant of Record,
-          which handles payment and VAT. We offer a <strong>14-day money-back guarantee</strong> — no
-          questions asked. You can cancel anytime; your Pro access continues until the end of the
-          current billing period. We don&apos;t do aggressive auto-renewal or win-back tactics.
-        </p>
-      </LegalSection>
-
       <LegalSection heading={t("h.processing")}>
         <p>
           <strong>Local tools</strong> run in your browser; we have zero access to those files.{" "}
-          <strong>Cloud tools</strong> (PDF ↔ Word, AI Summary) are processed on our servers and
-          deleted within 24 hours, and are never used to train any model.
+          <strong>Cloud tools</strong> (PDF ↔ Word, OCR, Compress, Grayscale, Merge, Edit PDF,
+          and PDF to JPG) are processed on our servers and deleted within 24 hours, and are never
+          used to train any model.
         </p>
       </LegalSection>
 

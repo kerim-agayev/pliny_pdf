@@ -33,13 +33,9 @@ export default async function PrivacyPage({ params }: { params: Promise<{ locale
             account-related email.
           </li>
           <li>
-            <strong>Payment data</strong> — handled entirely by Lemonsqueezy as Merchant of Record.
-            We never see or store your card details.
-          </li>
-          <li>
             <strong>File metadata for cloud tools</strong> — filename, size, and timestamp of
             conversions you run while signed in. The file <em>contents</em> are deleted within 24
-            hours; the metadata row is kept 7 days (Free) or 30 days (Pro), then purged.
+            hours; the metadata row is kept 7 days, then purged.
           </li>
         </ul>
       </LegalSection>
@@ -49,7 +45,7 @@ export default async function PrivacyPage({ params }: { params: Promise<{ locale
           <li>
             The contents of files you process with <strong>local tools</strong> — they never leave
             your browser, so we couldn&apos;t collect them if we wanted to. Most tools are local; a
-            few (PDF&nbsp;to&nbsp;Word, Word&nbsp;to&nbsp;PDF, OCR, AI&nbsp;Summary, Edit&nbsp;PDF,
+            few (PDF&nbsp;to&nbsp;Word, Word&nbsp;to&nbsp;PDF, OCR, Edit&nbsp;PDF,
             Compress, Grayscale, PDF&nbsp;to&nbsp;JPG, and Merge) run on our server and are clearly
             marked with a blue <strong>Cloud</strong> badge — those files are deleted within 24 hours.
           </li>
@@ -71,10 +67,6 @@ export default async function PrivacyPage({ params }: { params: Promise<{ locale
           <li>
             <strong>Google</strong> — only if you choose &ldquo;Sign in with Google&rdquo; (OAuth).
           </li>
-          <li>
-            <strong>Lemonsqueezy</strong> — payment processor and Merchant of Record; handles all
-            billing and VAT.
-          </li>
         </ul>
       </LegalSection>
 
@@ -87,8 +79,8 @@ export default async function PrivacyPage({ params }: { params: Promise<{ locale
 
       <LegalSection heading={t("h.retention")}>
         <p>
-          Cloud-tool files: deleted within 24 hours. File-history metadata: 7 days (Free) / 30 days
-          (Pro). Account data: kept until you ask us to delete it.
+          Cloud-tool files: deleted within 24 hours. Account data: kept until you ask us to delete
+          it.
         </p>
       </LegalSection>
 

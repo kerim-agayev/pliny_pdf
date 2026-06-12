@@ -1,6 +1,7 @@
 {
   "Nav": {
     "tools": "Araçlar",
+    "about": "Hakkında",
     "pricing": "Fiyatlandırma",
     "privacy": "Gizlilik",
     "blog": "Blog",
@@ -29,8 +30,8 @@
     "forPrivacy": "ile yapıldı"
   },
   "Support": {
-    "title": "Destek ve İadeler",
-    "intro": "Yardım veya iade mi gerekiyor? Küçük bir ekibiz ve 24 saat içinde yanıt veriyoruz.",
+    "title": "Destek",
+    "intro": "Yardım mı gerekiyor? Küçük bir ekibiz ve 24 saat içinde yanıt veriyoruz.",
     "h": {
       "refunds": "İadeler",
       "contact": "İletişim"
@@ -179,13 +180,13 @@
     "summarize": { "name": "Yapay Zekâ Özeti", "desc": "Saniyeler içinde özet veya taslak." }
   },
   "Home": {
-    "heroBadge": "Yapay zekâ özetleri artık kullanılabilir",
-    "heroBadgeLink": "Daha fazla",
-    "headlineStart": "PDF'leri yüklemeden",
-    "headlineAccent": "düzenleyin.",
-    "subhead": "Tüm işlemler tarayıcınızda gerçekleşir. Dosyalarınız sunucularımıza, analizlerimize veya veritabanımıza asla dokunmaz.",
+    "heroBadge": "33 PDF aracı — hepsi ücretsiz",
+    "heroBadgeLink": "Hesap gerekmez",
+    "headlineStart": "33 PDF aracı,",
+    "headlineAccent": "hepsi ücretsiz.",
+    "subhead": "Düzenle, dönüştür, imzala — tarayıcınızdan ayrılmadan.",
     "ctaPrimary": "Ücretsiz Başla — Kayıt yok",
-    "ctaSecondary": "Tüm araçları gör",
+    "ctaSecondary": "Tüm Araçları Keşfet",
     "trustNoUploads": "Yükleme yok",
     "trustNoLimits": "Sınır yok",
     "trustNoWatermark": "Filigran yok",
@@ -201,7 +202,7 @@
     "whyPrivacySub": "Yükleme yok · İzleme yok · Çerez yok",
     "whyAiTitle": "Yapay zekâ destekli özetler",
     "whyAiBody": "200 sayfalık bir raporu bırakın, saniyeler içinde özünü alın. Taslak, yönetici özeti veya bölüm bölüm.",
-    "whyAiSub": "Ayda 2 ücretsiz · Pro'da sınırsız",
+    "whyAiSub": "Tarayıcınızda çalışır · Hesap gerekmez",
     "whyLangTitle": "Çok dilli arayüz",
     "whyLangBody": "İngilizce, Türkçe ve Rusça tam arayüz — yerelleştirilmiş hata mesajları ve tarih biçimleriyle.",
     "whyLangSub": "EN · TR · RU",
@@ -210,7 +211,7 @@
     "pricingSeeAll": "Tüm karşılaştırmayı gör",
     "ctaTitle1": "PDF'leriniz.",
     "ctaTitle2": "Sizin makineniz. Her zaman.",
-    "ctaBody": "Her aracı kayıt olmadan deneyin. Pro, sunucu dönüşümünü ve sınırsız yapay zekâyı açar.",
+    "ctaBody": "Her aracı hesap açmadan deneyin. 33 aracın tamamı ücretsiz.",
     "ctaStart": "Ücretsiz Başla",
     "ctaPricing": "Fiyatları gör"
   },
@@ -228,8 +229,7 @@
       "Organize": "Düzenle",
       "Convert": "Dönüştür",
       "Edit": "Düzelt",
-      "Secure": "Güvenlik",
-      "AI": "Yapay Zekâ"
+      "Secure": "Güvenlik"
     }
   },
   "Errors": {
@@ -242,7 +242,7 @@
     "corruptPdf": "Bu PDF bozuk veya okunamıyor görünüyor.",
     "passwordRequired": "Bu PDF parola korumalı.",
     "wrongPassword": "Hatalı parola. Lütfen tekrar deneyin.",
-    "rateLimited": "Bugünkü sınıra ulaştınız. Yarın tekrar deneyin veya Pro'ya geçin.",
+    "rateLimited": "Bugünkü sınıra ulaştınız. Yarın tekrar deneyin.",
     "networkError": "Ağ hatası. Bağlantınızı kontrol edip tekrar deneyin.",
     "unknownError": "Bir şeyler ters gitti. Lütfen tekrar deneyin.",
     "ocrFailed": "Metin tanıma başarısız oldu. Daha net bir tarama veya farklı bir dosya deneyin.",
@@ -312,7 +312,7 @@
     "cloudNote": "Güvenle işlenir · dosya 24 saat içinde silinir",
     "cloudDeletedNote": "Dosyanız güvenle işlenir ve 24 saat içinde silinir.",
     "wrongTypeWord": "Yalnızca Word belgeleri (.docx) desteklenir.",
-    "rateLimited": "Günlük sınıra ulaşıldı. Daha fazlası için giriş yapın veya Pro'ya yükseltin.",
+    "rateLimited": "Günlük sınıra ulaşıldı. Daha fazlası için giriş yapın veya yarın tekrar deneyin.",
     "aiAnalyzing": "PDF'iniz okunuyor ve özetleniyor…",
     "signInRequired": "AI Özet'i kullanmak için lütfen giriş yapın.",
     "signIn": "Giriş yap",
@@ -756,7 +756,7 @@
       "saveFailed": "Değişiklikler uygulanamadı. Lütfen tekrar deneyin.",
       "fileTooLarge": "Dosya çok büyük — sınır {mb} MB.",
       "tooManyPages": "Çok fazla sayfa — sınır {limit}.",
-      "rateLimited": "Günlük sınıra ulaşıldı. Daha fazlası için giriş yapın veya yükseltin.",
+      "rateLimited": "Günlük sınıra ulaşıldı. Daha fazlası için giriş yapın veya yarın tekrar deneyin.",
       "copiedToast": "Panoya kopyalandı.",
       "cutToast": "Panoya kesildi.",
       "pastedToast": "Yapıştırıldı.",
@@ -880,7 +880,10 @@
     "planFree": "ÜCRETSİZ",
     "planPro": "PRO",
     "emptyActivity": "Henüz bir şey yok. Geçmişinizde görmek için bir araç çalıştırın.",
-    "emptyPrivacy": "Yerel araçlar burada görünmez — dosyalarınız sunucularımıza hiç dokunmaz. Yalnızca bulut araçları (PDF↔Word, AI Özet) kaydedilir.",
+    "emptyPrivacy": "Yerel araçlar burada görünmez — dosyalarınız sunucularımıza hiç dokunmaz. Yalnızca bulut araçları (PDF↔Word, OCR, Sıkıştır, Gri Ton, Birleştir, PDF Düzenle, PDF↔JPG) kaydedilir.",
+    "localToolsLabel": "Yerel araçlar",
+    "localToolsNote": "Sınırsız · tarayıcınızda çalışır",
+    "exploreTools": "Tüm araçları keşfet",
     "openTool": "Aç",
     "historyRange": "Son {days} gün",
     "thisMonth": "Bu ay",

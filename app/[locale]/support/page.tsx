@@ -12,9 +12,9 @@ export async function generateMetadata({
   return pageMetadata({
     locale,
     path: "/support",
-    title: "Support & Refunds — PlinyPDF",
+    title: "Support — PlinyPDF",
     description:
-      "Get help with PlinyPDF, ask billing questions, or request a refund under our 14-day guarantee. We reply within 24 hours.",
+      "Get help with PlinyPDF. We reply within 24 hours.",
   });
 }
 
@@ -31,10 +31,6 @@ export default async function SupportPage({ params }: { params: Promise<{ locale
 
   return (
     <LegalShell title={t("title")} intro={t("intro")}>
-      <LegalSection heading={t("h.refunds")}>
-        <p>{t.rich("refundsBody", { mail })}</p>
-      </LegalSection>
-
       <LegalSection heading={t("h.contact")}>
         <p>{t.rich("contactBody", { mail })}</p>
       </LegalSection>

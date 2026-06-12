@@ -18,7 +18,7 @@ export function Footer() {
       title: t("product"),
       links: [
         { label: t("allTools"), href: "/tools" },
-        { label: t("pricing"), href: "/pricing" },
+        { label: t("about"), href: "/about" },
         { label: t("roadmap"), href: "/tools" },
         { label: t("changelog"), href: "/tools" },
       ],
