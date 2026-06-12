@@ -39,6 +39,7 @@ const REGISTRY = {
   MarkdownToPdf: dynamic(() => import("./MarkdownToPdf").then((m) => m.MarkdownToPdf), { ssr: false, loading }),
   PdfToTextTool: dynamic(() => import("./PdfToTextTool").then((m) => m.PdfToTextTool), { ssr: false, loading }),
   ReversePagesTool: dynamic(() => import("./ReversePagesTool").then((m) => m.ReversePagesTool), { ssr: false, loading }),
+  NupLayoutTool: dynamic(() => import("./NupLayoutTool").then((m) => m.NupLayoutTool), { ssr: false, loading }),
   RedactContent: dynamic(() => import("./RedactContent").then((m) => m.RedactContent), { ssr: false, loading }),
   CropPdf: dynamic(() => import("./CropPdf").then((m) => m.CropPdf), { ssr: false, loading }),
   SignPdf: dynamic(() => import("./SignPdf").then((m) => m.SignPdf), { ssr: false, loading }),

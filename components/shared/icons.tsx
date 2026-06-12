@@ -119,6 +119,9 @@ export const IconLayers = (p: IconProps) => (
 export const IconText = (p: IconProps) => (
   <I {...p}><path d="M5 6h14" /><path d="M5 10h14" /><path d="M5 14h10" /><path d="M5 18h7" /></I>
 );
+export const IconNup = (p: IconProps) => (
+  <I {...p}><rect x="4" y="4" width="16" height="16" rx="1.5" /><path d="M12 4v16" /><path d="M4 12h16" /></I>
+);
 export const IconMarkdown = (p: IconProps) => (
   <I {...p}>
     <rect x="3" y="6" width="18" height="12" rx="2" />

@@ -179,6 +179,11 @@ export const TOOL_SEO: Record<string, { title: string; description: string }> = 
     title: "Reverse PDF Pages — PlinyPDF",
     description: "Flip the page order of a PDF — last page first — entirely in your browser. No upload.",
   },
+  "n-up-layout": {
+    title: "N-up Layout — PlinyPDF",
+    description:
+      "Place 2, 4, 6, or 9 PDF pages on a single sheet to save paper. Choose A4, Letter, or Legal, portrait or landscape. In your browser.",
+  },
   summarize: {
     title: "AI PDF Summary — PlinyPDF",
     description:

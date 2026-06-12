@@ -183,6 +183,11 @@ const TOOL_FAQ: Record<string, ToolSchemaCopy["faq"]> = {
     { q: "Does reversing change the page content?", a: "No — only the order changes. Each page is copied exactly, with no re-compression, just in the opposite sequence." },
     { q: "Is my original file modified?", a: "No — you download a new PDF with the pages reversed. Your original stays untouched, and nothing is uploaded." },
   ],
+  "n-up-layout": [
+    PRIVACY_FAQ,
+    { q: "How many pages can I fit on one sheet?", a: "Choose 2-up, 4-up, 6-up, or 9-up. Each source page is scaled to fit its cell while keeping its aspect ratio." },
+    { q: "What happens if the page count doesn't fill the last sheet?", a: "The remaining cells on the final sheet are simply left blank — no pages are dropped or duplicated." },
+  ],
   summarize: [
     CLOUD_PRIVACY_FAQ,
     { q: "What kinds of summary can I get?", a: "An executive summary, an outline, or a per-section breakdown." },
