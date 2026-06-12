@@ -2,14 +2,14 @@
 
 ## Current Status
 - Phase: 7
-- Active wave: 7A — Pro Removal + Limit Revision
-- Next step: Execute Wave 7A tasks per plan
+- Active wave: 7D — Repeat Pages + PDF Booklet
+- Next step: Execute Wave 7D tasks per plan
 
 ## Waves
-- Wave 7A: Pro Removal + Limit Revision — IN PROGRESS
-- Wave 7B: PDF to Text + Reverse Pages — pending
-- Wave 7C: N-up Layout — pending
-- Wave 7D: Repeat Pages + PDF Booklet — pending
+- Wave 7A: Pro Removal + Limit Revision — COMPLETE ✅
+- Wave 7B: PDF to Text + Reverse Pages — COMPLETE ✅ (GATE 2026-06-12, 30 tools)
+- Wave 7C: N-up Layout — COMPLETE ✅ (GATE 2026-06-12, 31 tools)
+- Wave 7D: Repeat Pages + PDF Booklet — IN PROGRESS
 - Wave 7E: Final QA + Launch Polish — pending
 
 ## Tool Count After Phase 7
