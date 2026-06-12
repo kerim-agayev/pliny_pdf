@@ -29,6 +29,7 @@ import {
   IconText,
   IconMarkdown,
   IconScan,
+  IconRefresh,
 } from "@/components/shared/icons";
 
 export type ToolMode = "local" | "cloud";
@@ -65,6 +66,7 @@ export const TOOLS: Tool[] = [
   { id: "header-footer", slug: "header-footer", name: "Header & Footer", desc: "Running text top and bottom, with tokens.", cat: "Edit", mode: "local", icon: IconUnderline, accent: "#F472B6", available: true },
   { id: "crop-pdf", slug: "crop-pdf", name: "Crop PDF", desc: "Trim margins and resize the page box.", cat: "Edit", mode: "local", icon: IconRect, accent: "#F472B6", available: true },
   { id: "organize-pages", slug: "organize-pages", name: "Organize Pages", desc: "Reorder, rotate, duplicate, delete by drag.", cat: "Organize", mode: "local", icon: IconFolder, accent: "#A78BFA", available: true },
+  { id: "reversePages", slug: "reverse-pages", name: "Reverse Pages", desc: "Flip the page order — last page first.", cat: "Organize", mode: "local", icon: IconRefresh, accent: "#A78BFA", available: true },
   { id: "sign-pdf", slug: "sign-pdf", name: "Sign PDF", desc: "Draw, type, or upload a signature and place it.", cat: "Edit", mode: "local", icon: IconPen, accent: "#F472B6", available: true },
   { id: "redact-content", slug: "redact-content", name: "Redact Content", desc: "Permanently black out sensitive content.", cat: "Edit", mode: "local", icon: IconWhiteout, accent: "#F472B6", available: true },
   { id: "remove-metadata", slug: "remove-metadata", name: "Remove Metadata", desc: "Strip author, title, and other hidden info.", cat: "Secure", mode: "local", icon: IconTagOff, accent: "#34D399", available: true },
@@ -73,6 +75,7 @@ export const TOOLS: Tool[] = [
   { id: "flatten-pdf", slug: "flatten-pdf", name: "Flatten PDF", desc: "Bake form fields and annotations in.", cat: "Edit", mode: "local", icon: IconLayers, accent: "#F472B6", available: true },
   { id: "text-to-pdf", slug: "text-to-pdf", name: "Text to PDF", desc: "Turn plain text into a clean PDF.", cat: "Convert", mode: "local", icon: IconText, accent: "#60A5FA", available: true },
   { id: "markdown-to-pdf", slug: "markdown-to-pdf", name: "Markdown to PDF", desc: "Render Markdown to a formatted PDF.", cat: "Convert", mode: "local", icon: IconMarkdown, accent: "#60A5FA", available: true },
+  { id: "pdfToText", slug: "pdf-to-text", name: "PDF to Text", desc: "Extract the text from a PDF as a .txt file.", cat: "Convert", mode: "local", icon: IconText, accent: "#60A5FA", available: true },
   { id: "pdf-to-jpg", slug: "pdf-to-jpg", name: "PDF to JPG", desc: "Convert each page to a JPG image.", cat: "Convert", mode: "cloud", icon: IconImage, accent: "#60A5FA", available: true },
   { id: "jpg-to-pdf", slug: "jpg-to-pdf", name: "JPG to PDF", desc: "Turn images into a single PDF.", cat: "Convert", mode: "local", icon: IconImageToPdf, accent: "#60A5FA", available: true },
   { id: "watermark", slug: "add-watermark", name: "Add Watermark", desc: "Stamp text with a live preview.", cat: "Edit", mode: "local", icon: IconWatermark, accent: "#F472B6", tag: "Live preview", available: true },

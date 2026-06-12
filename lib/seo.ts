@@ -171,6 +171,14 @@ export const TOOL_SEO: Record<string, { title: string; description: string }> = 
     title: "OCR PDF — PlinyPDF",
     description: "Make scanned PDFs searchable. Recognizes English, Turkish, and Russian text. Processed securely, deleted after.",
   },
+  "pdf-to-text": {
+    title: "PDF to Text — PlinyPDF",
+    description: "Extract text from any PDF and save it as a .txt file, right in your browser. No upload.",
+  },
+  "reverse-pages": {
+    title: "Reverse PDF Pages — PlinyPDF",
+    description: "Flip the page order of a PDF — last page first — entirely in your browser. No upload.",
+  },
   summarize: {
     title: "AI PDF Summary — PlinyPDF",
     description:

@@ -12,13 +12,14 @@ export function ToolsCatalog({ initialCategory }: { initialCategory?: string }) 
     ? (initialCategory as FilterCategory)
     : "All";
   const [filter, setFilter] = useState<FilterCategory>(initial);
-  const filtered = filter === "All" ? TOOLS : TOOLS.filter((tool) => tool.cat === filter);
+  const visible = TOOLS.filter((tool) => tool.available);
+  const filtered = filter === "All" ? visible : visible.filter((tool) => tool.cat === filter);
 
   return (
     <section className="px-5 pt-16 pb-28 sm:px-10">
       <div className="mx-auto max-w-[1180px]">
         <div className="pp-mono mb-3.5 text-[11.5px] font-medium uppercase tracking-[0.14em]" style={{ color: "#8B7CF0" }}>
-          {t("kicker")} · {TOOLS.length}
+          {t("kicker")} · {visible.length}
         </div>
         <h1 className="mb-4 text-[clamp(40px,6vw,56px)] tracking-[-0.03em]">{t("title")}</h1>
         <p className="mb-10 max-w-[580px] text-[18px]" style={{ color: "var(--text-2)" }}>

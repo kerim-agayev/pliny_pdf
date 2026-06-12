@@ -173,6 +173,16 @@ const TOOL_FAQ: Record<string, ToolSchemaCopy["faq"]> = {
     { q: "Which languages can it recognize?", a: "English, Turkish, and Russian. Pick the language that matches your document for the best accuracy." },
     { q: "What if my PDF already has text?", a: "Pages that already contain selectable text are passed through unchanged — OCR is only applied to scanned/image pages." },
   ],
+  "pdf-to-text": [
+    PRIVACY_FAQ,
+    { q: "Can I extract text from specific pages?", a: "Yes — extract every page, or set a page range to pull text from just part of the document." },
+    { q: "Will the formatting be preserved?", a: "The plain text is extracted in reading order and saved as a .txt file. Layout, fonts, and images are not kept — it's the raw text." },
+  ],
+  "reverse-pages": [
+    PRIVACY_FAQ,
+    { q: "Does reversing change the page content?", a: "No — only the order changes. Each page is copied exactly, with no re-compression, just in the opposite sequence." },
+    { q: "Is my original file modified?", a: "No — you download a new PDF with the pages reversed. Your original stays untouched, and nothing is uploaded." },
+  ],
   summarize: [
     CLOUD_PRIVACY_FAQ,
     { q: "What kinds of summary can I get?", a: "An executive summary, an outline, or a per-section breakdown." },
