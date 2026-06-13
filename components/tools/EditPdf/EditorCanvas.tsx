@@ -15,6 +15,8 @@ import { DrawingTool } from "./DrawingTool";
 import { CommentTool } from "./CommentTool";
 import { ContextMenu, type ContextMenuState } from "./ContextMenu";
 import { ConfirmDialog } from "./ConfirmDialog";
+import { SnapGuideOverlay } from "./SnapGuideOverlay";
+import { calculateSnapTargets, findSnap, type Box, type SnapGuide, type SnapTargets } from "@/lib/editor/snapGuides";
 
 type Pt = { x: number; y: number };
 const FIND_COLOR = "#F97316";
@@ -288,6 +290,12 @@ export function EditorCanvas() {
   const selectedAnnotId = s.selectedAnnotId;
   const setSelectedAnnotId = s.selectAnnot;
   const [dupConfirm, setDupConfirm] = useState<Annotation | null>(null);
+  // Snap / alignment guides (Wave 8B). Guides live in local state; targets are
+  // cached once per drag in a ref; guide rendering is rAF-coalesced.
+  const [snapGuides, setSnapGuides] = useState<SnapGuide[]>([]);
+  const snapTargetsRef = useRef<SnapTargets | null>(null);
+  const snapRafRef = useRef<number | null>(null);
+  const pendingGuidesRef = useRef<SnapGuide[]>([]);
   const draftInputRef = useRef<HTMLInputElement>(null);
   // true once the draft is settled — guards against the focus-race blur that fires
   // the instant the autofocused input mounts (which would clear the box immediately).
@@ -350,19 +358,71 @@ export function EditorCanvas() {
     return s.changes.get(id)?.newText ?? b?.text ?? "";
   };
 
+  // ---- snap / alignment guides (Wave 8B) ----
+  // One shared snap engine used by every drag system. `snapStart` caches the
+  // page+element targets once; `snapApply` snaps a box and rAF-schedules the
+  // guide render (position snap stays synchronous); `snapEnd` clears guides.
+  const SNAP_KINDS = new Set(["image", "stamp", "mark", "whiteout", "shape", "comment"]);
+  function collectSnapBoxes(excludeId: string | null): Box[] {
+    const boxes: Box[] = [];
+    for (const b of page.textBlocks) {
+      if (b.blockId === excludeId) continue;
+      const p = s.blockPositions[b.blockId];
+      boxes.push({ x: p?.x ?? b.x, y: p?.y ?? b.y, w: b.w, h: b.h });
+    }
+    for (const a of s.annotations) {
+      if (a.pageNum !== page.pageNum || a.id === excludeId) continue;
+      if (!SNAP_KINDS.has(a.type)) continue;
+      boxes.push({ x: a.x, y: a.y, w: a.w, h: a.h });
+    }
+    return boxes;
+  }
+
+  function snapStart(excludeId: string | null) {
+    snapTargetsRef.current = calculateSnapTargets(
+      { width: page.width, height: page.height },
+      collectSnapBoxes(excludeId),
+    );
+  }
+
+  function snapApply(box: Box): Pt {
+    const targets = snapTargetsRef.current;
+    if (!targets) return { x: box.x, y: box.y };
+    const r = findSnap(box, targets, 8 / scale);
+    pendingGuidesRef.current = r.guides;
+    if (snapRafRef.current == null) {
+      snapRafRef.current = requestAnimationFrame(() => {
+        snapRafRef.current = null;
+        setSnapGuides(pendingGuidesRef.current);
+      });
+    }
+    return { x: r.x, y: r.y };
+  }
+
+  function snapEnd() {
+    if (snapRafRef.current != null) cancelAnimationFrame(snapRafRef.current);
+    snapRafRef.current = null;
+    pendingGuidesRef.current = [];
+    snapTargetsRef.current = null;
+    setSnapGuides([]);
+  }
+
   // ---- drag/resize for image and stamp overlays ----
   function beginAnnotDrag(e: React.PointerEvent, a: Annotation) {
     e.stopPropagation();
     setSelectedAnnotId(a.id);
     const start = { x: e.clientX, y: e.clientY };
     const orig = { x: a.x, y: a.y };
+    snapStart(a.id);
     const move = (ev: PointerEvent) => {
-      s.updateAnnotation(a.id, {
+      const raw = {
         x: orig.x + (ev.clientX - start.x) / scale,
         y: orig.y + (ev.clientY - start.y) / scale,
-      });
+      };
+      const sp = snapApply({ x: raw.x, y: raw.y, w: a.w, h: a.h });
+      s.updateAnnotation(a.id, { x: sp.x, y: sp.y });
     };
-    const up = () => { window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); };
+    const up = () => { window.removeEventListener("pointermove", move); window.removeEventListener("pointerup", up); snapEnd(); };
     window.addEventListener("pointermove", move);
     window.addEventListener("pointerup", up);
   }
@@ -391,12 +451,16 @@ export function EditorCanvas() {
     let moved = false;
     const move = (ev: PointerEvent) => {
       if (!moved && Math.abs(ev.clientX - start.x) + Math.abs(ev.clientY - start.y) < 4) return;
+      if (!moved) snapStart(a.id);
       moved = true;
-      s.updateAnnotation(a.id, { x: orig.x + (ev.clientX - start.x) / scale, y: orig.y + (ev.clientY - start.y) / scale });
+      const raw = { x: orig.x + (ev.clientX - start.x) / scale, y: orig.y + (ev.clientY - start.y) / scale };
+      const sp = snapApply({ x: raw.x, y: raw.y, w: 0, h: 0 });
+      s.updateAnnotation(a.id, { x: sp.x, y: sp.y });
     };
     const up = () => {
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerup", up);
+      if (moved) snapEnd();
       if (!moved) setOpenComment((v) => (v === a.id ? null : a.id));
     };
     window.addEventListener("pointermove", move);
@@ -405,13 +469,20 @@ export function EditorCanvas() {
 
   // ---- drag gesture (whiteout / highlight / strike / shapes) ----
   function beginDrag(start: Pt, tool: string) {
+    // Snap only the creation corner of rectangle / circle shapes — arrow/line keep
+    // their true endpoint (arrowhead direction), and highlight/strike/whiteout
+    // creation is left unsnapped.
+    const snapCreate = tool === "shapes" && s.shapeType !== "arrow" && s.shapeType !== "line";
+    if (snapCreate) snapStart(null);
     setDrag({ start, cur: start, tool });
-    const move = (e: PointerEvent) => setDrag({ start, cur: toPtClient(e.clientX, e.clientY), tool });
+    const snapCur = (c: Pt): Pt => (snapCreate ? snapApply({ x: c.x, y: c.y, w: 0, h: 0 }) : c);
+    const move = (e: PointerEvent) => setDrag({ start, cur: snapCur(toPtClient(e.clientX, e.clientY)), tool });
     const up = (e: PointerEvent) => {
       window.removeEventListener("pointermove", move);
       window.removeEventListener("pointerup", up);
       setDrag(null);
-      commitDrag(tool, start, toPtClient(e.clientX, e.clientY));
+      if (snapCreate) snapEnd();
+      commitDrag(tool, start, snapCur(toPtClient(e.clientX, e.clientY)));
     };
     window.addEventListener("pointermove", move);
     window.addEventListener("pointerup", up);
@@ -623,6 +694,9 @@ export function EditorCanvas() {
           style={{ display: "block", userSelect: "none", pointerEvents: "none" }}
         />
 
+        {/* snap / alignment guides (Wave 8B) — above the PNG, below dragged elements */}
+        <SnapGuideOverlay guides={snapGuides} scale={scale} pageW={page.width} pageH={page.height} />
+
         {/* find matches (UI-only, behind interactive overlays) */}
         {pageMatches.map((m, i) => (
           <div
@@ -651,6 +725,9 @@ export function EditorCanvas() {
             onSelect={() => interactive && s.selectBlock(b.blockId)}
             onStartEdit={() => { s.setTool("select"); s.setEditing(b.blockId); }}
             onMove={(x, y) => s.moveBlock(b.blockId, x, y)}
+            onSnapStart={() => snapStart(b.blockId)}
+            onSnapMove={(box) => snapApply(box)}
+            onSnapEnd={snapEnd}
             onInput={(text) => { s.editBlock(b.blockId, { newText: text }); analytics.editorTextEdited(); }}
             onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); s.selectBlock(b.blockId); setCtx({ x: e.clientX, y: e.clientY, blockId: b.blockId, pt: toPt(e) }); }}
           />

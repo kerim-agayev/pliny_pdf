@@ -34,6 +34,9 @@ export function TextBlock({
   onMove,
   onInput,
   onContextMenu,
+  onSnapStart,
+  onSnapMove,
+  onSnapEnd,
 }: {
   block: TBlock;
   change: BlockChange | undefined;
@@ -51,6 +54,10 @@ export function TextBlock({
   onMove: (x: number, y: number) => void;
   onInput: (text: string) => void;
   onContextMenu: (e: React.MouseEvent) => void;
+  /** Wave 8B snap hooks (optional): cache targets / snap a box / clear guides. */
+  onSnapStart?: () => void;
+  onSnapMove?: (box: { x: number; y: number; w: number; h: number }) => { x: number; y: number };
+  onSnapEnd?: () => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
@@ -58,6 +65,8 @@ export function TextBlock({
   const [moveOffset, setMoveOffset] = useState<{ dx: number; dy: number } | null>(null);
   const dragState = useRef<{ startX: number; startY: number; moved: boolean } | null>(null);
   const cancelMoveRef = useRef<(() => void) | null>(null);
+  // Last snapped PDF position during a drag (Wave 8B) — committed on pointer-up.
+  const lastSnapped = useRef<{ x: number; y: number } | null>(null);
 
   const deleted = change?.deleted ?? false;
   const text = change?.newText ?? block.text;
@@ -131,14 +140,20 @@ export function TextBlock({
 
     const startX = e.clientX;
     const startY = e.clientY;
+    const baseX = pos?.x ?? block.x;
+    const baseY = pos?.y ?? block.y;
     dragState.current = { startX, startY, moved: false };
+    lastSnapped.current = null;
+    onSnapStart?.();
 
     const cleanup = () => {
       window.removeEventListener("pointermove", handleMove);
       window.removeEventListener("pointerup", handleUp);
       cancelMoveRef.current = null;
       dragState.current = null;
+      lastSnapped.current = null;
       setMoveOffset(null);
+      onSnapEnd?.();
     };
 
     const handleMove = (ev: PointerEvent) => {
@@ -147,18 +162,27 @@ export function TextBlock({
       const dy = ev.clientY - startY;
       if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
         dragState.current.moved = true;
-        setMoveOffset({ dx, dy });
+        // Candidate position in PDF points, snapped to alignment targets, then
+        // expressed back as a display-px offset for the live transform.
+        const candX = baseX + dx / scale;
+        const candY = baseY + dy / scale;
+        const snapped = onSnapMove?.({ x: candX, y: candY, w: block.w, h: block.h }) ?? { x: candX, y: candY };
+        lastSnapped.current = snapped;
+        setMoveOffset({ dx: (snapped.x - baseX) * scale, dy: (snapped.y - baseY) * scale });
       }
     };
     const handleUp = (ev: PointerEvent) => {
       const moved = dragState.current?.moved ?? false;
+      const snapped = lastSnapped.current;
       cleanup();
       if (moved) {
-        const dx = ev.clientX - startX;
-        const dy = ev.clientY - startY;
-        const newX = (pos?.x ?? block.x) + dx / scale;
-        const newY = (pos?.y ?? block.y) + dy / scale;
-        onMove(newX, newY);
+        if (snapped) {
+          onMove(snapped.x, snapped.y);
+        } else {
+          const dx = ev.clientX - startX;
+          const dy = ev.clientY - startY;
+          onMove(baseX + dx / scale, baseY + dy / scale);
+        }
       }
     };
 
