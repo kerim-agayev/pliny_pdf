@@ -121,11 +121,14 @@ export function TextBlock({
   // Runs in a layout effect (before paint) so there's no wrap/flash.
   useLayoutEffect(() => {
     if (!(editing || modified) || !measureRef.current) return;
-    const rect = measureRef.current.getBoundingClientRect();
-    // +4px width slack so the border/box fully contains the glyphs; +2px height for
-    // descenders (g/y/p/q) — tight enough not to overlap the block below.
-    const w = Math.max(50, rect.width / scale + 4);
-    const h = rect.height / scale + 2;
+    const el = measureRef.current;
+    // The mirror is white-space:pre (no soft-wrap), so its height reflects ONLY explicit
+    // line breaks — typing a long line keeps it one line tall (no creeping vertical
+    // growth that would overlap the block below). Width is clamped to the page in JS.
+    // +4px width slack contains the glyphs; +2px height covers descenders (g/y/p/q).
+    const maxW = pageWidth - 36;
+    const w = Math.min(maxW, Math.max(50, el.scrollWidth / scale + 4));
+    const h = el.scrollHeight / scale + 2;
     onResize(w, h);
   }, [editing, modified, text, fontName, fontSizeRaw, bold, italic, scale, pageWidth]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -259,10 +262,11 @@ export function TextBlock({
 
       {/* Hidden measurement mirror (Wave 8C): renders the exact text + current styles at
           content width so the layout-effect above can read the precise rendered size in
-          ANY mode (display or edit). Off-screen + hidden + non-interactive; only present
-          for edited/editing blocks so it adds no DOM for pristine blocks. white-space
-          pre-wrap + max-content → shrinks to the longest line, wrapping only at the
-          page-width clamp; matches the editable's rendering. */}
+          ANY mode (display or edit) — the single source of truth for the box size.
+          Off-screen + hidden + non-interactive; only present for edited/editing blocks
+          so it adds no DOM for pristine blocks. white-space:pre (no soft-wrap) so height
+          tracks ONLY explicit \n — the width is clamped to the page in JS instead, and
+          the editable below uses the same `pre` so display and measurement agree. */}
       {(editing || modified) && (
         <div
           ref={measureRef}
@@ -273,9 +277,8 @@ export function TextBlock({
             left: 0,
             visibility: "hidden",
             pointerEvents: "none",
-            whiteSpace: "pre-wrap",
+            whiteSpace: "pre",
             width: "max-content",
-            maxWidth: (pageWidth - 72) * scale,
             fontFamily: cssFont(fontName),
             fontSize: Math.max(6, fontSize),
             lineHeight: 1.12,
@@ -341,7 +344,10 @@ export function TextBlock({
             ref={ref}
             contentEditable={editing}
             suppressContentEditableWarning
-            onInput={(e) => onInput((e.target as HTMLDivElement).innerText)}
+            // contentEditable.innerText often appends a trailing newline (and browsers
+            // wrap content in block elements); strip trailing newlines so a phantom blank
+            // line can't permanently inflate the measured height. See Wave 8C bugs.
+            onInput={(e) => onInput((e.target as HTMLDivElement).innerText.replace(/\n+$/, ""))}
             spellCheck={false}
             style={{
               fontFamily: cssFont(change?.fontName ?? block.fontName),
@@ -353,10 +359,12 @@ export function TextBlock({
               textDecoration: blockStyle?.underline ? "underline" : "none",
               textAlign: blockStyle?.textAlign ?? "left",
               outline: "none",
-              whiteSpace: "pre-wrap",
+              // `pre` (no soft-wrap) matches the measurement mirror, so the box height
+              // only changes on explicit newlines — typing a long line never creeps
+              // downward over the block below. The editable fills the box; box size is
+              // driven by the mirror.
+              whiteSpace: "pre",
               overflow: "hidden",
-              // The editable fills the box; the box is sized from the hidden measurement
-              // div below, so the text never wraps (box width >= content width).
               width: "100%",
               height: "100%",
               // pristine, unselected blocks stay invisible so the PNG text shows through
