@@ -130,7 +130,10 @@ export function TextBlock({
     const maxW = pageWidth - 36;
     const w = Math.min(maxW, Math.max(50, measureRef.current.scrollWidth / scale + 4));
     const lineCount = (text.match(/\n/g)?.length ?? 0) + 1;
-    const h = fontSizeRaw * TEXT_LINE_RATIO * lineCount;
+    // 1.15 is tight (just above the editable's 1.12 line-height, so glyphs/descenders
+    // aren't clipped) but small enough that a single-line box stays within the PDF line
+    // pitch and never covers the top of the block below.
+    const h = fontSizeRaw * 1.15 * lineCount;
     onResize(w, h);
   }, [editing, modified, text, fontName, fontSizeRaw, bold, italic, scale, pageWidth]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -165,8 +168,13 @@ export function TextBlock({
     overflow: "hidden",
     borderRadius: 3,
     boxSizing: "content-box" as const,
-    margin: "-2px -3px",
-    padding: "2px 3px",
+    // Horizontal inset only (3px) for a little selection breathing room. Vertical
+    // padding/margin is 0: with content-box, vertical padding would ADD to the rendered
+    // height (and the negative margin would push the top up), making the white box spill
+    // ~4px into the row below and cover the top of the next block (Wave 8C). Height is
+    // already tight from the font-metric formula, so no vertical slack is needed.
+    margin: "0 -3px",
+    padding: "0 3px",
   };
 
   // Drag-to-move gesture on the block container when selected and not editing.
