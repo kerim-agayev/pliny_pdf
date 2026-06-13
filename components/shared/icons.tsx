@@ -236,6 +236,13 @@ export const IconCopy = (p: IconProps) => (
     <path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" />
   </I>
 );
+export const IconBook = (p: IconProps) => (
+  <I {...p}>
+    <path d="M3 2.5A1.5 1.5 0 014.5 1H13v11H4.5A1.5 1.5 0 013 13.5V2.5z" />
+    <path d="M3 13.5A1.5 1.5 0 004.5 15H13v-3H4.5A1.5 1.5 0 003 13.5z" />
+    <path d="M6 4h4M6 6.5h4M6 9h2.5" />
+  </I>
+);
 export const IconGoogle = ({ size = 18, ...rest }: Omit<IconProps, "color" | "sw">) => (
   <svg width={size} height={size} viewBox="0 0 24 24" {...rest}>
     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />

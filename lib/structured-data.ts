@@ -193,6 +193,28 @@ const TOOL_FAQ: Record<string, ToolSchemaCopy["faq"]> = {
     { q: "What kinds of summary can I get?", a: "An executive summary, an outline, or a per-section breakdown." },
     { q: "Is my document used to train AI?", a: "No. Text is sent for summarization only — never stored or used for training." },
   ],
+  "repeat-pages": [
+    PRIVACY_FAQ,
+    {
+      q: "What is the difference between sequential and interleaved?",
+      a: "Sequential groups all copies of each page together (1,1,2,2). Interleaved repeats the full sequence (1,2,1,2). Use sequential to print duplicate copies of individual pages; interleaved to print multiple complete copies of a document.",
+    },
+    {
+      q: "How many times can I repeat pages?",
+      a: "Up to 50 times for anonymous use, 200 times for free signed-in accounts.",
+    },
+  ],
+  "pdf-booklet": [
+    PRIVACY_FAQ,
+    {
+      q: "What is saddle-stitch imposition?",
+      a: "Pages are reordered so that when printed double-sided and folded in half, they read in the correct sequence. The first and last pages land on the outer cover.",
+    },
+    {
+      q: "Why are blank pages added to my booklet?",
+      a: "A saddle-stitch booklet requires a page count that is a multiple of 4. If your PDF has, say, 6 pages, 2 blank pages are added automatically to complete the final sheet.",
+    },
+  ],
 };
 
 /** SoftwareApplication schema for the whole product (used on /tools). */

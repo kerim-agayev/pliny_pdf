@@ -189,6 +189,16 @@ export const TOOL_SEO: Record<string, { title: string; description: string }> = 
     description:
       "Summarize long PDFs in seconds with AI. Executive summary, outline, or per section.",
   },
+  "repeat-pages": {
+    title: "Repeat PDF Pages — PlinyPDF",
+    description:
+      "Duplicate selected PDF pages any number of times. Sequential or interleaved arrangement. Runs entirely in your browser — nothing is uploaded.",
+  },
+  "pdf-booklet": {
+    title: "PDF Booklet — PlinyPDF",
+    description:
+      "Reorder PDF pages for saddle-stitch booklet printing. Print double-sided, fold in half — done entirely in your browser.",
+  },
 };
 
 /** Returns a `generateMetadata` function for a tool route. */
