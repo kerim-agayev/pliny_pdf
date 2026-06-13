@@ -11,7 +11,7 @@ import { SITE_URL } from "@/lib/seo";
  */
 export default function sitemap(): MetadataRoute.Sitemap {
   // Locale-prefixed paths (everything under [locale]).
-  const staticPaths = ["", "/tools", "/pricing", "/about", "/privacy", "/terms", "/support", "/blog"];
+  const staticPaths = ["", "/tools", "/about", "/privacy", "/terms", "/support", "/blog"];
   const toolPaths = TOOLS.filter((t) => t.available).map((t) => `/${t.slug}`);
   const blogPaths = getAllSlugs().map((slug) => `/blog/${slug}`);
   const allPaths = [...staticPaths, ...toolPaths, ...blogPaths];

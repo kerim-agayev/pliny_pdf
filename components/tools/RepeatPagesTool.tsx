@@ -159,7 +159,7 @@ export function RepeatPagesTool() {
               </label>
               <input
                 type="text"
-                placeholder="1-3, 5, 7-9"
+                placeholder={tp("rangePlaceholder")}
                 value={rangeStr}
                 onChange={(e) => dirty(setRangeStr)(e.target.value)}
                 className="pp-input w-full"

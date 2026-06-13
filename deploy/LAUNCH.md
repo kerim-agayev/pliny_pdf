@@ -35,8 +35,8 @@ live and GATE 2 (full e2e on https://plinypdf.com) passes — see `deploy/README
 5. **Redact Content** — black redaction boxes on a page + "permanent" messaging (privacy story).
 6. **Annotate PDF** — a PDF with highlights, a sticky note, and freehand annotation visible.
 6b. **Edit PDF (cloud)** — clicking real PDF text to edit it inline, with the cloud badge visible.
-7. **Pricing** — Free vs Pro cards, monthly/yearly toggle.
-8. **Dashboard** — Pro view with usage + recent activity.
+7. **Tools page** — full 33-tool grid with local/cloud badges visible.
+8. **Dashboard** — usage stats and recent cloud-tool history.
 9. **DevTools proof** — a tool mid-run with the Network tab open showing no upload (the
    credibility shot for the privacy claim).
 
@@ -82,7 +82,7 @@ respond fast in the thread. Post Tue–Thu, ~8–10am ET.
 **Title:** I built a PDF toolkit that processes files in your browser — verify "no upload" yourself in DevTools
 
 > Every time you use an online PDF tool, your document is usually uploaded to a server. For
-> a contract or an ID scan, that's a real exposure. PlinyPDF keeps 24 of its 29 tools
+> a contract or an ID scan, that's a real exposure. PlinyPDF keeps 25 of its 33 tools
 > (merge/split/organize/sign/redact/crop/watermark/password/edit) entirely in the browser via
 > WebAssembly — nothing is transmitted. Redaction even re-rasterizes the page so removed text
 > is truly gone, not just covered. You don't have to trust me: open DevTools → Network, run a

@@ -189,7 +189,7 @@ export function PdfBookletTool() {
             {status === "error" ? (
               <ErrorBanner message={tp("errorTitle")} onRetry={() => setStatus("loaded")} />
             ) : (
-              <BookletPreview sheets={sheets} paper={paper} />
+              <BookletPreview sheets={sheets} paper={paper} tp={tp} />
             )}
           </div>
 
@@ -225,7 +225,15 @@ export function PdfBookletTool() {
   );
 }
 
-function BookletPreview({ sheets, paper }: { sheets: number; paper: string }) {
+function BookletPreview({
+  sheets,
+  paper,
+  tp,
+}: {
+  sheets: number;
+  paper: string;
+  tp: ReturnType<typeof useTranslations>;
+}) {
   const W = 280,
     H = 100;
   return (
@@ -270,12 +278,12 @@ function BookletPreview({ sheets, paper }: { sheets: number; paper: string }) {
           fill="#9CA3AF"
           fontFamily="monospace"
         >
-          FOLD
+          {tp("bookletFold")}
         </text>
       </svg>
       <div className="text-[12px]" style={{ color: "var(--text-3)" }}>
         {sheets > 0
-          ? `${sheets} sheet${sheets !== 1 ? "s" : ""} · ${paper.toUpperCase()} landscape`
+          ? tp("bookletPreviewLabel", { n: sheets, paper: paper.toUpperCase() })
           : "—"}
       </div>
     </div>
