@@ -84,6 +84,24 @@ export function EditorToolbar() {
   // Text+ active → keep font/size/color live so the user styles the *next* new block
   const textMode = s.tool === "text";
   const fmtEnabled = enabled || textMode;
+
+  // Wave 8C: the alignment buttons reflect the block's ACTUAL horizontal position
+  // (left margin / page-centered / right margin), not a stored flag — so nothing lights
+  // up unless the block truly sits at that alignment. Mirrors alignBlock's math.
+  const activeAlign: "left" | "center" | "right" | null = (() => {
+    const id = s.selectedBlock;
+    const pg = s.pages[s.currentPage];
+    if (!id || !pg) return null;
+    const block = pg.textBlocks.find((b) => b.blockId === id);
+    if (!block) return null;
+    const w = s.blockSizes[id]?.w ?? block.w;
+    const x = s.blockPositions[id]?.x ?? block.x;
+    const near = (a: number, b: number) => Math.abs(a - b) < 1.5;
+    if (near(x, 36)) return "left";
+    if (near(x, (pg.width - w) / 2)) return "center";
+    if (near(x, pg.width - w - 36)) return "right";
+    return null;
+  })();
   const colorRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const whiteoutColorRef = useRef<HTMLInputElement>(null);
@@ -165,10 +183,9 @@ export function EditorToolbar() {
   // Wave 8C: alignment repositions the selected block on the page (left margin /
   // page-centered / right margin) rather than aligning text inside a fixed box —
   // meaningful now that block width == content width. Reuses the move pipeline so it
-  // persists as `x` on save and is undoable. textAlign is still stored for the
-  // toolbar's active-button highlight.
+  // persists as `x` on save and is one undo step. The active-button highlight is
+  // derived from the block's actual position (activeAlign), not a stored flag.
   function alignBlock(align: "left" | "center" | "right") {
-    s.setFormat({ textAlign: align });
     const id = s.selectedBlock;
     const page = s.pages[s.currentPage];
     if (!id || !page) return;
@@ -408,7 +425,7 @@ export function EditorToolbar() {
         <div style={{ display: "flex", gap: 1, padding: 2, background: "var(--bg-2)", border: "1px solid var(--line)", borderRadius: 8, opacity: enabled ? 1 : 0.5 }}>
           {([["left", IconAlignLeft], ["center", IconAlignCenter], ["right", IconAlignRight]] as const).map(([k, Ic]) => (
             <button key={k} type="button" disabled={!enabled} onClick={() => alignBlock(k)}
-              style={{ width: 26, height: 24, borderRadius: 5, border: 0, display: "inline-flex", alignItems: "center", justifyContent: "center", background: enabled && s.textAlign === k ? "rgba(107,92,231,0.2)" : "transparent", color: enabled && s.textAlign === k ? "#BFB5FF" : "var(--text-2)", cursor: enabled ? "pointer" : "not-allowed" }}>
+              style={{ width: 26, height: 24, borderRadius: 5, border: 0, display: "inline-flex", alignItems: "center", justifyContent: "center", background: enabled && activeAlign === k ? "rgba(107,92,231,0.2)" : "transparent", color: enabled && activeAlign === k ? "#BFB5FF" : "var(--text-2)", cursor: enabled ? "pointer" : "not-allowed" }}>
               <Ic size={15} sw={1.7} />
             </button>
           ))}

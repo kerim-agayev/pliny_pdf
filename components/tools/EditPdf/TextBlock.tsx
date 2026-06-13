@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { TextBlock as TBlock, BlockChange } from "@/lib/api/editor";
 import { TEXT_LINE_RATIO } from "@/lib/editor/snapGuides";
-import { cssFont, measureTextContent } from "@/lib/editor/textMeasure";
+import { cssFont } from "@/lib/editor/textMeasure";
 
 // cssFont's single source of truth is textMeasure (so measuring + rendering agree);
 // re-exported here for existing importers (EditorCanvas).
@@ -88,8 +88,17 @@ export function TextBlock({
   // the text at the new spot, and a ghost mask covers the old spot below).
   const masked = editing || modified || moveOffset !== null || !!blockStyle?.underline || !!pos;
 
+  const fontSizeRaw = change?.fontSize ?? block.fontSize;
+  const fontSize = fontSizeRaw * scale;
+  const fontName = change?.fontName ?? block.fontName;
+  const color = change?.color ?? block.color ?? "#1f1f1f";
+  const bold = change?.bold ?? block.bold;
+  const italic = change?.italic ?? block.italic;
+
   // Seed the contenteditable once when entering edit mode (uncontrolled while typing).
-  useEffect(() => {
+  // useLayoutEffect (not useEffect) so the content is in the DOM *before* the measure
+  // effect below reads its size, and before paint — no empty-box flash.
+  useLayoutEffect(() => {
     if (editing && ref.current && ref.current.innerText !== text) {
       ref.current.innerText = text;
       const sel = window.getSelection();
@@ -101,22 +110,21 @@ export function TextBlock({
     }
   }, [editing]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const fontSizeRaw = change?.fontSize ?? block.fontSize;
-  const fontSize = fontSizeRaw * scale;
-  const fontName = change?.fontName ?? block.fontName;
-  const color = change?.color ?? block.color ?? "#1f1f1f";
-  const bold = change?.bold ?? block.bold;
-  const italic = change?.italic ?? block.italic;
-
-  // Auto-resize (Wave 8C): while editing, the box is derived from content. Each
-  // keystroke updates `text` (via onInput → editBlock), refiring this effect; the
-  // store's setBlockSize is a no-op when unchanged, so the loop settles. Display-mode
-  // blocks never re-measure — loaded-but-unedited blocks keep their original bbox.
-  useEffect(() => {
-    if (!editing) return;
-    const m = measureTextContent(text, fontName, fontSizeRaw, bold, italic, pageWidth);
-    onResize(m.width, m.height);
-  }, [editing, text, fontName, fontSizeRaw, bold, italic, pageWidth]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Auto-resize (Wave 8C, fixed): the box is derived from the *actual rendered* editable,
+  // not a canvas approximation. In edit mode the editable is sized to its content
+  // (max-content, clamped to page width); we read its real bbox and store it (PDF
+  // points) so both the box and the white mask track the content exactly. Runs in a
+  // layout effect (after the seed above, before paint) so there is no wrap/flash. Each
+  // keystroke updates `text`, re-running this; setBlockSize is a no-op when unchanged.
+  // Display-mode blocks never re-measure — loaded-but-unedited blocks keep their bbox.
+  useLayoutEffect(() => {
+    if (!editing || !ref.current) return;
+    const rect = ref.current.getBoundingClientRect();
+    // +6/+4 px slack so the border/box fully contains the glyphs (incl. descenders).
+    const w = Math.max(50, rect.width / scale + 6);
+    const h = rect.height / scale + 4;
+    onResize(w, h);
+  }, [editing, text, fontName, fontSizeRaw, bold, italic, scale, pageWidth]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const border = editing || selected ? "2px solid #6B5CE7" : "1px solid transparent";
   const bg = masked ? "#FFFFFF" : selected || editing ? "rgba(107,92,231,0.06)" : "transparent";
@@ -130,10 +138,14 @@ export function TextBlock({
   const blockLeft = (pos?.x ?? block.x) * scale;
   const blockTop = (pos?.y ?? block.y) * scale;
 
-  // The PNG always carries the text at its ORIGINAL coords (no re-render until save),
-  // so a moved block needs a white ghost pinned there to cover the stale PNG text.
+  // The PNG always carries the text at its ORIGINAL coords AND original size (no
+  // re-render until save), so the white mask that hides it must use the ORIGINAL bbox
+  // — not the (possibly smaller) auto-resized box, or shrinking text would let the
+  // baked PNG text leak out beyond the mask.
   const origLeft = block.x * scale;
   const origTop = block.y * scale;
+  const origW = block.w * scale;
+  const origH = block.h * scale;
 
   // Shared position/size style used by both the ghost mask and the root div.
   const boxStyle: React.CSSProperties = {
@@ -214,21 +226,26 @@ export function TextBlock({
 
   return (
     <>
-      {/* White ghost pinned at the ORIGINAL position masks the stale PNG text — both
-          while the block floats (moveOffset) and after it has settled at a new spot
-          (pos), since the PNG isn't re-rendered until save.
+      {/* White mask pinned at the ORIGINAL bbox (position AND size) hides the stale PNG
+          text whenever the overlay is showing edited/moved/styled content — the PNG
+          isn't re-rendered until save. It uses the original size (not the auto-resized
+          box) so that shrinking the text never lets the baked PNG text leak out past
+          the mask (Wave 8C fix). On grow, the content box extends past this mask over
+          empty page area, so its own white background covers the rest.
           z-index is intentionally left at `auto` (NOT positive): by DOM order it
           paints above the page PNG (so the stale text is masked) but below every
           annotation overlay (draw/whiteout/shape/highlight, all `auto`, rendered
           later in the DOM) — otherwise the ghost would white-out annotations placed
           over the old position. See decisions.md D6-11. The moved block itself keeps
           zIndex 100 to stay above this ghost. */}
-      {(moveOffset !== null || pos) && (
+      {masked && (
         <div
           style={{
             ...boxStyle,
             left: origLeft,
             top: origTop,
+            width: origW,
+            height: origH,
             transform: undefined,
             background: "#fff",
             pointerEvents: "none",
@@ -305,8 +322,14 @@ export function TextBlock({
               outline: "none",
               whiteSpace: "pre-wrap",
               overflow: "hidden",
-              width: "100%",
-              height: "100%",
+              // In edit mode the editable sizes to its content (so the layout-effect can
+              // read the true width via getBoundingClientRect, then drive the box). It
+              // only wraps when content would exceed the page-width clamp. In display
+              // mode it fills the already-sized box.
+              width: editing ? "max-content" : "100%",
+              maxWidth: editing ? (pageWidth - 72) * scale : undefined,
+              minWidth: editing ? 50 * scale : undefined,
+              height: editing ? "auto" : "100%",
               // pristine, unselected blocks stay invisible so the PNG text shows through
               visibility: masked || editing ? "visible" : "hidden",
             }}
