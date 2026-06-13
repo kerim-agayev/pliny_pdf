@@ -160,6 +160,8 @@ interface EditorState {
   deleteBlocks: (ids: string[]) => void;
   /** add a just-created text block to the current page and auto-select it (Wave 5E) */
   addLocalBlock: (block: TextBlock) => void;
+  /** add a just-created text block without switching tool or selection (Wave 8A) */
+  addLocalBlockKeepTool: (block: TextBlock) => void;
   /** record a client-only position override from drag-to-move (Wave 6A) */
   moveBlock: (blockId: string, x: number, y: number) => void;
 
@@ -332,6 +334,16 @@ export const useEditorStore = create<EditorState>((set, get) => ({
         multiSelected: [],
         editingBlock: null,
       };
+    }),
+
+  addLocalBlockKeepTool: (block) =>
+    set((s) => {
+      const pages = s.pages.map((pg) =>
+        pg.pageNum === s.pages[s.currentPage]?.pageNum
+          ? { ...pg, textBlocks: [...pg.textBlocks, block] }
+          : pg,
+      );
+      return { pages };
     }),
 
   moveBlock: (blockId, x, y) =>

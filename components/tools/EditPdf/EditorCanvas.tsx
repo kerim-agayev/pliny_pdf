@@ -292,6 +292,9 @@ export function EditorCanvas() {
   // true once the draft is settled — guards against the focus-race blur that fires
   // the instant the autofocused input mounts (which would clear the box immediately).
   const draftReady = useRef(false);
+  // set to true in onPointerDown when we commit a draft via commitDraftKeepTool,
+  // so the blur that fires immediately after (focus shifting to canvas) is skipped.
+  const skipNextBlurRef = useRef(false);
 
   // focus the draft input reliably (autoFocus alone loses the focus race on mousedown)
   useEffect(() => {
@@ -479,6 +482,13 @@ export function EditorCanvas() {
     }
     const p = toPt(e);
     if (tool === "text") {
+      if (draft && draftText.trim()) {
+        // Commit the active draft without switching tool, then open a new draft
+        // at the clicked position. skipNextBlurRef prevents the blur that fires
+        // when focus shifts from the input to the canvas from double-committing.
+        skipNextBlurRef.current = true;
+        void commitDraftKeepTool(draft, draftText.trim());
+      }
       setDraft(p);
       setDraftText("");
       return;
@@ -520,6 +530,29 @@ export function EditorCanvas() {
       // (server already baked the text into the PNG; this pristine overlay is invisible
       // until the user edits it). bbox is approximate — enough for selection + masking.
       s.addLocalBlock({
+        blockId, x: at.x, y: at.y,
+        w: measureTextWidth(text, s.fontSize, s.fontFamily) + 6,
+        h: s.fontSize * 1.25,
+        text, fontSize: s.fontSize, fontName: s.fontFamily, color: s.fontColor,
+        bold: false, italic: false,
+      });
+      s.bumpRender();
+      analytics.editorTextEdited();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : t("saveFailed"));
+    }
+  }
+
+  // Commits a draft using explicit values instead of state — used when onPointerDown
+  // starts a new draft immediately, so tool stays "text" for the next draft.
+  async function commitDraftKeepTool(at: { x: number; y: number }, text: string) {
+    if (!s.sessionId) return;
+    try {
+      const { blockId } = await apiAddText(s.sessionId, {
+        pageNum: page.pageNum, x: at.x, y: at.y + s.fontSize, text,
+        fontSize: s.fontSize, fontName: s.fontFamily, color: s.fontColor,
+      });
+      s.addLocalBlockKeepTool({
         blockId, x: at.x, y: at.y,
         w: measureTextWidth(text, s.fontSize, s.fontFamily) + 6,
         h: s.fontSize * 1.25,
@@ -753,7 +786,7 @@ export function EditorCanvas() {
               onChange={(e) => setDraftText(e.target.value)}
               // ignore the focus-race blur that fires right after mount; re-grab focus
               // so the box stays put. A genuine blur (after settle) commits.
-              onBlur={() => { if (draftReady.current) commitDraft(); else draftInputRef.current?.focus(); }}
+              onBlur={() => { if (skipNextBlurRef.current) { skipNextBlurRef.current = false; return; } if (draftReady.current) commitDraft(); else draftInputRef.current?.focus(); }}
               onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); commitDraft(); } if (e.key === "Escape") { setDraft(null); setDraftText(""); } }}
               placeholder={t("typeHere")}
               style={{ border: 0, outline: "none", background: "transparent", color: s.fontColor, fontFamily: cssFont(s.fontFamily), fontSize: Math.max(11, s.fontSize * scale), width: "100%", minWidth: 130 }}
