@@ -16,7 +16,7 @@ import { CommentTool } from "./CommentTool";
 import { ContextMenu, type ContextMenuState } from "./ContextMenu";
 import { ConfirmDialog } from "./ConfirmDialog";
 import { SnapGuideOverlay } from "./SnapGuideOverlay";
-import { calculateSnapTargets, findSnap, type Box, type SnapGuide, type SnapTargets } from "@/lib/editor/snapGuides";
+import { calculateSnapTargets, findSnap, textSnapBox, type Box, type SnapGuide, type SnapTargets } from "@/lib/editor/snapGuides";
 
 type Pt = { x: number; y: number };
 const FIND_COLOR = "#F97316";
@@ -367,8 +367,11 @@ export function EditorCanvas() {
     const boxes: Box[] = [];
     for (const b of page.textBlocks) {
       if (b.blockId === excludeId) continue;
-      const p = s.blockPositions[b.blockId];
-      boxes.push({ x: p?.x ?? b.x, y: p?.y ?? b.y, w: b.w, h: b.h });
+      const p = s.blockPositions[b.blockId]; // moved-position override, if any
+      const fs = s.changes.get(b.blockId)?.fontSize ?? b.fontSize;
+      // Snap every text block by a uniform font-derived line box so tops AND
+      // bottoms align consistently regardless of the stored bbox height.
+      boxes.push(textSnapBox(p?.x ?? b.x, p?.y ?? b.y, b.w, fs));
     }
     for (const a of s.annotations) {
       if (a.pageNum !== page.pageNum || a.id === excludeId) continue;
@@ -602,8 +605,10 @@ export function EditorCanvas() {
       // until the user edits it). bbox is approximate — enough for selection + masking.
       s.addLocalBlock({
         blockId, x: at.x, y: at.y,
-        w: measureTextWidth(text, s.fontSize, s.fontFamily) + 6,
-        h: s.fontSize * 1.25,
+        // +20pt slack so the selectable box fully contains the server-rendered
+        // line (canvas measureText under-estimates the baked PNG width).
+        w: measureTextWidth(text, s.fontSize, s.fontFamily) + 20,
+        h: s.fontSize * 1.5,
         text, fontSize: s.fontSize, fontName: s.fontFamily, color: s.fontColor,
         bold: false, italic: false,
       });
@@ -625,8 +630,10 @@ export function EditorCanvas() {
       });
       s.addLocalBlockKeepTool({
         blockId, x: at.x, y: at.y,
-        w: measureTextWidth(text, s.fontSize, s.fontFamily) + 6,
-        h: s.fontSize * 1.25,
+        // +20pt slack so the selectable box fully contains the server-rendered
+        // line (canvas measureText under-estimates the baked PNG width).
+        w: measureTextWidth(text, s.fontSize, s.fontFamily) + 20,
+        h: s.fontSize * 1.5,
         text, fontSize: s.fontSize, fontName: s.fontFamily, color: s.fontColor,
         bold: false, italic: false,
       });

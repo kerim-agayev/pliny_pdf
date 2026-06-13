@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { TextBlock as TBlock, BlockChange } from "@/lib/api/editor";
+import { TEXT_LINE_RATIO } from "@/lib/editor/snapGuides";
 
 /** Map a PyMuPDF font name to a CSS family for the overlay approximation. */
 export function cssFont(name: string): string {
@@ -166,7 +167,10 @@ export function TextBlock({
         // expressed back as a display-px offset for the live transform.
         const candX = baseX + dx / scale;
         const candY = baseY + dy / scale;
-        const snapped = onSnapMove?.({ x: candX, y: candY, w: block.w, h: block.h }) ?? { x: candX, y: candY };
+        // Snap by the same uniform font-derived line box used for target blocks
+        // (collectSnapBoxes), so bottoms align consistently with stored bbox.
+        const snapFontSize = change?.fontSize ?? block.fontSize;
+        const snapped = onSnapMove?.({ x: candX, y: candY, w: block.w, h: snapFontSize * TEXT_LINE_RATIO }) ?? { x: candX, y: candY };
         lastSnapped.current = snapped;
         setMoveOffset({ dx: (snapped.x - baseX) * scale, dy: (snapped.y - baseY) * scale });
       }

@@ -16,6 +16,20 @@ export type SnapResult = { x: number; y: number; guides: SnapGuide[] };
 
 const MARGINS = [36, 72]; // standard 0.5in / 1in PDF margins
 
+// Text blocks store their bounding-box height inconsistently across sources:
+// original PyMuPDF blocks carry a tight glyph bbox, while a freshly-placed
+// Add-Text block uses a looser guessed height. Snapping by the raw stored `h`
+// therefore aligns block TOPS (always = block.y) but not BOTTOMS. To make bottom
+// (and v-center) snapping consistent, every text block is snapped by a uniform
+// font-derived line box: top = block.y, height = fontSize * TEXT_LINE_RATIO.
+// This is decoupled from the visual/selectable box height on purpose.
+export const TEXT_LINE_RATIO = 1.2;
+
+/** Build the consistent snap box for a text block (uniform font-derived height). */
+export function textSnapBox(x: number, y: number, w: number, fontSize: number): Box {
+  return { x, y, w, h: fontSize * TEXT_LINE_RATIO };
+}
+
 /** De-dup near-identical positions (within 0.5pt) so we don't emit redundant guides. */
 function dedup(positions: number[]): number[] {
   const out: number[] = [];
