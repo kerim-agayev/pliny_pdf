@@ -1,8 +1,8 @@
 # Phase 8 — Edit PDF Polish
 
 ## Status
-- Wave 8A: IN PROGRESS
-- Wave 8B: pending
+- Wave 8A: DONE ✅ (GATE passed 2026-06-13)
+- Wave 8B: CURRENT — snap/alignment guides (ask user for design handoff link before planning)
 - Wave 8C: pending
 - Wave 8D: pending
 - Wave 8E: pending
@@ -16,4 +16,4 @@ Bring Edit PDF to Sejda/Figma-quality interactions. 5 waves:
 5. Performance + toolbar UX audit
 
 ## Next step
-Complete Wave 8A gate, then start Wave 8B (ask user for design handoff link first).
+Start Wave 8B (snap/alignment guides). Ask user for Claude Design handoff link before planning.

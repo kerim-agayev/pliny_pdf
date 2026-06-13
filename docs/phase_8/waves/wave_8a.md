@@ -1,6 +1,6 @@
 # Wave 8A — Add Text Bug Fix
 
-## Status: IN PROGRESS
+## Status: DONE ✅ — GATE 8A passed 2026-06-13
 
 ## Goal
 Fix the Add Text tool so clicking outside commits the draft automatically
@@ -18,11 +18,11 @@ When draft is active and user clicks elsewhere on PDF:
 - Updated `onPointerDown` to commit existing draft before starting new one
 - Updated `onBlur` to check `skipNextBlurRef` before committing
 
-## Gate 8A
-- [ ] Type text → click elsewhere on PDF → old text committed, new draft opens
-- [ ] Type text → click outside PDF → text committed, no new draft
-- [ ] Enter still commits
-- [ ] Escape still discards
-- [ ] Empty draft → click away → no empty block
-- [ ] Double-click existing block → edit mode unchanged
-- [ ] bun run build green
+## Gate 8A — PASSED ✅ 2026-06-13
+- [x] Type text → click elsewhere on PDF → old text committed, new draft opens
+- [x] Type text → click outside PDF → text committed, no new draft
+- [x] Enter still commits
+- [x] Escape still discards
+- [x] Empty draft → click away → no empty block
+- [x] Double-click existing block → edit mode unchanged
+- [x] bun run build green
