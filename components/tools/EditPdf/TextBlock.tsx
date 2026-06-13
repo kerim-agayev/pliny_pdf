@@ -121,14 +121,16 @@ export function TextBlock({
   // Runs in a layout effect (before paint) so there's no wrap/flash.
   useLayoutEffect(() => {
     if (!(editing || modified) || !measureRef.current) return;
-    const el = measureRef.current;
-    // The mirror is white-space:pre (no soft-wrap), so its height reflects ONLY explicit
-    // line breaks — typing a long line keeps it one line tall (no creeping vertical
-    // growth that would overlap the block below). Width is clamped to the page in JS.
-    // +4px width slack contains the glyphs; +2px height covers descenders (g/y/p/q).
+    // WIDTH comes from the mirror (exact rendered text width, clamped to the page).
+    // HEIGHT is derived from the font size × line count (same TEXT_LINE_RATIO the snap
+    // engine uses) — NOT from the DOM. A DOM/line-box height is a couple of px taller
+    // than the PDF line pitch, which made the white box creep down over the block below.
+    // Font-metric height stays tight: a long single line grows the box to the RIGHT, not
+    // DOWN; height only changes with the font size or explicit newlines.
     const maxW = pageWidth - 36;
-    const w = Math.min(maxW, Math.max(50, el.scrollWidth / scale + 4));
-    const h = el.scrollHeight / scale + 2;
+    const w = Math.min(maxW, Math.max(50, measureRef.current.scrollWidth / scale + 4));
+    const lineCount = (text.match(/\n/g)?.length ?? 0) + 1;
+    const h = fontSizeRaw * TEXT_LINE_RATIO * lineCount;
     onResize(w, h);
   }, [editing, modified, text, fontName, fontSizeRaw, bold, italic, scale, pageWidth]); // eslint-disable-line react-hooks/exhaustive-deps
 
