@@ -64,6 +64,7 @@ export function TextBlock({
   onSnapEnd?: () => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  const measureRef = useRef<HTMLDivElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const lastTap = useRef(0);
   const [moveOffset, setMoveOffset] = useState<{ dx: number; dy: number } | null>(null);
@@ -110,21 +111,23 @@ export function TextBlock({
     }
   }, [editing]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Auto-resize (Wave 8C, fixed): the box is derived from the *actual rendered* editable,
-  // not a canvas approximation. In edit mode the editable is sized to its content
-  // (max-content, clamped to page width); we read its real bbox and store it (PDF
-  // points) so both the box and the white mask track the content exactly. Runs in a
-  // layout effect (after the seed above, before paint) so there is no wrap/flash. Each
-  // keystroke updates `text`, re-running this; setBlockSize is a no-op when unchanged.
-  // Display-mode blocks never re-measure — loaded-but-unedited blocks keep their bbox.
+  // Auto-resize (Wave 8C, fixed): the box is derived from a hidden measurement div
+  // (below) that renders the exact text + styles at content width — read via
+  // getBoundingClientRect, the precise layout the browser will paint (no canvas
+  // approximation, no contentEditable phantom-line height). It fires for any *edited*
+  // block (`modified`) as well as while editing, so a font/size/bold change updates the
+  // size immediately in display mode too — no need to re-enter edit mode. Pristine
+  // loaded blocks (no change entry) never re-measure, keeping their original bbox.
+  // Runs in a layout effect (before paint) so there's no wrap/flash.
   useLayoutEffect(() => {
-    if (!editing || !ref.current) return;
-    const rect = ref.current.getBoundingClientRect();
-    // +6/+4 px slack so the border/box fully contains the glyphs (incl. descenders).
-    const w = Math.max(50, rect.width / scale + 6);
-    const h = rect.height / scale + 4;
+    if (!(editing || modified) || !measureRef.current) return;
+    const rect = measureRef.current.getBoundingClientRect();
+    // +4px width slack so the border/box fully contains the glyphs; +2px height for
+    // descenders (g/y/p/q) — tight enough not to overlap the block below.
+    const w = Math.max(50, rect.width / scale + 4);
+    const h = rect.height / scale + 2;
     onResize(w, h);
-  }, [editing, text, fontName, fontSizeRaw, bold, italic, scale, pageWidth]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [editing, modified, text, fontName, fontSizeRaw, bold, italic, scale, pageWidth]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const border = editing || selected ? "2px solid #6B5CE7" : "1px solid transparent";
   const bg = masked ? "#FFFFFF" : selected || editing ? "rgba(107,92,231,0.06)" : "transparent";
@@ -254,6 +257,36 @@ export function TextBlock({
         />
       )}
 
+      {/* Hidden measurement mirror (Wave 8C): renders the exact text + current styles at
+          content width so the layout-effect above can read the precise rendered size in
+          ANY mode (display or edit). Off-screen + hidden + non-interactive; only present
+          for edited/editing blocks so it adds no DOM for pristine blocks. white-space
+          pre-wrap + max-content → shrinks to the longest line, wrapping only at the
+          page-width clamp; matches the editable's rendering. */}
+      {(editing || modified) && (
+        <div
+          ref={measureRef}
+          aria-hidden
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            visibility: "hidden",
+            pointerEvents: "none",
+            whiteSpace: "pre-wrap",
+            width: "max-content",
+            maxWidth: (pageWidth - 72) * scale,
+            fontFamily: cssFont(fontName),
+            fontSize: Math.max(6, fontSize),
+            lineHeight: 1.12,
+            fontWeight: bold ? 700 : 400,
+            fontStyle: italic ? "italic" : "normal",
+          }}
+        >
+          {text}
+        </div>
+      )}
+
       <div
         ref={rootRef}
         role="button"
@@ -322,14 +355,10 @@ export function TextBlock({
               outline: "none",
               whiteSpace: "pre-wrap",
               overflow: "hidden",
-              // In edit mode the editable sizes to its content (so the layout-effect can
-              // read the true width via getBoundingClientRect, then drive the box). It
-              // only wraps when content would exceed the page-width clamp. In display
-              // mode it fills the already-sized box.
-              width: editing ? "max-content" : "100%",
-              maxWidth: editing ? (pageWidth - 72) * scale : undefined,
-              minWidth: editing ? 50 * scale : undefined,
-              height: editing ? "auto" : "100%",
+              // The editable fills the box; the box is sized from the hidden measurement
+              // div below, so the text never wraps (box width >= content width).
+              width: "100%",
+              height: "100%",
               // pristine, unselected blocks stay invisible so the PNG text shows through
               visibility: masked || editing ? "visible" : "hidden",
             }}
