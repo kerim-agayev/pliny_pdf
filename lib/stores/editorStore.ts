@@ -47,6 +47,7 @@ type Snapshot = {
   changes: Map<string, BlockChange>;
   annotations: Annotation[];
   blockPositions: Record<string, { x: number; y: number }>;
+  blockSizes: Record<string, { w: number; h: number }>;
   blockStyles: Record<string, { underline?: boolean; textAlign?: TextAlign }>;
 };
 
@@ -123,6 +124,8 @@ interface EditorState {
   annotations: Annotation[];
   /** client-only position overrides per block (visual drag-to-move) */
   blockPositions: Record<string, { x: number; y: number }>;
+  /** client-only size overrides per block (Wave 8C auto-resize, derived from content) */
+  blockSizes: Record<string, { w: number; h: number }>;
   /** client-only visual styles per block (underline / alignment — no server support) */
   blockStyles: Record<string, { underline?: boolean; textAlign?: TextAlign }>;
   undoStack: Snapshot[];
@@ -164,6 +167,8 @@ interface EditorState {
   addLocalBlockKeepTool: (block: TextBlock) => void;
   /** record a client-only position override from drag-to-move (Wave 6A) */
   moveBlock: (blockId: string, x: number, y: number) => void;
+  /** record a content-derived size override (Wave 8C auto-resize); does NOT push undo */
+  setBlockSize: (blockId: string, w: number, h: number) => void;
 
   setFormat: (patch: Partial<Pick<EditorState, "fontFamily" | "fontSize" | "fontColor" | "bold" | "italic" | "underline" | "textAlign">>) => void;
   setStroke: (patch: Partial<Pick<EditorState, "strokeColor" | "strokeWidth">>) => void;
@@ -225,6 +230,7 @@ const INITIAL = {
   changes: new Map<string, BlockChange>(),
   annotations: [] as Annotation[],
   blockPositions: {} as Record<string, { x: number; y: number }>,
+  blockSizes: {} as Record<string, { w: number; h: number }>,
   blockStyles: {} as Record<string, { underline?: boolean; textAlign?: TextAlign }>,
   undoStack: [] as Snapshot[],
   redoStack: [] as Snapshot[],
@@ -241,6 +247,7 @@ function snapshot(s: EditorState): Snapshot {
     changes: new Map(s.changes),
     annotations: [...s.annotations],
     blockPositions: { ...s.blockPositions },
+    blockSizes: { ...s.blockSizes },
     blockStyles: { ...s.blockStyles },
   };
 }
@@ -263,7 +270,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
 
   failParse: (kind) => set({ phase: "error", errorKind: kind }),
 
-  reset: () => set({ ...INITIAL, changes: new Map(), annotations: [], undoStack: [], redoStack: [], blockPositions: {} }),
+  reset: () => set({ ...INITIAL, changes: new Map(), annotations: [], undoStack: [], redoStack: [], blockPositions: {}, blockSizes: {} }),
 
   setTool: (tool) => set({ tool, selectedBlock: tool === "select" ? get().selectedBlock : null, multiSelected: [], editingBlock: null, selectedAnnotId: null }),
   setShapeType: (shapeType) => set({ shapeType }),
@@ -355,6 +362,16 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       hasUnsavedChanges: true,
     })),
 
+  // Size is derived from content (fires on every keystroke), so it must NOT push its
+  // own undo step — that would spam history. It IS captured in snapshots taken by other
+  // actions (editBlock on each keystroke), so undo of a text edit restores size too.
+  setBlockSize: (blockId, w, h) =>
+    set((s) => {
+      const cur = s.blockSizes[blockId];
+      if (cur && cur.w === w && cur.h === h) return s; // no-op, avoid extra renders
+      return { blockSizes: { ...s.blockSizes, [blockId]: { w, h } } };
+    }),
+
   setFormat: (patch) => {
     set(patch);
     const id = get().selectedBlock;
@@ -438,6 +455,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
         changes: prev.changes,
         annotations: prev.annotations,
         blockPositions: prev.blockPositions,
+        blockSizes: prev.blockSizes,
         blockStyles: prev.blockStyles,
         hasUnsavedChanges: true,
       };
@@ -452,6 +470,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
         changes: next.changes,
         annotations: next.annotations,
         blockPositions: next.blockPositions,
+        blockSizes: next.blockSizes,
         blockStyles: next.blockStyles,
         hasUnsavedChanges: true,
       };

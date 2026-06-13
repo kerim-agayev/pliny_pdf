@@ -3,17 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import type { TextBlock as TBlock, BlockChange } from "@/lib/api/editor";
 import { TEXT_LINE_RATIO } from "@/lib/editor/snapGuides";
+import { cssFont, measureTextContent } from "@/lib/editor/textMeasure";
 
-/** Map a PyMuPDF font name to a CSS family for the overlay approximation. */
-export function cssFont(name: string): string {
-  const n = (name || "").toLowerCase();
-  if (n === "noto serif") return "'Noto Serif', Georgia, 'Times New Roman', serif";
-  if (n === "noto sans mono") return "'Noto Sans Mono', var(--font-mono), monospace";
-  if (n === "noto sans") return "'Noto Sans', 'Helvetica Neue', Arial, sans-serif";
-  if (n.includes("times") || n.includes("serif") || n.includes("georgia")) return "Georgia, 'Times New Roman', serif";
-  if (n.includes("cour") || n.includes("mono")) return "var(--font-mono), monospace";
-  return "'Helvetica Neue', Arial, sans-serif";
-}
+// cssFont's single source of truth is textMeasure (so measuring + rendering agree);
+// re-exported here for existing importers (EditorCanvas).
+export { cssFont };
 
 /**
  * A single editable text block, absolutely positioned over the page PNG. Pristine
@@ -29,10 +23,13 @@ export function TextBlock({
   editing,
   interactive,
   pos,
+  size,
+  pageWidth,
   blockStyle,
   onSelect,
   onStartEdit,
   onMove,
+  onResize,
   onInput,
   onContextMenu,
   onSnapStart,
@@ -48,11 +45,17 @@ export function TextBlock({
   interactive: boolean;
   /** client-only position override (PDF points) from drag-to-move */
   pos: { x: number; y: number } | undefined;
+  /** client-only size override (PDF points) from Wave 8C auto-resize */
+  size: { w: number; h: number } | undefined;
+  /** current page width (PDF points) — clamps auto-resize max width */
+  pageWidth: number;
   /** client-only visual style (underline / alignment) — not sent to the server */
   blockStyle: { underline?: boolean; textAlign?: "left" | "center" | "right" } | undefined;
   onSelect: () => void;
   onStartEdit: () => void;
   onMove: (x: number, y: number) => void;
+  /** report a content-derived size (PDF points) while editing (Wave 8C) */
+  onResize: (w: number, h: number) => void;
   onInput: (text: string) => void;
   onContextMenu: (e: React.MouseEvent) => void;
   /** Wave 8B snap hooks (optional): cache targets / snap a box / clear guides. */
@@ -98,16 +101,30 @@ export function TextBlock({
     }
   }, [editing]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const fontSize = (change?.fontSize ?? block.fontSize) * scale;
+  const fontSizeRaw = change?.fontSize ?? block.fontSize;
+  const fontSize = fontSizeRaw * scale;
+  const fontName = change?.fontName ?? block.fontName;
   const color = change?.color ?? block.color ?? "#1f1f1f";
   const bold = change?.bold ?? block.bold;
   const italic = change?.italic ?? block.italic;
 
+  // Auto-resize (Wave 8C): while editing, the box is derived from content. Each
+  // keystroke updates `text` (via onInput → editBlock), refiring this effect; the
+  // store's setBlockSize is a no-op when unchanged, so the loop settles. Display-mode
+  // blocks never re-measure — loaded-but-unedited blocks keep their original bbox.
+  useEffect(() => {
+    if (!editing) return;
+    const m = measureTextContent(text, fontName, fontSizeRaw, bold, italic, pageWidth);
+    onResize(m.width, m.height);
+  }, [editing, text, fontName, fontSizeRaw, bold, italic, pageWidth]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const border = editing || selected ? "2px solid #6B5CE7" : "1px solid transparent";
   const bg = masked ? "#FFFFFF" : selected || editing ? "rgba(107,92,231,0.06)" : "transparent";
 
-  const boxW = block.w * scale;
-  const boxH = block.h * scale;
+  // Effective size: content-derived override (Wave 8C) if the block has been edited,
+  // else the original bbox from the loaded PDF.
+  const boxW = (size?.w ?? block.w) * scale;
+  const boxH = (size?.h ?? block.h) * scale;
 
   // Use position override if present (drag-to-move), else original block coords.
   const blockLeft = (pos?.x ?? block.x) * scale;

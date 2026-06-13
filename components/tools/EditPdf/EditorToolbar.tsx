@@ -162,6 +162,28 @@ export function EditorToolbar() {
     s.addAnnotation({ id: nextLinkId(), type: "link", pageNum: page.pageNum, x, y, w: block.w, h: block.h, color: "#2563EB", uri });
   }
 
+  // Wave 8C: alignment repositions the selected block on the page (left margin /
+  // page-centered / right margin) rather than aligning text inside a fixed box —
+  // meaningful now that block width == content width. Reuses the move pipeline so it
+  // persists as `x` on save and is undoable. textAlign is still stored for the
+  // toolbar's active-button highlight.
+  function alignBlock(align: "left" | "center" | "right") {
+    s.setFormat({ textAlign: align });
+    const id = s.selectedBlock;
+    const page = s.pages[s.currentPage];
+    if (!id || !page) return;
+    const block = page.textBlocks.find((b) => b.blockId === id);
+    if (!block) return;
+    const MARGIN = 36;
+    const w = s.blockSizes[id]?.w ?? block.w;
+    const y = s.blockPositions[id]?.y ?? block.y;
+    const x =
+      align === "left" ? MARGIN
+      : align === "center" ? (page.width - w) / 2
+      : page.width - w - MARGIN;
+    s.moveBlock(id, x, y);
+  }
+
   function addStamp(label: string) {
     const page = s.pages[s.currentPage];
     if (!page) return;
@@ -385,7 +407,7 @@ export function EditorToolbar() {
         <TBDiv />
         <div style={{ display: "flex", gap: 1, padding: 2, background: "var(--bg-2)", border: "1px solid var(--line)", borderRadius: 8, opacity: enabled ? 1 : 0.5 }}>
           {([["left", IconAlignLeft], ["center", IconAlignCenter], ["right", IconAlignRight]] as const).map(([k, Ic]) => (
-            <button key={k} type="button" disabled={!enabled} onClick={() => s.setFormat({ textAlign: k })}
+            <button key={k} type="button" disabled={!enabled} onClick={() => alignBlock(k)}
               style={{ width: 26, height: 24, borderRadius: 5, border: 0, display: "inline-flex", alignItems: "center", justifyContent: "center", background: enabled && s.textAlign === k ? "rgba(107,92,231,0.2)" : "transparent", color: enabled && s.textAlign === k ? "#BFB5FF" : "var(--text-2)", cursor: enabled ? "pointer" : "not-allowed" }}>
               <Ic size={15} sw={1.7} />
             </button>
