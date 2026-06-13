@@ -2,8 +2,8 @@
 
 ## Status
 - Wave 8A: DONE ✅ (GATE passed 2026-06-13)
-- Wave 8B: CURRENT — snap/alignment guides (ask user for design handoff link before planning)
-- Wave 8C: pending
+- Wave 8B: DONE ✅ (GATE passed 2026-06-13) — snap/alignment guides
+- Wave 8C: CURRENT — smart auto-resize text blocks
 - Wave 8D: pending
 - Wave 8E: pending
 
@@ -16,4 +16,4 @@ Bring Edit PDF to Sejda/Figma-quality interactions. 5 waves:
 5. Performance + toolbar UX audit
 
 ## Next step
-Start Wave 8B (snap/alignment guides). Ask user for Claude Design handoff link before planning.
+Start Wave 8C (smart auto-resize text blocks).
