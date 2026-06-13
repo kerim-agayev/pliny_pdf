@@ -608,7 +608,9 @@ export function EditorCanvas() {
         // +20pt slack so the selectable box fully contains the server-rendered
         // line (canvas measureText under-estimates the baked PNG width).
         w: measureTextWidth(text, s.fontSize, s.fontFamily) + 20,
-        h: s.fontSize * 1.5,
+        // Tight single-line height (incl. descenders) — matches the snap engine's
+        // TEXT_LINE_RATIO so the bbox aligns with how the block snaps.
+        h: s.fontSize * 1.2,
         text, fontSize: s.fontSize, fontName: s.fontFamily, color: s.fontColor,
         bold: false, italic: false,
       });
@@ -633,7 +635,9 @@ export function EditorCanvas() {
         // +20pt slack so the selectable box fully contains the server-rendered
         // line (canvas measureText under-estimates the baked PNG width).
         w: measureTextWidth(text, s.fontSize, s.fontFamily) + 20,
-        h: s.fontSize * 1.5,
+        // Tight single-line height (incl. descenders) — matches the snap engine's
+        // TEXT_LINE_RATIO so the bbox aligns with how the block snaps.
+        h: s.fontSize * 1.2,
         text, fontSize: s.fontSize, fontName: s.fontFamily, color: s.fontColor,
         bold: false, italic: false,
       });
