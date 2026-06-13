@@ -10,7 +10,7 @@ import { IconCopy, IconDownload } from "@/components/shared/icons";
 import { repeatPages, parsePageRanges, type Arrangement } from "@/lib/pdf/repeatPages";
 import { isPdf, readPageCount } from "@/lib/pdf/common";
 import { downloadBlob } from "@/lib/format";
-import { repeatMaxCount } from "@/lib/limits";
+import { repeatMaxOutputPages } from "@/lib/limits";
 import { useSession } from "@/lib/auth/client";
 import { analytics } from "@/lib/analytics";
 
@@ -22,7 +22,7 @@ export function RepeatPagesTool() {
   const tp = useTranslations("ToolPages.repeatPages");
   const { data: session } = useSession();
   const plan = (session?.user as { plan?: "free" | "pro" })?.plan ?? null;
-  const maxCount = repeatMaxCount(plan);
+  const maxOutputPages = repeatMaxOutputPages(plan);
 
   const [file, setFile] = useState<File | null>(null);
   const [pages, setPages] = useState(0);
@@ -47,7 +47,7 @@ export function RepeatPagesTool() {
 
   const srcIndices = getSrcIndices();
   const outputPages = srcIndices.length * count;
-  const countOverLimit = count > maxCount;
+  const outputOverLimit = srcIndices.length > 0 && outputPages > maxOutputPages;
 
   async function onFiles(files: File[]) {
     const f = files[0];
@@ -73,7 +73,7 @@ export function RepeatPagesTool() {
   }
 
   async function run() {
-    if (!file || srcIndices.length === 0 || countOverLimit) return;
+    if (!file || srcIndices.length === 0 || outputOverLimit) return;
     setStatus("processing");
     try {
       const out = await repeatPages(file, { srcIndices, count, arrangement });
@@ -173,12 +173,6 @@ export function RepeatPagesTool() {
               <label className="text-[13px] font-medium" style={{ color: "var(--text)" }}>
                 {tp("countLabel")}
               </label>
-              <span
-                className="pp-mono text-[11.5px]"
-                style={{ color: countOverLimit ? "var(--rose)" : "var(--text-3)" }}
-              >
-                max {maxCount}
-              </span>
             </div>
             <div className="flex items-center gap-2">
               <button
@@ -193,9 +187,7 @@ export function RepeatPagesTool() {
                 type="number"
                 min={1}
                 value={count}
-                onChange={(e) =>
-                  dirty(setCount)(Math.max(1, parseInt(e.target.value, 10) || 1))
-                }
+                onChange={(e) => dirty(setCount)(Math.max(1, parseInt(e.target.value, 10) || 1))}
                 className="pp-input w-16 text-center"
               />
               <button
@@ -224,11 +216,11 @@ export function RepeatPagesTool() {
             />
           </div>
 
-          {countOverLimit && (
+          {outputOverLimit && (
             <div className="mb-3">
               <ErrorBanner
-                message={tp("limitError", { limit: maxCount })}
-                onRetry={() => dirty(setCount)(maxCount)}
+                message={tp("limitError", { total: outputPages, limit: maxOutputPages })}
+                onRetry={() => {}}
               />
             </div>
           )}
@@ -247,7 +239,7 @@ export function RepeatPagesTool() {
               type="button"
               className="pp-btn pp-btn-lg w-full justify-center"
               onClick={run}
-              disabled={status === "processing" || countOverLimit || srcIndices.length === 0}
+              disabled={status === "processing" || outputOverLimit || srcIndices.length === 0}
             >
               {status === "processing" ? (
                 <>

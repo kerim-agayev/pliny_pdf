@@ -663,7 +663,7 @@
       "download": "Tekrarlanan PDF'yi indir",
       "previewHint": "{src} sayfa × {count} = {total} sayfa",
       "previewEmpty": "Yukarıdan kaynak sayfaları seçin",
-      "limitError": "Tekrar sayısı planınızdaki {limit} tekrar sınırını aşıyor.",
+      "limitError": "Bu işlem {total} sayfa oluşturur. Planınız en fazla {limit} sayfa çıktıya izin veriyor.",
       "errorTitle": "Bu PDF tekrarlanamadı. Farklı bir dosya deneyin."
     },
     "pdfBooklet": {

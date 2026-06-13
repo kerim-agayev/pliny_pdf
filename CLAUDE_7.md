@@ -49,7 +49,7 @@ Reverse Pages (NEW), PDF Booklet (NEW)
 
 | Tool | Special Limit | Anon | Free |
 |---|---|---|---|
-| **Repeat Pages** | Max repeat count | 50 | 200 |
+| **Repeat Pages** | Max output pages | 150 | 500 |
 | **N-up Layout** | Max output pages | 100 | 300 |
 | **PDF to Text** | Standard local | 30 pg | 100 pg |
 | **Reverse Pages** | Standard local | 30 pg | 100 pg |

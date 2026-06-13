@@ -663,7 +663,7 @@
       "download": "Download repeated PDF",
       "previewHint": "{src} pages × {count} = {total} pages",
       "previewEmpty": "Choose source pages above",
-      "limitError": "Repeat count exceeds the {limit}-repeat limit for your plan.",
+      "limitError": "This would create {total} pages. Your plan allows up to {limit} pages output.",
       "errorTitle": "Could not repeat this PDF. Try a different file."
     },
     "pdfBooklet": {

@@ -43,8 +43,8 @@ export const JPG_TO_PDF_MAX_IMAGES = { anon: 50, free: 100 } as const;
 
 // ─── New tools (Phase 7B–7D) — constants ready before components are built ────
 
-// Repeat Pages: max number of times a page can be repeated.
-export const REPEAT_MAX_COUNT = { anon: 50, free: 200 } as const;
+// Repeat Pages: max total output pages (source pages × repeat count).
+export const REPEAT_MAX_OUTPUT_PAGES = { anon: 150, free: 500 } as const;
 
 // N-up Layout: max number of output pages (input pages collapse onto sheets).
 export const NUP_MAX_OUTPUT_PAGES = { anon: 100, free: 300 } as const;
@@ -115,9 +115,9 @@ export function jpgToPdfMaxImages(plan: Plan | null | undefined): number {
   return JPG_TO_PDF_MAX_IMAGES[effectivePlan(plan)];
 }
 
-/** Maximum repeat count for the Repeat Pages tool. */
-export function repeatMaxCount(plan: Plan | null | undefined): number {
-  return REPEAT_MAX_COUNT[effectivePlan(plan)];
+/** Maximum total output pages for the Repeat Pages tool. */
+export function repeatMaxOutputPages(plan: Plan | null | undefined): number {
+  return REPEAT_MAX_OUTPUT_PAGES[effectivePlan(plan)];
 }
 
 /** Maximum output pages for the N-up Layout tool. */
