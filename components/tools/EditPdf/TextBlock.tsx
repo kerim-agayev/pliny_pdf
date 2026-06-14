@@ -32,6 +32,7 @@ export function TextBlock({
   onResize,
   onInput,
   onContextMenu,
+  onLongPress,
   onSnapStart,
   onSnapMove,
   onSnapEnd,
@@ -58,6 +59,8 @@ export function TextBlock({
   onResize: (w: number, h: number) => void;
   onInput: (text: string) => void;
   onContextMenu: (e: React.MouseEvent) => void;
+  /** Wave 8D: touch long-press → context menu (client coords). */
+  onLongPress?: (x: number, y: number) => void;
   /** Wave 8B snap hooks (optional): cache targets / snap a box / clear guides. */
   onSnapStart?: () => void;
   onSnapMove?: (box: { x: number; y: number; w: number; h: number }) => { x: number; y: number };
@@ -67,6 +70,10 @@ export function TextBlock({
   const measureRef = useRef<HTMLDivElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const lastTap = useRef(0);
+  // Wave 8D long-press: timer fires the context menu after 500ms of a stationary touch.
+  const lpTimer = useRef<number | null>(null);
+  const lpStart = useRef<{ x: number; y: number } | null>(null);
+  const clearLongPress = () => { if (lpTimer.current != null) { window.clearTimeout(lpTimer.current); lpTimer.current = null; } lpStart.current = null; };
   const [moveOffset, setMoveOffset] = useState<{ dx: number; dy: number } | null>(null);
   const dragState = useRef<{ startX: number; startY: number; moved: boolean } | null>(null);
   const cancelMoveRef = useRef<(() => void) | null>(null);
@@ -309,9 +316,18 @@ export function TextBlock({
             e.stopPropagation();
             onSelect();
             startMove(e);
+            if (e.pointerType === "touch" && onLongPress) {
+              lpStart.current = { x: e.clientX, y: e.clientY };
+              const { clientX, clientY } = e;
+              lpTimer.current = window.setTimeout(() => { lpTimer.current = null; onLongPress(clientX, clientY); }, 500);
+            }
           }
         }}
+        onPointerMove={(e) => {
+          if (lpStart.current && (Math.abs(e.clientX - lpStart.current.x) + Math.abs(e.clientY - lpStart.current.y) > 10)) clearLongPress();
+        }}
         onPointerUp={(e) => {
+          clearLongPress();
           if (editing) return;
           if (dragState.current?.moved) return; // already handled in startMove
           // double-tap (touch) / double-click fallback → enter edit mode

@@ -9,6 +9,9 @@ type PinchOpts = {
   setScale: (next: number) => void;
   /** optional scroll container to pan with the two-finger midpoint */
   panTarget?: () => HTMLElement | null;
+  /** fired when a two-finger pinch starts (true) and ends (false), so callers can
+   *  suspend single-finger drag / snap-guide logic while zooming (Wave 8D) */
+  onPinchChange?: (active: boolean) => void;
 };
 
 /** distance + midpoint between the first two active touches */
@@ -36,6 +39,7 @@ export function usePinchZoom(ref: RefObject<HTMLElement | null>, opts: PinchOpts
     const getScale = () => optsRef.current.getScale();
     const setScale = (n: number) => optsRef.current.setScale(n);
     const panTarget = () => optsRef.current.panTarget?.() ?? null;
+    const pinchChange = (a: boolean) => optsRef.current.onPinchChange?.(a);
 
     let startDist = 0;
     let startScale = 0;
@@ -50,6 +54,7 @@ export function usePinchZoom(ref: RefObject<HTMLElement | null>, opts: PinchOpts
       startScale = getScale();
       lastMx = p.mx;
       lastMy = p.my;
+      pinchChange(true);
     }
 
     function onMove(e: TouchEvent) {
@@ -67,6 +72,7 @@ export function usePinchZoom(ref: RefObject<HTMLElement | null>, opts: PinchOpts
     }
 
     function onEnd() {
+      if (startDist !== 0) pinchChange(false);
       startDist = 0;
     }
 

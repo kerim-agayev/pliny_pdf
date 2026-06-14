@@ -23,6 +23,7 @@ export function ContextMenu({
   onClose,
   onCut,
   onCopy,
+  onDuplicate,
   onSelectAll,
   onDelete,
   onEdit,
@@ -31,6 +32,7 @@ export function ContextMenu({
   onClose: () => void;
   onCut: () => void;
   onCopy: () => void;
+  onDuplicate: () => void;
   onSelectAll: () => void;
   onDelete: () => void;
   onEdit: () => void;
@@ -40,9 +42,11 @@ export function ContextMenu({
   useEffect(() => {
     const close = () => onClose();
     window.addEventListener("mousedown", close);
+    window.addEventListener("touchstart", close);
     window.addEventListener("scroll", close, true);
     return () => {
       window.removeEventListener("mousedown", close);
+      window.removeEventListener("touchstart", close);
       window.removeEventListener("scroll", close, true);
     };
   }, [onClose]);
@@ -51,6 +55,7 @@ export function ContextMenu({
   const rows: Row[] = [
     { label: t("ctxCut"), kbd: "⌘X", icon: IconScissors, action: onCut, disabled: !onBlock },
     { label: t("ctxCopy"), kbd: "⌘C", icon: IconCopy, action: onCopy, disabled: !onBlock },
+    { label: t("ctxDuplicate"), kbd: "", icon: IconCopy, action: onDuplicate, disabled: !onBlock },
     { label: t("ctxDelete"), kbd: "Del", icon: IconTrash, action: onDelete, disabled: !onBlock, danger: true },
     { sep: true },
     { label: t("ctxSelectAll"), kbd: "⌘A", icon: null, action: onSelectAll },
@@ -60,6 +65,7 @@ export function ContextMenu({
   return (
     <div
       onMouseDown={(e) => e.stopPropagation()}
+      onTouchStart={(e) => e.stopPropagation()}
       style={{
         position: "fixed", left: state.x, top: state.y, zIndex: 80, width: 196,
         background: "var(--card)", border: "1px solid var(--line-2)", borderRadius: 10, padding: 5,

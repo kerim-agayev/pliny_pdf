@@ -70,8 +70,8 @@ function ImageOverlay({ a, scale, sessionId, selected, onDrag, onResize, onDelet
       />
       {show && (
         <>
-          <button type="button" style={DELETE_BTN} onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); onDelete(); }}>✕</button>
-          <div style={RESIZE_HANDLE} onPointerDown={(e) => { e.stopPropagation(); onResize(e); }} />
+          <button type="button" className="pp-ed-del" style={DELETE_BTN} onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); onDelete(); }}>✕</button>
+          <div className="pp-ed-resize" style={RESIZE_HANDLE} onPointerDown={(e) => { e.stopPropagation(); onResize(e); }} />
         </>
       )}
     </div>
@@ -116,8 +116,8 @@ function StampOverlay({ a, scale, selected, onDrag, onResize, onDelete, onSelect
       </span>
       {show && (
         <>
-          <button type="button" style={DELETE_BTN} onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); onDelete(); }}>✕</button>
-          <div style={RESIZE_HANDLE} onPointerDown={(e) => { e.stopPropagation(); onResize(e); }} />
+          <button type="button" className="pp-ed-del" style={DELETE_BTN} onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); onDelete(); }}>✕</button>
+          <div className="pp-ed-resize" style={RESIZE_HANDLE} onPointerDown={(e) => { e.stopPropagation(); onResize(e); }} />
         </>
       )}
     </div>
@@ -163,8 +163,8 @@ function MarkOverlay({ a, scale, selected, onDrag, onResize, onDelete, onSelect 
       <MarkGlyph type={a.markType || "check"} color={a.color} />
       {show && (
         <>
-          <button type="button" style={DELETE_BTN} onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); onDelete(); }}>✕</button>
-          <div style={RESIZE_HANDLE} onPointerDown={(e) => { e.stopPropagation(); onResize(e); }} />
+          <button type="button" className="pp-ed-del" style={DELETE_BTN} onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); onDelete(); }}>✕</button>
+          <div className="pp-ed-resize" style={RESIZE_HANDLE} onPointerDown={(e) => { e.stopPropagation(); onResize(e); }} />
         </>
       )}
     </div>
@@ -200,8 +200,8 @@ function WhiteoutOverlay({ a, scale, selected, dupLabel, onDrag, onResize, onDel
     >
       {show && (
         <>
-          <button type="button" style={DELETE_BTN} onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); onDelete(); }}>✕</button>
-          <div style={RESIZE_HANDLE} onPointerDown={(e) => { e.stopPropagation(); onResize(e); }} />
+          <button type="button" className="pp-ed-del" style={DELETE_BTN} onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); onDelete(); }}>✕</button>
+          <div className="pp-ed-resize" style={RESIZE_HANDLE} onPointerDown={(e) => { e.stopPropagation(); onResize(e); }} />
           <button
             type="button"
             onPointerDown={(e) => e.stopPropagation()}
@@ -246,7 +246,7 @@ function LinkOverlay({ a, scale, selected, onDelete, onSelect }: {
       }}
     >
       {show && (
-        <button type="button" style={DELETE_BTN} onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); onDelete(); }}>✕</button>
+        <button type="button" className="pp-ed-del" style={DELETE_BTN} onPointerDown={(e) => e.stopPropagation()} onClick={(e) => { e.stopPropagation(); onDelete(); }}>✕</button>
       )}
     </div>
   );
@@ -276,8 +276,14 @@ export function EditorCanvas() {
   const scrollRef = useRef<HTMLDivElement>(null);
   const page = s.pages[s.currentPage];
 
+  // Wave 8D: true while a two-finger pinch is active, so single-finger drag / snap
+  // logic stands down (otherwise the first finger would drag an element mid-zoom).
+  const pinchingRef = useRef(false);
   // two-finger pinch-to-zoom + pan on the scroll surface (store clamps 50–200%)
-  usePinchZoom(scrollRef, { getScale: () => s.zoom, setScale: (z) => s.setZoom(z), panTarget: () => scrollRef.current });
+  usePinchZoom(scrollRef, {
+    getScale: () => s.zoom, setScale: (z) => s.setZoom(z), panTarget: () => scrollRef.current,
+    onPinchChange: (active) => { pinchingRef.current = active; if (active) snapEnd(); },
+  });
 
   const [drag, setDrag] = useState<{ start: Pt; cur: Pt; tool: string } | null>(null);
   const [draft, setDraft] = useState<Pt | null>(null);
@@ -334,6 +340,36 @@ export function EditorCanvas() {
     return () => window.removeEventListener("keydown", onKey);
   }, [selectedAnnotId, s]);
 
+  // Wave 8D: single-finger horizontal swipe over empty page area turns the page.
+  // Gated to the select tool + bare page (not on a block/overlay) so it never
+  // hijacks a drag, and stands down during a pinch.
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    let sx = 0, sy = 0, armed = false;
+    const onStart = (e: TouchEvent) => {
+      if (e.touches.length !== 1) { armed = false; return; }
+      const target = e.target as HTMLElement;
+      armed = target === pageRef.current || target === el || target.tagName === "IMG";
+      sx = e.touches[0].clientX; sy = e.touches[0].clientY;
+    };
+    const onEnd = (e: TouchEvent) => {
+      if (!armed) return;
+      armed = false;
+      if (pinchingRef.current) return;
+      const st = useEditorStore.getState();
+      if (st.tool !== "select") return;
+      const tch = e.changedTouches[0];
+      if (!tch) return;
+      const dx = tch.clientX - sx, dy = tch.clientY - sy;
+      if (Math.abs(dx) < 60 || Math.abs(dx) < 1.5 * Math.abs(dy)) return;
+      st.setCurrentPage(st.currentPage + (dx < 0 ? 1 : -1));
+    };
+    el.addEventListener("touchstart", onStart, { passive: true });
+    el.addEventListener("touchend", onEnd);
+    return () => { el.removeEventListener("touchstart", onStart); el.removeEventListener("touchend", onEnd); };
+  }, []);
+
   const matches = useMemo(
     () => computeMatches(s.pages, s.findReplaceOpen ? s.findQuery : "", s.findCaseSensitive),
     [s.pages, s.findQuery, s.findCaseSensitive, s.findReplaceOpen],
@@ -389,6 +425,8 @@ export function EditorCanvas() {
   }
 
   function snapApply(box: Box): Pt {
+    // No snapping while pinch-zooming (Wave 8D) — keep the raw position, no guides.
+    if (pinchingRef.current) { pendingGuidesRef.current = []; return { x: box.x, y: box.y }; }
     const targets = snapTargetsRef.current;
     if (!targets) return { x: box.x, y: box.y };
     const r = findSnap(box, targets, 8 / scale);
@@ -412,6 +450,7 @@ export function EditorCanvas() {
 
   // ---- drag/resize for image and stamp overlays ----
   function beginAnnotDrag(e: React.PointerEvent, a: Annotation) {
+    if (pinchingRef.current) return;
     e.stopPropagation();
     setSelectedAnnotId(a.id);
     const start = { x: e.clientX, y: e.clientY };
@@ -431,6 +470,7 @@ export function EditorCanvas() {
   }
 
   function beginAnnotResize(e: React.PointerEvent, a: Annotation) {
+    if (pinchingRef.current) return;
     e.stopPropagation();
     const start = { x: e.clientX, y: e.clientY };
     const orig = { w: a.w, h: a.h };
@@ -447,6 +487,7 @@ export function EditorCanvas() {
 
   // ---- comment pin: drag to reposition, or toggle the bubble on a plain click ----
   function beginCommentDrag(e: React.PointerEvent, a: Annotation) {
+    if (pinchingRef.current) return;
     e.stopPropagation();
     setSelectedAnnotId(a.id);
     const start = { x: e.clientX, y: e.clientY };
@@ -546,6 +587,7 @@ export function EditorCanvas() {
 
   function onPointerDown(e: React.PointerEvent) {
     if (e.button !== 0) return;
+    if (pinchingRef.current) return; // ignore taps while pinch-zooming (Wave 8D)
     setCtx(null);
     const tool = s.tool;
     if (tool === "select") {
@@ -670,6 +712,30 @@ export function EditorCanvas() {
     if (s.multiSelected.length) s.deleteBlocks(s.multiSelected);
     else if (ctx?.blockId) s.deleteBlock(ctx.blockId);
   }
+  // Wave 8D: duplicate the block 20pt down-right (mirrors the toolbar's duplicateBlock).
+  async function ctxDuplicate() {
+    const id = ctx?.blockId;
+    if (!id || !s.sessionId) return;
+    const block = page.textBlocks.find((b) => b.blockId === id);
+    if (!block) return;
+    const change = s.changes.get(id);
+    const text = change?.newText ?? block.text;
+    const fontSize = change?.fontSize ?? block.fontSize;
+    const fontName = change?.fontName ?? block.fontName;
+    const color = change?.color ?? block.color ?? "#1f1f1f";
+    const bold = change?.bold ?? block.bold ?? false;
+    const italic = change?.italic ?? block.italic ?? false;
+    const pos = s.blockPositions[id];
+    const newX = (pos?.x ?? block.x) + 20;
+    const newY = (pos?.y ?? block.y) + 20;
+    try {
+      const { blockId } = await apiAddText(s.sessionId, { pageNum: page.pageNum, x: newX, y: newY + fontSize, text, fontSize, fontName, color, bold, italic });
+      s.addLocalBlock({ blockId, x: newX, y: newY, w: block.w, h: block.h, text, fontSize, fontName, color, bold, italic });
+      s.bumpRender();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : t("saveFailed"));
+    }
+  }
 
   const cursor =
     s.tool === "text" ? "text"
@@ -744,6 +810,7 @@ export function EditorCanvas() {
             onSnapEnd={snapEnd}
             onInput={(text) => { s.editBlock(b.blockId, { newText: text }); analytics.editorTextEdited(); }}
             onContextMenu={(e) => { e.preventDefault(); e.stopPropagation(); s.selectBlock(b.blockId); setCtx({ x: e.clientX, y: e.clientY, blockId: b.blockId, pt: toPt(e) }); }}
+            onLongPress={(x, y) => { s.selectBlock(b.blockId); setCtx({ x, y, blockId: b.blockId, pt: toPtClient(x, y) }); }}
           />
         ))}
 
@@ -892,6 +959,7 @@ export function EditorCanvas() {
           onClose={() => setCtx(null)}
           onCut={ctxCut}
           onCopy={ctxCopy}
+          onDuplicate={ctxDuplicate}
           onSelectAll={ctxSelectAll}
           onDelete={ctxDelete}
           onEdit={() => ctx.blockId && (s.setTool("select"), s.setEditing(ctx.blockId))}

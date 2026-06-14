@@ -39,12 +39,14 @@ export function CommentTool({
   return (
     <>
       <div
+        className="pp-ed-pin"
         style={{ position: "absolute", left, top, width: 26, height: 26, pointerEvents: interactive || open ? "auto" : "none" }}
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
       >
         <button
           type="button"
+          className="pp-ed-pin-btn"
           onPointerDown={onDrag}
           style={{
             width: 26, height: 26,

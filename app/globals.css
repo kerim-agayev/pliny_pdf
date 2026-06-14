@@ -399,13 +399,19 @@ input[type="range"].pp-range::-moz-range-thumb {
 @media (prefers-reduced-motion: reduce) { .pp-skel { animation: pppulse 1.6s ease-in-out infinite; } }
 /* mobile-only / hide-on-mobile helpers for the editor chrome */
 .pp-ed-mobileonly { display: none !important; }
-/* responsive collapse for narrow viewports (mobile editor, Wave 4B) */
-@media (max-width: 700px) {
+/* native bottom-sheet animations (Wave 8D, from the Phase 8 mobile redesign) */
+@keyframes rdSheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@keyframes rdFade { from { opacity: 0; } to { opacity: 1; } }
+/* responsive collapse for narrow viewports (mobile editor, Wave 4B; breakpoint
+   standardized to 767px for the Wave 8D bottom toolbar / bottom sheets) */
+@media (max-width: 767px) {
   /* thumbnails become an off-canvas drawer, toggled by the Pages button */
   .pp-ed-sidebar { display: none !important; }
   .pp-ed-sidebar.pp-ed-drawer-open {
     display: flex !important;
-    position: fixed; left: 0; top: 56px; bottom: 40px; z-index: 70; width: 200px;
+    /* sit between the mobile chrome: header (56) + controls row (44) on top,
+       bottom-fixed tool row (~72 incl. safe-area) below (Wave 8D) */
+    position: fixed; left: 0; top: 100px; bottom: 72px; z-index: 70; width: 200px;
     box-shadow: 0 0 50px -6px rgba(0, 0, 0, 0.6);
   }
   .pp-ed-drawer-backdrop { position: fixed; inset: 0; z-index: 69; background: rgba(0, 0, 0, 0.4); }
@@ -419,4 +425,8 @@ input[type="range"].pp-range::-moz-range-thumb {
   /* simplify the bottom bar — drop non-essential chips */
   .pp-ed-hide-sm { display: none !important; }
   .pp-ed-mobileonly { display: inline-flex !important; }
+  /* Wave 8D: roomier overlay controls for touch (inline styles, so !important) */
+  .pp-ed-del { width: 30px !important; height: 30px !important; top: -14px !important; right: -14px !important; font-size: 15px !important; }
+  .pp-ed-resize { width: 18px !important; height: 18px !important; right: -8px !important; bottom: -8px !important; }
+  .pp-ed-pin, .pp-ed-pin-btn { width: 32px !important; height: 32px !important; }
 }

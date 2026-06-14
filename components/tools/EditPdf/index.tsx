@@ -13,10 +13,13 @@ import { analytics } from "@/lib/analytics";
 import { downloadBlob, baseName } from "@/lib/format";
 import {
   PlinyMark, IconArrow, IconDownload, IconCloudUp, IconFile, IconAlert, IconRefresh, IconSparkle, IconClock,
+  IconUndo, IconRedo, IconSearch, IconChevron,
 } from "@/components/shared/icons";
 import { PasswordModal } from "@/components/shared/PasswordModal";
 import { Spinner } from "@/components/tools/Spinner";
+import { useMediaQuery } from "@/lib/hooks/useMediaQuery";
 import { EditorToolbar } from "./EditorToolbar";
+import { MobileToolbar } from "./MobileToolbar";
 import { PageThumbnails } from "./PageThumbnails";
 import { EditorCanvas } from "./EditorCanvas";
 import { EditorStatusBar } from "./EditorStatusBar";
@@ -30,6 +33,13 @@ const SHELL: React.CSSProperties = {
   display: "flex", flexDirection: "column", overflow: "hidden",
 };
 
+// mobile secondary-row control button (undo/redo/page-nav)
+const mctl = (disabled: boolean): React.CSSProperties => ({
+  width: 32, height: 32, borderRadius: 8, background: "transparent", border: 0,
+  color: "var(--text-2)", display: "flex", alignItems: "center", justifyContent: "center",
+  opacity: disabled ? 0.35 : 1, cursor: disabled ? "not-allowed" : "pointer",
+});
+
 export function EditPdf() {
   const t = useTranslations("ToolPages.editPdf");
   const { data: session } = useSession();
@@ -42,6 +52,8 @@ export function EditPdf() {
   const [warnDismissed, setWarnDismissed] = useState(false);
   const [pwFile, setPwFile] = useState<File | null>(null);
   const [showThumbs, setShowThumbs] = useState(false);
+  const [hintSeen, setHintSeen] = useState(false);
+  const isMobile = useMediaQuery("(max-width: 767px)");
   const warnedRef = useRef(false);
 
   // session countdown tick (drives the status-bar timer + expiry warning)
@@ -317,20 +329,50 @@ export function EditPdf() {
     <div style={SHELL}>
       {Header}
       {hiddenInput}
-      <EditorToolbar />
+      {!isMobile && <EditorToolbar />}
+      {isMobile && (
+        <div style={{ display: "flex", alignItems: "center", gap: 4, padding: "0 12px", height: 44, flexShrink: 0, background: "var(--card)", borderBottom: "1px solid var(--line)" }}>
+          <button type="button" title={t("undo")} disabled={!s.undoStack.length} onClick={s.undo} style={mctl(!s.undoStack.length)}><IconUndo size={17} /></button>
+          <button type="button" title={t("redo")} disabled={!s.redoStack.length} onClick={s.redo} style={mctl(!s.redoStack.length)}><IconRedo size={17} /></button>
+          <div style={{ flex: 1 }} />
+          <button type="button" onClick={s.openFindReplace} style={{ height: 30, padding: "0 10px", borderRadius: 8, background: "var(--bg-2)", border: "1px solid var(--line)", color: "var(--text-2)", fontSize: 12, display: "inline-flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
+            <IconSearch size={13} /> {t("find")}
+          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginLeft: 6 }}>
+            <button type="button" title={t("prevPage")} disabled={s.currentPage <= 0} onClick={() => s.setCurrentPage(s.currentPage - 1)} style={mctl(s.currentPage <= 0)}><IconChevron size={15} style={{ transform: "rotate(180deg)" }} /></button>
+            <span className="pp-mono" style={{ fontSize: 12, color: "var(--text)", minWidth: 38, textAlign: "center" }}>{s.currentPage + 1}/{s.pageCount}</span>
+            <button type="button" title={t("nextPage")} disabled={s.currentPage >= s.pageCount - 1} onClick={() => s.setCurrentPage(s.currentPage + 1)} style={mctl(s.currentPage >= s.pageCount - 1)}><IconChevron size={15} /></button>
+          </div>
+        </div>
+      )}
       <div style={{ flex: 1, display: "flex", overflow: "hidden", position: "relative" }}>
         {showThumbs && <div className="pp-ed-drawer-backdrop" onClick={() => setShowThumbs(false)} />}
         <PageThumbnails mobileOpen={showThumbs} onPick={() => setShowThumbs(false)} />
         <EditorCanvas />
+        {isMobile && (
+          <>
+            {!hintSeen && (
+              <div onClick={() => setHintSeen(true)} style={{ position: "absolute", top: 12, left: "50%", transform: "translateX(-50%)", display: "flex", alignItems: "center", gap: 7, padding: "6px 12px", borderRadius: 999, background: "rgba(15,15,15,0.7)", backdropFilter: "blur(6px)", border: "1px solid var(--line-2)", fontSize: 11.5, color: "var(--text-2)", zIndex: 20, pointerEvents: "auto" }}>
+                {t("pinchSwipeHint")}
+              </div>
+            )}
+            <button type="button" onClick={() => setShowThumbs((v) => !v)} style={{ position: "absolute", left: 14, bottom: 14, height: 44, padding: "0 16px", borderRadius: 999, background: "var(--card)", border: "1px solid var(--line-2)", color: "var(--text)", fontSize: 13, fontWeight: 500, display: "flex", alignItems: "center", gap: 8, boxShadow: "0 10px 26px -10px rgba(0,0,0,0.55)", cursor: "pointer", zIndex: 20 }}>
+              <IconFile size={15} /> {t("pages")}
+            </button>
+          </>
+        )}
       </div>
-      <EditorStatusBar
-        remainingMs={remainingMs}
-        extra={
-          <button type="button" className="pp-ed-mobileonly pp-edtool" onClick={() => setShowThumbs((v) => !v)} style={{ alignItems: "center", gap: 5, height: 26, padding: "0 9px", borderRadius: 6, background: "var(--bg-2)", border: "1px solid var(--line)", color: "var(--text-2)", fontSize: 11.5, cursor: "pointer" }}>
-            {t("pages")}
-          </button>
-        }
-      />
+      {!isMobile && (
+        <EditorStatusBar
+          remainingMs={remainingMs}
+          extra={
+            <button type="button" className="pp-ed-mobileonly pp-edtool" onClick={() => setShowThumbs((v) => !v)} style={{ alignItems: "center", gap: 5, height: 26, padding: "0 9px", borderRadius: 6, background: "var(--bg-2)", border: "1px solid var(--line)", color: "var(--text-2)", fontSize: 11.5, cursor: "pointer" }}>
+              {t("pages")}
+            </button>
+          }
+        />
+      )}
+      {isMobile && <MobileToolbar />}
 
       {showWarning && <SessionWarning onSave={() => handleSave(false)} onDismiss={() => setWarnDismissed(true)} />}
       {s.findReplaceOpen && <FindReplaceModal />}
