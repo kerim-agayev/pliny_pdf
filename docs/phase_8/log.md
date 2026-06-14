@@ -29,3 +29,17 @@
 - GATE 8C PASSED ✅ — all tests green. Commits e62efc9, 62fbd0b, b0950db, 68a3adc,
   fd0ffb7, a3eb244, pushed to main. Next: Wave 8D (mobile responsive + bottom
   toolbar) — ask user for Claude Design handoff link before planning.
+- Wave 8D implementation complete: mobile responsive + bottom toolbar. Fetched the
+  Phase 8 design handoff (`.design-handoff/phase-8/`, `edit-redesign-mobile.jsx`) — the
+  real mobile spec the earlier bundles lacked. New `useMediaQuery` hook, `BottomSheet`
+  (spring/drag-handle/swipe-dismiss/backdrop/Esc), `MobileToolbar` (bottom-fixed
+  scroll row + per-tool sheets bound to existing constants). Mobile chrome swap in
+  index.tsx (controls row + Pages FAB + pinch hint); swipe page-nav, long-press context
+  menu (+Duplicate), `isPinching` snap guard (lib/touch onPinchChange), bigger touch
+  targets, safe-area, breakpoint 700→767. i18n EN/TR/RU. Frontend-only.
+- Mid-wave: Find & Replace removed from UI entirely (desktop button + mobile pill +
+  Ctrl/Cmd+H) per user decision — recurring removal (prev D6-2/D6-10). Modal + store
+  actions kept. See decisions.md.
+- GATE 8D PASSED ✅ — all tests green on real mobile device. Commits 5f50b73 (feature),
+  2bbf3e6 (F&R removal), pushed to main. Next: Wave 8E (performance + toolbar UX audit)
+  — next session, do not start yet.
