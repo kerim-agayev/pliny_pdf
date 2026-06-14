@@ -5,7 +5,9 @@
 - Wave 8B: DONE ✅ (GATE passed 2026-06-13) — snap/alignment guides
 - Wave 8C: DONE ✅ (GATE passed 2026-06-14) — smart auto-resize text blocks + alignment-as-position
 - Wave 8D: DONE ✅ (GATE passed 2026-06-14) — mobile responsive + bottom toolbar + bottom sheets + touch UX; F&R removed from UI
-- Wave 8E: CURRENT — performance + toolbar UX audit
+- Wave 8E: IMPLEMENTATION COMPLETE ⏳ — GATE pending user verification
+  (single-active dropdown + save in-flight state; z-index light-touch; audit found no
+  memory leaks, tooltips/disabled/toasts already present). `bun run build` green.
 
 ## Goal
 Bring Edit PDF to Sejda/Figma-quality interactions. 5 waves:
@@ -16,6 +18,6 @@ Bring Edit PDF to Sejda/Figma-quality interactions. 5 waves:
 5. Performance + toolbar UX audit
 
 ## Next step
-Start Wave 8E (performance + toolbar UX audit): single-active dropdown, z-index
-audit, memory-leak audit, 60fps drag, tooltips/disabled/loading states. Do NOT start
-until the user kicks off the next session.
+Verify GATE 8E manually (see docs/phase_8/waves/wave_8e.md checklist), then — on user
+confirmation — mark all 5 waves complete and make the final commit
+`feat(editor): Phase 8 complete`. Do NOT commit until the user confirms GATE 8E.

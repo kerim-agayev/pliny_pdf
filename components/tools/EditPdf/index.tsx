@@ -28,6 +28,21 @@ import { SessionWarning } from "./SessionWarning";
 
 type Plan = "free" | "pro" | null;
 
+// Wave 8E — Edit PDF z-index hierarchy (keep new overlays inside this scheme).
+// Values are deliberately spread so new layers can slot in without renumbering.
+//    1   snap guides (SnapGuideOverlay)
+//    2   overlay delete/resize handles
+//   10   highlight color palette
+//   20   comment bubble · mobile hint/pages buttons
+//   30   draft text input box
+//   40   toolbar popovers (shapes / stamp / marks)
+//   50   editor shell (this component)
+//   55   session-expiry warning banner
+//   60   find / scanned-PDF modal
+//   70   session-expired modal
+//   80   confirm dialog · context menu · link dialog
+//   90   mobile bottom sheet
+//  100   text block while being dragged
 const SHELL: React.CSSProperties = {
   position: "fixed", inset: 0, zIndex: 50, background: "var(--bg)", color: "var(--text)",
   display: "flex", flexDirection: "column", overflow: "hidden",
@@ -53,6 +68,8 @@ export function EditPdf() {
   const [pwFile, setPwFile] = useState<File | null>(null);
   const [showThumbs, setShowThumbs] = useState(false);
   const [hintSeen, setHintSeen] = useState(false);
+  const [saving, setSaving] = useState(false); // Wave 8E: in-flight guard for save/download (drives button UI)
+  const savingRef = useRef(false); // synchronous re-entry guard (avoids double-fire before state flushes)
   const isMobile = useMediaQuery("(max-width: 767px)");
   const warnedRef = useRef(false);
 
@@ -118,7 +135,9 @@ export function EditPdf() {
   );
 
   const handleSave = useCallback(async (download: boolean) => {
-    if (!s.sessionId) return;
+    if (!s.sessionId || savingRef.current) return; // ignore re-entry while a save is in flight
+    savingRef.current = true;
+    setSaving(true);
     try {
       const blob = await saveEditor(s.sessionId, changeList(), annotationList());
       s.markSaved();
@@ -129,6 +148,9 @@ export function EditPdf() {
     } catch (e) {
       if (e instanceof EditorError && e.status === 410) toast.error(t("sessionExpired"));
       else toast.error(e instanceof Error ? e.message : t("saveFailed"));
+    } finally {
+      savingRef.current = false;
+      setSaving(false);
     }
   }, [s, changeList, annotationList, t]);
 
@@ -205,14 +227,14 @@ export function EditPdf() {
       {s.phase === "active" && (
         <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
           <span className="pp-mono" style={{ fontSize: 11, color: "var(--text-3)" }}>{s.hasUnsavedChanges ? t("unsaved") : t("saved")}</span>
-          <button type="button" className="pp-btn pp-btn-ghost" style={{ padding: "8px 14px" }} onClick={() => handleSave(true)}>
+          <button type="button" className="pp-btn pp-btn-ghost" style={{ padding: "8px 14px" }} disabled={saving} onClick={() => handleSave(true)}>
             <IconDownload size={14} /> {t("download")}
             <span className="pp-mono" style={{ fontSize: 10, padding: "1px 5px", background: "rgba(127,127,127,0.16)", borderRadius: 4, marginLeft: 4 }}>⌘D</span>
           </button>
-          <button type="button" className="pp-btn" style={{ padding: "8px 16px", position: "relative" }} onClick={() => handleSave(false)}>
-            {s.hasUnsavedChanges && <span style={{ position: "absolute", top: 6, right: 6, width: 7, height: 7, borderRadius: "50%", background: "#FACC15", boxShadow: "0 0 6px #FACC15" }} />}
-            {t("save")}
-            <span className="pp-mono" style={{ fontSize: 10, padding: "1px 5px", background: "rgba(255,255,255,0.16)", borderRadius: 4, marginLeft: 4 }}>⌘S</span>
+          <button type="button" className="pp-btn" style={{ padding: "8px 16px", position: "relative" }} disabled={saving} onClick={() => handleSave(false)}>
+            {s.hasUnsavedChanges && !saving && <span style={{ position: "absolute", top: 6, right: 6, width: 7, height: 7, borderRadius: "50%", background: "#FACC15", boxShadow: "0 0 6px #FACC15" }} />}
+            {saving ? <><Spinner size={13} /> {t("saving")}</> : t("save")}
+            {!saving && <span className="pp-mono" style={{ fontSize: 10, padding: "1px 5px", background: "rgba(255,255,255,0.16)", borderRadius: 4, marginLeft: 4 }}>⌘S</span>}
           </button>
         </div>
       )}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { toast } from "sonner";
 import { useEditorStore, type ShapeType, type MarkType } from "@/lib/stores/editorStore";
@@ -105,10 +105,29 @@ export function EditorToolbar() {
   const colorRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const whiteoutColorRef = useRef<HTMLInputElement>(null);
-  const [shapesOpen, setShapesOpen] = useState(false);
-  const [stampOpen, setStampOpen] = useState(false);
-  const [marksOpen, setMarksOpen] = useState(false);
+  // Wave 8E: single-active dropdown — one value instead of three independent booleans,
+  // so opening one popover implicitly closes the others. A click-outside/Esc effect
+  // (below) closes whichever is open. (linkOpen is a separate modal dialog, not a popover.)
+  const [openMenu, setOpenMenu] = useState<"shapes" | "stamp" | "marks" | null>(null);
   const [linkOpen, setLinkOpen] = useState(false);
+  const menuWrapRef = useRef<HTMLDivElement>(null);
+
+  // Wave 8E: close the open toolbar popover on outside-click or Esc. Same cleanup
+  // pattern as LinkDialog/BottomSheet. Pointerdown inside the toolbar row (triggers +
+  // popovers live in menuWrapRef) is ignored so a trigger click can still toggle.
+  useEffect(() => {
+    if (!openMenu) return;
+    const onDown = (e: PointerEvent) => {
+      if (!menuWrapRef.current?.contains(e.target as Node)) setOpenMenu(null);
+    };
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") setOpenMenu(null); };
+    window.addEventListener("pointerdown", onDown);
+    window.addEventListener("keydown", onKey);
+    return () => {
+      window.removeEventListener("pointerdown", onDown);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [openMenu]);
 
   async function duplicateBlock() {
     const id = s.selectedBlock;
@@ -204,7 +223,7 @@ export function EditorToolbar() {
   function addStamp(label: string) {
     const page = s.pages[s.currentPage];
     if (!page) return;
-    setStampOpen(false);
+    setOpenMenu(null);
     const color = STAMP_COLOR[label] ?? "#3B82F6";
     const w = 160, h = 50;
     const cx = (page.width - w) / 2;
@@ -215,7 +234,7 @@ export function EditorToolbar() {
   return (
     <div style={{ position: "relative" }}>
       {/* Row 1 — tools */}
-      <div className="pp-ed-row" style={{ ...ROW, height: 48, gap: 2 }}>
+      <div ref={menuWrapRef} className="pp-ed-row" style={{ ...ROW, height: 48, gap: 2 }}>
         <TBtn icon={IconCursor} label={t("toolSelect")} active={s.tool === "select"} onClick={() => s.setTool("select")} />
         <TBDiv />
         <TBtn icon={IconTextPlus} label={t("toolText")} active={s.tool === "text"} onClick={() => s.setTool("text")} />
@@ -224,13 +243,13 @@ export function EditorToolbar() {
         <TBtn icon={IconStrike} label={t("toolStrike")} active={s.tool === "strike"} onClick={() => s.setTool("strike")} />
         <TBDiv />
         <TBtn icon={IconPen} label={t("toolDraw")} active={s.tool === "draw"} onClick={() => s.setTool("draw")} />
-        <TBtn icon={IconShapes} label={t("toolShapes")} hasCaret active={s.tool === "shapes"} onClick={() => { s.setTool("shapes"); setShapesOpen((v) => !v); }} />
+        <TBtn icon={IconShapes} label={t("toolShapes")} hasCaret active={s.tool === "shapes"} onClick={() => { s.setTool("shapes"); setOpenMenu((v) => (v === "shapes" ? null : "shapes")); }} />
         <TBtn icon={IconMessage} label={t("toolComment")} active={s.tool === "comment"} onClick={() => s.setTool("comment")} />
         <TBDiv />
         <TBtn icon={IconImage} label={t("toolImage")} disabled={!s.sessionId} onClick={() => imageInputRef.current?.click()} />
         <input ref={imageInputRef} type="file" accept="image/jpeg,image/png,image/gif,image/bmp,image/webp" style={{ display: "none" }} onChange={handleImageUpload} />
-        <TBtn icon={IconBolt} label={t("toolStamp")} hasCaret active={stampOpen} onClick={() => setStampOpen((v) => !v)} disabled={!s.sessionId} />
-        <TBtn icon={IconCheck} label={t("toolMark")} hasCaret active={s.tool === "mark" || marksOpen} onClick={() => setMarksOpen((v) => !v)} />
+        <TBtn icon={IconBolt} label={t("toolStamp")} hasCaret active={openMenu === "stamp"} onClick={() => setOpenMenu((v) => (v === "stamp" ? null : "stamp"))} disabled={!s.sessionId} />
+        <TBtn icon={IconCheck} label={t("toolMark")} hasCaret active={s.tool === "mark" || openMenu === "marks"} onClick={() => setOpenMenu((v) => (v === "marks" ? null : "marks"))} />
 
         {DRAW_TOOLS.has(s.tool) && (
           <>
@@ -320,7 +339,7 @@ export function EditorToolbar() {
           <span className="pp-dot" /> {t("cloudEditor")}
         </div>
 
-        {shapesOpen && (
+        {openMenu === "shapes" && (
           <div
             style={{
               position: "absolute", left: 296, top: 46, zIndex: 40, width: 188, background: "var(--card)",
@@ -330,7 +349,7 @@ export function EditorToolbar() {
             {([["rectangle", IconRect, t("shapeRectangle")], ["circle", IconCircleShape, t("shapeCircle")], ["arrow", IconArrowDraw, t("shapeArrow")], ["line", IconLineShape, t("shapeLine")]] as [ShapeType, ComponentType<IconProps>, string][]).map(([k, Ic, label]) => (
               <button
                 key={k} type="button" className="pp-related"
-                onClick={() => { s.setShapeType(k); setShapesOpen(false); }}
+                onClick={() => { s.setShapeType(k); setOpenMenu(null); }}
                 style={{
                   width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "8px 10px", borderRadius: 8,
                   background: s.shapeType === k ? "rgba(107,92,231,0.14)" : "transparent", border: 0,
@@ -343,7 +362,7 @@ export function EditorToolbar() {
           </div>
         )}
 
-        {stampOpen && (
+        {openMenu === "stamp" && (
           <div
             style={{
               position: "absolute", right: 74, top: 46, zIndex: 40, width: 200, background: "var(--card)",
@@ -366,7 +385,7 @@ export function EditorToolbar() {
           </div>
         )}
 
-        {marksOpen && (
+        {openMenu === "marks" && (
           <div
             style={{
               position: "absolute", right: 40, top: 46, zIndex: 40, width: 180, background: "var(--card)",
@@ -376,7 +395,7 @@ export function EditorToolbar() {
             {([["check", IconCheck, t("markCheck")], ["cross", IconX, t("markCross")], ["circle", IconCircleShape, t("markCircle")]] as [MarkType, ComponentType<IconProps>, string][]).map(([k, Ic, label]) => (
               <button
                 key={k} type="button" className="pp-related"
-                onClick={() => { s.setMarkType(k); setMarksOpen(false); }}
+                onClick={() => { s.setMarkType(k); setOpenMenu(null); }}
                 style={{
                   width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "8px 10px", borderRadius: 8,
                   background: s.tool === "mark" && s.markType === k ? "rgba(107,92,231,0.14)" : "transparent", border: 0,
