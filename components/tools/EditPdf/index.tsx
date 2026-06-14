@@ -13,7 +13,7 @@ import { analytics } from "@/lib/analytics";
 import { downloadBlob, baseName } from "@/lib/format";
 import {
   PlinyMark, IconArrow, IconDownload, IconCloudUp, IconFile, IconAlert, IconRefresh, IconSparkle, IconClock,
-  IconUndo, IconRedo, IconSearch, IconChevron,
+  IconUndo, IconRedo, IconChevron,
 } from "@/components/shared/icons";
 import { PasswordModal } from "@/components/shared/PasswordModal";
 import { Spinner } from "@/components/tools/Spinner";
@@ -141,7 +141,6 @@ export function EditPdf() {
       const editable = (e.target as HTMLElement)?.isContentEditable || ["INPUT", "TEXTAREA"].includes((e.target as HTMLElement)?.tagName);
       if (k === "s") { e.preventDefault(); handleSave(false); }
       else if (k === "d") { e.preventDefault(); handleSave(true); }
-      else if (k === "h") { e.preventDefault(); s.openFindReplace(); }
       else if (k === "z" && !editable) { e.preventDefault(); e.shiftKey ? s.redo() : s.undo(); }
       else if (k === "y" && !editable) { e.preventDefault(); s.redo(); }
     }
@@ -335,9 +334,6 @@ export function EditPdf() {
           <button type="button" title={t("undo")} disabled={!s.undoStack.length} onClick={s.undo} style={mctl(!s.undoStack.length)}><IconUndo size={17} /></button>
           <button type="button" title={t("redo")} disabled={!s.redoStack.length} onClick={s.redo} style={mctl(!s.redoStack.length)}><IconRedo size={17} /></button>
           <div style={{ flex: 1 }} />
-          <button type="button" onClick={s.openFindReplace} style={{ height: 30, padding: "0 10px", borderRadius: 8, background: "var(--bg-2)", border: "1px solid var(--line)", color: "var(--text-2)", fontSize: 12, display: "inline-flex", alignItems: "center", gap: 6, cursor: "pointer" }}>
-            <IconSearch size={13} /> {t("find")}
-          </button>
           <div style={{ display: "flex", alignItems: "center", gap: 6, marginLeft: 6 }}>
             <button type="button" title={t("prevPage")} disabled={s.currentPage <= 0} onClick={() => s.setCurrentPage(s.currentPage - 1)} style={mctl(s.currentPage <= 0)}><IconChevron size={15} style={{ transform: "rotate(180deg)" }} /></button>
             <span className="pp-mono" style={{ fontSize: 12, color: "var(--text)", minWidth: 38, textAlign: "center" }}>{s.currentPage + 1}/{s.pageCount}</span>
