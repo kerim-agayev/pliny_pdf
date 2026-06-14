@@ -62,3 +62,14 @@
     overlaps; snap guides at `z=1` confirmed correct (above PNG + static blocks, below
     the `z=100` dragged block). Documented the hierarchy as a legend comment in index.tsx.
   - Frontend-only (no `pdf-editor.py` change, no Hetzner deploy). `bun run build` green.
+- GATE 8E passed (user). One critical bug surfaced before closing Phase 8:
+  **B8-3 ghost-mask stacking** — after moving several blocks into the same area, a moved
+  block's leftover white mask covered another block's text. Root cause: persistent ghost
+  masks (required — the PNG isn't re-rendered on move) rendered at `z-index: auto`
+  interleaved per block, so a later block's mask painted over an earlier block's content.
+  Fix is layering, not removal (removing the mask would duplicate the text, since the PNG
+  keeps the original until save): page container `isolation: isolate`, PNG `zIndex -2`,
+  ghost masks `zIndex -1` → all ghosts paint below all block contents but above the PNG;
+  annotations (D6-11) and the dragged block z100 (D6-12) preserved. TextBlock mask
+  condition untouched, so drag behavior unchanged. Frontend-only, `bun run build` green.
+  Phase 8 NOT marked complete — awaiting user confirmation that the ghost bug is fixed.

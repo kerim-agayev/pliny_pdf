@@ -760,7 +760,10 @@ export function EditorCanvas() {
         ref={pageRef}
         onPointerDown={onPointerDown}
         onContextMenu={onCanvasContextMenu}
-        style={{ position: "relative", width: displayW, height: displayH, flexShrink: 0, cursor, touchAction: "none", boxShadow: "0 30px 70px -24px rgba(0,0,0,0.55), 0 0 0 1px rgba(0,0,0,0.18)", background: "#fff" }}
+        // `isolation: isolate` makes this page its own stacking context so the negative
+        // z-index layers below (PNG at -2, per-block ghost masks at -1) stay contained
+        // here instead of escaping to an ancestor. See ghost-mask layering (Wave 8E).
+        style={{ position: "relative", isolation: "isolate", width: displayW, height: displayH, flexShrink: 0, cursor, touchAction: "none", boxShadow: "0 30px 70px -24px rgba(0,0,0,0.55), 0 0 0 1px rgba(0,0,0,0.18)", background: "#fff" }}
       >
         <img
           src={`${pagePngUrl(s.sessionId!, page.pageNum)}?v=${s.renderVersion}`}
@@ -768,7 +771,10 @@ export function EditorCanvas() {
           width={displayW}
           height={displayH}
           draggable={false}
-          style={{ display: "block", userSelect: "none", pointerEvents: "none" }}
+          // zIndex -2: the PNG is the floor. Block ghost masks sit at -1 (just above it,
+          // hiding stale baked text) but below ALL block contents (auto) so a moved
+          // block's mask can never cover another block's text (Wave 8E ghost-stacking fix).
+          style={{ display: "block", position: "relative", zIndex: -2, userSelect: "none", pointerEvents: "none" }}
         />
 
         {/* snap / alignment guides (Wave 8B) — above the PNG, below dragged elements */}

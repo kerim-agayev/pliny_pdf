@@ -255,12 +255,14 @@ export function TextBlock({
           box) so that shrinking the text never lets the baked PNG text leak out past
           the mask (Wave 8C fix). On grow, the content box extends past this mask over
           empty page area, so its own white background covers the rest.
-          z-index is intentionally left at `auto` (NOT positive): by DOM order it
-          paints above the page PNG (so the stale text is masked) but below every
-          annotation overlay (draw/whiteout/shape/highlight, all `auto`, rendered
-          later in the DOM) — otherwise the ghost would white-out annotations placed
-          over the old position. See decisions.md D6-11. The moved block itself keeps
-          zIndex 100 to stay above this ghost. */}
+          z-index is -1 (Wave 8E): inside the page's isolated stacking context this puts
+          the mask just ABOVE the page PNG (which is at -2, so the stale text is masked)
+          but BELOW every block content AND every annotation overlay (all `auto`/positive).
+          Previously this was `auto` and rendered inline per block, so a MOVED block's
+          ghost (at its old spot) painted OVER another block's text that had been moved
+          there — ghosts accumulated/stacked. Negative z fixes that: every ghost is below
+          every block's content, so no ghost can cover text. Annotations stay on top of
+          ghosts (D6-11); the dragged block keeps zIndex 100 (D6-12). */}
       {masked && (
         <div
           style={{
@@ -270,6 +272,7 @@ export function TextBlock({
             width: origW,
             height: origH,
             transform: undefined,
+            zIndex: -1,
             background: "#fff",
             pointerEvents: "none",
             border: "1px solid transparent",
