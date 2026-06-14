@@ -73,3 +73,8 @@
   annotations (D6-11) and the dragged block z100 (D6-12) preserved. TextBlock mask
   condition untouched, so drag behavior unchanged. Frontend-only, `bun run build` green.
   Phase 8 NOT marked complete — awaiting user confirmation that the ghost bug is fixed.
+- GATE 8E + B8-3 ghost fix confirmed passed by user. 🎉 **PHASE 8 COMPLETE** — all 5
+  waves (8A–8E) gate-passed. Edit PDF reaches Sejda/Figma-quality interactions: Add-Text
+  auto-commit, snap/alignment guides, smart auto-resize, mobile responsive bottom toolbar,
+  perf/UX cleanup. Commits 7c4f6e5 (8E), 096ab43 (ghost fix), final commit
+  `feat(editor): Phase 8 complete`. Frontend-only throughout. Next: Phase 9 (if/when).

@@ -1,6 +1,6 @@
 # Wave 8E — Performance, Toolbar UX, Audit
 
-## Status: IMPLEMENTATION COMPLETE — GATE pending user verification
+## Status: DONE ✅ — GATE 8E passed (user) 2026-06-14
 
 ## Goal
 Zero overlap issues, no memory leaks, single-active dropdown, performance sanity,
@@ -36,14 +36,15 @@ The editor was already in much better shape than CLAUDE_8.md §4 Wave 8E assumes
 - No speculative memo/perf rewrites (snap already rAF-throttled; no measured jank).
 - Find & Replace performance gate skipped (F&R removed from UI in 8D).
 
-## GATE 8E (verify before commit)
-- [ ] Only one dropdown open at a time; outside-click / Esc closes it
-- [ ] Stamp-on-text stacking correct; snap guide visible during drag
-- [ ] Heap doesn't grow after open/edit/save ×5
-- [ ] Drag with 50 blocks smooth; 50-page nav smooth
-- [ ] Save shows "Saving…" + disables; no double-fire
-- [ ] Tooltips present on all desktop toolbar buttons
-- [ ] New string renders EN/TR/RU
-- [ ] `bun run build` green ✅ (done)
+## GATE 8E (passed 2026-06-14)
+- [x] Only one dropdown open at a time; outside-click / Esc closes it
+- [x] Stamp-on-text stacking correct; snap guide visible during drag
+- [x] Heap doesn't grow after open/edit/save ×5
+- [x] Drag with 50 blocks smooth; 50-page nav smooth
+- [x] Save shows "Saving…" + disables; no double-fire
+- [x] Tooltips present on all desktop toolbar buttons
+- [x] New string renders EN/TR/RU
+- [x] `bun run build` green
+- [x] B8-3 ghost-mask stacking fixed (z-layering) — verified by user
 
 ## See CLAUDE_8.md §4 Wave 8E for full spec.
