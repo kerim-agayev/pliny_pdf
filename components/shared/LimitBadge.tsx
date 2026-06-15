@@ -23,7 +23,9 @@ export function LimitBadge({
   quotaUsed,
   quotaTotal,
   over = false,
+  overUnit = "mb",
   fileSize = 0,
+  filePages = 0,
   loadedSize = null,
   align = "center",
 }: {
@@ -39,7 +41,10 @@ export function LimitBadge({
   quotaUsed?: number;
   quotaTotal?: number;
   over?: boolean;
+  /** Which limit was exceeded — drives the red message. */
+  overUnit?: "mb" | "pages";
   fileSize?: number;
+  filePages?: number;
   loadedSize?: number | null;
   align?: "center" | "left";
 }) {
@@ -62,7 +67,7 @@ export function LimitBadge({
           }}
         >
           <IconAlert size={14} sw={2} />
-          {t("over", { fileSize, size })}
+          {overUnit === "pages" ? t("overPages", { pages: filePages, limit: count }) : t("over", { fileSize, size })}
         </div>
         {tier === "anonymous" && <SignInUpsell label={t("signIn", { limits: fmt(signedInSize, signedInCount) })} />}
       </div>

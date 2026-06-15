@@ -7,8 +7,11 @@ import { Link } from "@/i18n/navigation";
 import { useSession } from "@/lib/auth/client";
 import { useEditorStore } from "@/lib/stores/editorStore";
 import { openEditor, saveEditor, closeEditor, EditorError, type BlockChange, type AnnotationChange } from "@/lib/api/editor";
-import { editorMaxBytes, editorMaxMB } from "@/lib/limits";
+import { editorMaxBytes, editorMaxMB, editorMaxPages, getToolLimits, effectivePlan, bytesToMB } from "@/lib/limits";
 import { isPdfEncrypted } from "@/lib/validation";
+import { readPageCount } from "@/lib/pdf/common";
+import { LimitBadge } from "@/components/shared/LimitBadge";
+import { useDailyUsage } from "@/lib/hooks/useDailyUsage";
 import { analytics } from "@/lib/analytics";
 import { downloadBlob, baseName } from "@/lib/format";
 import {
@@ -59,6 +62,14 @@ export function EditPdf() {
   const t = useTranslations("ToolPages.editPdf");
   const { data: session } = useSession();
   const plan = ((session?.user as { plan?: "free" | "pro" })?.plan ?? null) as Plan;
+
+  // Wave 9A — limit badge data for the (custom) uploader + inline over-limit state.
+  const badgePlan = effectivePlan(plan);
+  const limits = getToolLimits("edit-pdf", badgePlan);
+  const anonLimits = getToolLimits("edit-pdf", "anon");
+  const freeLimits = getToolLimits("edit-pdf", "free");
+  const usage = useDailyUsage(true);
+  const [over, setOver] = useState<{ unit: "mb" | "pages"; value: number } | null>(null);
 
   const s = useEditorStore();
   const fileInput = useRef<HTMLInputElement>(null);
@@ -172,6 +183,9 @@ export function EditPdf() {
 
   // Upload + parse a (decrypted, validated) file and open the editor session.
   const proceed = useCallback(async (file: File) => {
+    // Block over-page files client-side before upload (covers the post-unlock path too).
+    const pageCount = await readPageCount(file).catch(() => 0);
+    if (pageCount > editorMaxPages(plan)) { setOver({ unit: "pages", value: pageCount }); return; }
     s.startLoading(file.name);
     setWarnDismissed(false);
     try {
@@ -192,8 +206,9 @@ export function EditPdf() {
   }, [plan, s, t]);
 
   const openFile = useCallback(async (file: File) => {
+    setOver(null);
     if (!file.name.toLowerCase().endsWith(".pdf")) { toast.error(t("pdfOnly")); return; }
-    if (file.size > editorMaxBytes(plan)) { toast.error(t("fileTooLarge", { mb: editorMaxMB(plan) })); return; }
+    if (file.size > editorMaxBytes(plan)) { setOver({ unit: "mb", value: bytesToMB(file.size) }); return; }
     // Encrypted PDFs are unlocked in-browser first (same flow as every other tool),
     // so the editor backend only ever receives a decrypted file.
     let encrypted = false;
@@ -271,20 +286,37 @@ export function EditPdf() {
             tabIndex={0}
             onClick={pickFile}
             onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") pickFile(); }}
-            style={{ width: 620, maxWidth: "92%", border: `1.5px dashed ${glow ? "var(--indigo)" : "var(--line-2)"}`, borderRadius: 22, padding: "64px 48px", textAlign: "center", cursor: "pointer", background: glow ? "var(--indigo-dim)" : "linear-gradient(180deg, rgba(127,127,127,0.02), rgba(127,127,127,0))" }}
+            style={{ width: 620, maxWidth: "92%", border: `1.5px dashed ${over ? "rgba(239,68,68,0.5)" : glow ? "var(--indigo)" : "var(--line-2)"}`, borderRadius: 22, padding: "64px 48px", textAlign: "center", cursor: "pointer", background: over ? "rgba(239,68,68,0.06)" : glow ? "var(--indigo-dim)" : "linear-gradient(180deg, rgba(127,127,127,0.02), rgba(127,127,127,0))" }}
           >
             <div style={{ width: 76, height: 76, borderRadius: 19, margin: "0 auto 24px", background: "rgba(59,130,246,0.12)", border: "1px solid rgba(59,130,246,0.3)", color: "#60A5FA", display: "flex", alignItems: "center", justifyContent: "center" }}>
               <IconCloudUp size={32} sw={1.6} />
             </div>
             <h1 style={{ fontSize: 26, letterSpacing: "-0.025em", marginBottom: 10 }}>{t("emptyTitle")}</h1>
             <p style={{ fontSize: 14.5, color: "var(--text-2)", marginBottom: 8 }}>{t("emptyDesc")}</p>
-            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, marginBottom: 26 }}>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 8, marginBottom: 22 }}>
               <span className="pp-mono" style={{ fontSize: 11.5, color: "var(--text-3)" }}>{t("pdfOnly")}</span>
-              <span style={{ color: "var(--line-2)" }}>·</span>
-              <span className="pp-badge" style={{ fontSize: 11, padding: "2px 9px" }}>{t("maxNote", { mb: editorMaxMB(plan) })}</span>
             </div>
-            <div>
+            <div style={{ marginBottom: 22 }}>
               <button type="button" className="pp-btn pp-btn-lg" onClick={(e) => { e.stopPropagation(); pickFile(); }}><IconFile size={15} /> {t("browse")}</button>
+            </div>
+            <div style={{ display: "flex", justifyContent: "center" }} onClick={(e) => e.stopPropagation()}>
+              <LimitBadge
+                tier={badgePlan === "anon" ? "anonymous" : "free"}
+                size={limits.mb}
+                count={limits.count}
+                unit={limits.unit}
+                cloud={limits.cloud}
+                quotaUsed={usage?.used}
+                quotaTotal={usage?.total ?? undefined}
+                over={over != null}
+                overUnit={over?.unit}
+                fileSize={over?.unit === "mb" ? over.value : 0}
+                filePages={over?.unit === "pages" ? over.value : undefined}
+                signedInSize={freeLimits.mb}
+                signedInCount={freeLimits.count}
+                anonSize={anonLimits.mb}
+                anonCount={anonLimits.count}
+              />
             </div>
           </div>
           <div className="pp-badge cloud" style={{ marginTop: 28, padding: "10px 16px", fontSize: 13, borderRadius: 999, maxWidth: 560 }}>

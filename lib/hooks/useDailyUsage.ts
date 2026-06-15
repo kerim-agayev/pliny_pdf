@@ -20,7 +20,7 @@ export function useDailyUsage(enabled: boolean): DailyUsage | null {
   useEffect(() => {
     if (!enabled) return;
     let active = true;
-    fetch("/api/usage")
+    fetch("/api/usage", { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : null))
       .then((d: DailyUsage | null) => {
         if (active && d) setUsage(d);

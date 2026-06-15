@@ -144,6 +144,7 @@
     "anonTier": "Anonim seviye: {limits}",
     "signIn": "{limits} için giriş yapın",
     "over": "Bu dosya {fileSize} MB — {size} MB sınırınızın üzerinde",
+    "overPages": "Bu PDF {pages} sayfa — {limit} sayfa sınırınızın üzerinde",
     "meter": "{used} MB / {max} MB"
   },
   "PrivacyBadge": {

@@ -15,6 +15,31 @@ backend limit (office 25/75, pdf-to-jpg 15/50, edit-pdf 15/50, merge 100/300). N
 the backend enforces `editorMaxMB` (10/30). `getToolLimits("edit-pdf")` now uses the editor
 caps, aligning the friendly pre-check with enforcement.
 
+## Fixed in Wave 9A — GATE 9A round
+
+### B9-3 — Cloud tools showed over-page as a post-upload toast
+PDF→JPG (and other cloud tools) passed no `checkPages`, so the dropzone never
+counted pages client-side; the over-page rejection came from the server as a toast
+*after* upload. Fix: FileDropzone now parses page count for **every** PDF tool with a
+`toolId` (`accept === "pdf" && (checkPages || toolId)`) and blocks before `onFiles`.
+Both size and page violations now flip the badge red + red border (unified `over` state)
+before any server call.
+
+### B9-4 — Edit PDF showed MB but not pages; Annotate was mis-tagged
+`EditorTool` (the **Annotate** tool, id `edit`, route `/pdf-editor`, local) was wrongly
+given `toolId="edit-pdf"`. Fixed to `toolId="edit"`. The real cloud **Edit PDF**
+(`components/tools/EditPdf/index.tsx`) uses a custom uploader (not FileDropzone), so it
+never got a badge. Added `LimitBadge` to its empty state (10/30 MB · 15/50 pages · daily)
+plus inline over-limit (size in `openFile`, pages in `proceed` — covers the post-unlock
+path) that blocks before upload.
+
+### B9-5 — Daily quota could show a stale count
+The `/api/usage` mapping is correct (`used = total − remaining`, anon 3 / free 10, badge
+reads `used` → 0 on a truly fresh window). The remaining risk was a cached client fetch
+returning an old count; `useDailyUsage` now fetches with `{ cache: "no-store" }`.
+Note: the count reflects Upstash's rolling 24h window (not the calendar day), and is exact
+for signed-in users (keyed by user id); anon is best-effort (IP).
+
 ## Open / watch
 - Anon daily-quota count in `/api/usage` is best-effort: the Next.js route (Vercel) and the
   cloud-tool backend (Hetzner) may see different `x-forwarded-for` IPs, so the anon "Today

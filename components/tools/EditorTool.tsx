@@ -375,7 +375,7 @@ export function EditorTool() {
     return (
       <div className="flex flex-col items-center gap-4 rounded-2xl py-16" style={{ border: "1.5px dashed var(--line-2)", background: "var(--bg-2)" }}>
         <div className="w-full max-w-[520px] px-6">
-          <FileDropzone toolId="edit-pdf" accept="pdf" checkPages onFiles={onFiles} title={t("emptyTitle")} />
+          <FileDropzone toolId="edit" accept="pdf" checkPages onFiles={onFiles} title={t("emptyTitle")} />
         </div>
         <div className="flex items-center gap-1.5 text-[12.5px]" style={{ color: "var(--text-3)" }}>
           <span className="pp-dot" style={{ color: "#34D399" }} /> {t("emptyNote")}

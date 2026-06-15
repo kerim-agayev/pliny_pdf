@@ -63,9 +63,9 @@ export function FileDropzone({
   const inputRef = useRef<HTMLInputElement>(null);
   const [glow, setGlow] = useState(false);
   const [busy, setBusy] = useState(false);
-  // Inline pre-upload errors (Wave 9A) — replace toasts when a badge is present.
-  const [sizeOver, setSizeOver] = useState<number | null>(null);
-  const [pageErr, setPageErr] = useState<string | null>(null);
+  // Inline pre-upload rejection (Wave 9A) — size or page over-limit → red badge,
+  // shown before any upload, replacing the toast when a badge is present.
+  const [over, setOver] = useState<{ unit: "mb" | "pages"; value: number } | null>(null);
 
   // Sequential password-unlock queue (only meaningful for accept="pdf").
   const queueRef = useRef<File[]>([]);
@@ -124,8 +124,7 @@ export function FileDropzone({
     if (!incoming.length) return;
 
     setBusy(true);
-    setSizeOver(null);
-    setPageErr(null);
+    setOver(null);
     const accepted: File[] = [];
     for (const f of multiple ? incoming : incoming.slice(0, 1)) {
       if (expected) {
@@ -139,16 +138,19 @@ export function FileDropzone({
       if (!sizeRes.ok) {
         // With a badge present, surface the violation inline (red badge) instead
         // of a toast — the user sees it before any upload attempt.
-        if (toolId) setSizeOver(sizeRes.fileMB);
+        if (toolId) setOver({ unit: "mb", value: sizeRes.fileMB });
         else toast.error(te("fileTooLarge", { limitMB: sizeRes.limitMB, fileMB: sizeRes.fileMB }));
         continue;
       }
-      if (checkPages && accept === "pdf") {
+      // Page count can only be known after parsing the PDF — do it client-side
+      // for every PDF tool (cloud included) so an over-limit file is blocked here,
+      // never sent to the server. `checkPages` keeps the legacy opt-in for
+      // toolId-less dropzones.
+      if (accept === "pdf" && (checkPages || toolId)) {
         const pages = await readPageCount(f).catch(() => 0);
         if (pages > pageLimit) {
-          const msg = te("tooManyPagesLocal", { pages, limit: pageLimit });
-          if (toolId) setPageErr(msg);
-          else toast.error(msg);
+          if (toolId) setOver({ unit: "pages", value: pages });
+          else toast.error(te("tooManyPagesLocal", { pages, limit: pageLimit }));
           continue;
         }
       }
@@ -189,7 +191,7 @@ export function FileDropzone({
       <div
         className={`pp-drop ${glow ? "glow" : ""} ${busy ? "" : "cursor-pointer"}`}
         style={
-          sizeOver != null
+          over != null
             ? { borderColor: "rgba(239,68,68,0.5)", borderStyle: "solid", background: "rgba(239,68,68,0.06)" }
             : undefined
         }
@@ -258,8 +260,10 @@ export function FileDropzone({
               cloud={limits.cloud}
               quotaUsed={usage?.used}
               quotaTotal={usage?.total ?? undefined}
-              over={sizeOver != null}
-              fileSize={sizeOver ?? 0}
+              over={over != null}
+              overUnit={over?.unit}
+              fileSize={over?.unit === "mb" ? over.value : 0}
+              filePages={over?.unit === "pages" ? over.value : undefined}
               signedInSize={freeLimits?.mb ?? sizeLimitMB}
               signedInCount={freeLimits?.count ?? limits.count}
               anonSize={anonLimits?.mb ?? sizeLimitMB}
@@ -271,11 +275,6 @@ export function FileDropzone({
             </span>
           )}
         </div>
-        {pageErr && (
-          <div className="mt-2 text-[11.5px]" style={{ color: "#FCA5A5" }}>
-            {pageErr}
-          </div>
-        )}
         {!busy && (
           <div
             className="mt-2 flex items-center justify-center gap-1 text-[11px]"

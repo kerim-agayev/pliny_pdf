@@ -144,6 +144,7 @@
     "anonTier": "Анонимный уровень: {limits}",
     "signIn": "Войдите для {limits}",
     "over": "Этот файл {fileSize} МБ — превышает лимит {size} МБ",
+    "overPages": "В этом PDF {pages} страниц — превышает лимит {limit} страниц",
     "meter": "{used} МБ / {max} МБ"
   },
   "PrivacyBadge": {
