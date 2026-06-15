@@ -23,10 +23,14 @@ pdf-to-jpg <input.pdf> <output-dir> <maxPages> <dpi>
     -> <output-dir>/out.zip (entries "page-001.jpg" ...). Print
     {"pages": N, "zip": bool}.
 
-merge      <output.pdf> <input1.pdf> [<input2.pdf> ...]
-    Concatenate inputs in argument order via insert_pdf. No page cap — merge is
-    cheap (no rendering) and is bounded by file size in the route. Print
-    {"pages": total}.
+merge      <output.pdf> <maxPages> <input1.pdf> [<input2.pdf> ...]
+    Concatenate inputs in argument order via insert_pdf. Bounded by file size in
+    the route and by <maxPages> total pages here. Print {"pages": total}.
+
+count      <input.pdf>
+    Print {"pages": N} — the page count, without writing any output. Used by the
+    Office routes (PDF->Word, OCR, Word->PDF output) to enforce a page cap before
+    or after the heavy conversion work.
 
 On a page-count overflow every subcommand prints
 {"error": "tooManyPages", "pageCount": N} and exits 0 without writing output.
@@ -149,7 +153,7 @@ def cmd_pdf_to_jpg(input_pdf, output_dir, max_pages, dpi):
     print(json.dumps({"pages": pages, "zip": True}))
 
 
-def cmd_merge(output_pdf, inputs):
+def cmd_merge(output_pdf, max_pages, inputs):
     out = pymupdf.open()
     srcs = []
     try:
@@ -158,6 +162,9 @@ def cmd_merge(output_pdf, inputs):
             d = pymupdf.open(path)
             srcs.append(d)
             total += d.page_count
+        if total > max_pages:
+            _too_many(total)
+            return
         for d in srcs:
             out.insert_pdf(d)
         out.save(output_pdf, garbage=3, deflate=True)
@@ -168,9 +175,18 @@ def cmd_merge(output_pdf, inputs):
     print(json.dumps({"pages": total}))
 
 
+def cmd_count(input_pdf):
+    doc = pymupdf.open(input_pdf)
+    try:
+        pages = doc.page_count
+    finally:
+        doc.close()
+    print(json.dumps({"pages": pages}))
+
+
 def main(argv):
     if len(argv) < 2:
-        sys.stderr.write("usage: pdf-tools.py <compress|grayscale|pdf-to-jpg|merge> ...\n")
+        sys.stderr.write("usage: pdf-tools.py <compress|grayscale|pdf-to-jpg|merge|count> ...\n")
         return 2
     cmd = argv[1]
     try:
@@ -193,10 +209,16 @@ def main(argv):
             cmd_pdf_to_jpg(argv[2], argv[3], int(argv[4]), int(argv[5]))
             return 0
         if cmd == "merge":
-            if len(argv) < 4:
-                sys.stderr.write("usage: pdf-tools.py merge <output.pdf> <input1.pdf> ...\n")
+            if len(argv) < 5:
+                sys.stderr.write("usage: pdf-tools.py merge <output.pdf> <maxPages> <input1.pdf> ...\n")
                 return 2
-            cmd_merge(argv[2], argv[3:])
+            cmd_merge(argv[2], int(argv[3]), argv[4:])
+            return 0
+        if cmd == "count":
+            if len(argv) != 3:
+                sys.stderr.write("usage: pdf-tools.py count <input.pdf>\n")
+                return 2
+            cmd_count(argv[2])
             return 0
     except Exception as e:  # noqa: BLE001 — surface a clean failure to the Bun wrapper
         sys.stderr.write(

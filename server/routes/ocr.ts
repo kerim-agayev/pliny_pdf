@@ -3,7 +3,8 @@ import { ocrPdf } from "../services/ocr";
 import { storeTemp, r2Configured } from "../services/r2";
 import { getRequester, type Requester } from "../services/session";
 import { checkServerTool } from "@/lib/ratelimit";
-import { cloudMaxBytes, cloudMaxMB, bytesToMB } from "@/lib/limits";
+import { officeMaxBytes, officeMaxMB, officeMaxPages, bytesToMB } from "@/lib/limits";
+import { countPdfPages } from "../services/pdf-tools";
 import { db } from "@/lib/db";
 import { fileHistory } from "@/lib/db/schema";
 import { baseName } from "@/lib/format";
@@ -58,16 +59,22 @@ export const ocr = new Elysia({ prefix: "/api" }).post(
       return { error: "wrongType", message: "Please upload a PDF file." };
     }
     const who = await getRequester(request.headers);
-    if (file.size > cloudMaxBytes(who?.plan ?? null)) {
+    const plan = who?.plan ?? null;
+    if (file.size > officeMaxBytes(plan)) {
       set.status = 413;
-      return { error: "fileTooLarge", limitMB: cloudMaxMB(who?.plan ?? null), fileMB: bytesToMB(file.size) };
+      return { error: "fileTooLarge", limitMB: officeMaxMB(plan), fileMB: bytesToMB(file.size) };
     }
-    const lim = await checkServerTool(who?.plan ?? null, who?.userId ?? clientIp(request));
+    const lim = await checkServerTool(plan, who?.userId ?? clientIp(request));
     if (!lim.ok) {
       set.status = 429;
       return { error: "rateLimited", message: "Daily limit reached. Sign in or upgrade for more.", resetAt: lim.resetAt };
     }
     const input = new Uint8Array(await file.arrayBuffer());
+    const pages = await countPdfPages(input).catch(() => 0);
+    if (pages > officeMaxPages(plan)) {
+      set.status = 413;
+      return { error: "tooManyPages", limitPages: officeMaxPages(plan), pageCount: pages };
+    }
     let out: Uint8Array;
     try {
       out = await ocrPdf(input, body.lang ?? "eng");

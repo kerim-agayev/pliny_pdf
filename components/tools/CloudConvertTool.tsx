@@ -10,7 +10,7 @@ import { postFile, ApiError } from "@/lib/api";
 import { formatBytes, downloadBlob, baseName } from "@/lib/format";
 import { analytics } from "@/lib/analytics";
 import { useSession } from "@/lib/auth/client";
-import { cloudMaxMB } from "@/lib/limits";
+import { officeMaxMB } from "@/lib/limits";
 
 type Status = "idle" | "uploading" | "done" | "error";
 
@@ -42,7 +42,7 @@ export function CloudConvertTool({
   const t = useTranslations("ToolUI");
   const tp = useTranslations(namespace);
   const { data: session } = useSession();
-  const maxMB = cloudMaxMB((session?.user as { plan?: "free" | "pro" })?.plan ?? null);
+  const maxMB = officeMaxMB((session?.user as { plan?: "free" | "pro" })?.plan ?? null);
   const [file, setFile] = useState<File | null>(null);
   const [status, setStatus] = useState<Status>("idle");
   const [result, setResult] = useState<{ blob: Blob; name: string } | null>(null);

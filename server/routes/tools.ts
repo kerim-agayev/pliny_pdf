@@ -8,7 +8,7 @@ import {
 } from "../services/pdf-tools";
 import { getRequester } from "../services/session";
 import { checkServerTool } from "@/lib/ratelimit";
-import { cloudMaxBytes, cloudMaxMB, cloudMaxPages, pdfToJpgMaxPages, bytesToMB } from "@/lib/limits";
+import { cloudMaxBytes, cloudMaxMB, cloudMaxPages, pdfToJpgMaxPages, mergeMaxPages, bytesToMB } from "@/lib/limits";
 import { baseName } from "@/lib/format";
 import { attachmentDisposition } from "./http";
 
@@ -175,10 +175,14 @@ export const tools = new Elysia({ prefix: "/api/tools" })
       }
       let out: Uint8Array;
       try {
-        // Merge is bounded by total file size only (checked above) — no page cap.
+        // Bounded by total file size (checked above) and total page count (mergeMaxPages).
         const inputs = await Promise.all(files.map(async (f) => new Uint8Array(await f.arrayBuffer())));
-        out = await mergePdfs(inputs);
+        out = await mergePdfs(inputs, mergeMaxPages(plan));
       } catch (e) {
+        if (e instanceof TooManyPagesError) {
+          set.status = 413;
+          return { error: "tooManyPages", limitPages: mergeMaxPages(plan), pageCount: e.pageCount };
+        }
         set.status = 502;
         return { error: "toolFailed", message: "Couldn't merge these PDFs. Please try other files.", detail: String(e).slice(0, 200) };
       }

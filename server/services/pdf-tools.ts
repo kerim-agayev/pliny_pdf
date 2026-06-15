@@ -107,8 +107,8 @@ export async function pdfToJpg(
   }
 }
 
-/** Merge PDFs in the given order. No page cap — merge is bounded by file size. */
-export async function mergePdfs(inputs: Uint8Array[]): Promise<Uint8Array> {
+/** Merge PDFs in the given order. Throws TooManyPagesError if the combined page count exceeds maxPages. */
+export async function mergePdfs(inputs: Uint8Array[], maxPages: number): Promise<Uint8Array> {
   const dir = await workDir();
   const outPdf = join(dir, "out.pdf");
   try {
@@ -118,8 +118,21 @@ export async function mergePdfs(inputs: Uint8Array[]): Promise<Uint8Array> {
       await writeFile(p, inputs[i]);
       paths.push(p);
     }
-    await runTool(["merge", outPdf, ...paths]);
+    await runTool(["merge", outPdf, String(maxPages), ...paths]);
     return new Uint8Array(await readFile(outPdf));
+  } finally {
+    await rm(dir, { recursive: true, force: true }).catch(() => {});
+  }
+}
+
+/** Count the pages of a PDF without writing output. Used by the Office routes to enforce a page cap. */
+export async function countPdfPages(input: Uint8Array): Promise<number> {
+  const dir = await workDir();
+  const inPdf = join(dir, "in.pdf");
+  try {
+    await writeFile(inPdf, input);
+    const status = await runTool(["count", inPdf]);
+    return status.pages ?? 0;
   } finally {
     await rm(dir, { recursive: true, force: true }).catch(() => {});
   }
