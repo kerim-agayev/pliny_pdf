@@ -100,7 +100,7 @@ export function DeletePages() {
   if (!file) {
     return (
       <div>
-        <FileDropzone accept="pdf" checkPages onFiles={onFiles} />
+        <FileDropzone toolId="delete-pages" accept="pdf" checkPages onFiles={onFiles} />
         {errorMsg && (
           <div className="mt-4">
             <ErrorBanner message={errorMsg} onRetry={() => setErrorMsg(undefined)} />

@@ -83,7 +83,7 @@ export function OcrPdf() {
 
   return (
     <div>
-      <FileDropzone accept="pdf" maxSizeMB={maxMB} onFiles={onFiles} />
+      <FileDropzone toolId="ocr-pdf" accept="pdf" maxSizeMB={maxMB} onFiles={onFiles} />
 
       {errorMsg && (
         <div className="mt-4">

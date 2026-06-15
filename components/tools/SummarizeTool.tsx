@@ -74,7 +74,7 @@ export function SummarizeTool() {
   return (
     <div>
       {status !== "loading" && (
-        <FileDropzone accept="pdf" maxSizeMB={maxMB} onFiles={(files) => files[0] && run(files[0])} />
+        <FileDropzone toolId="summarize" accept="pdf" maxSizeMB={maxMB} onFiles={(files) => files[0] && run(files[0])} />
       )}
 
       {status === "loading" && (

@@ -116,7 +116,7 @@ export function RotateTool() {
   if (!file) {
     return (
       <div>
-        <FileDropzone accept="pdf" checkPages onFiles={onFiles} />
+        <FileDropzone toolId="rotate" accept="pdf" checkPages onFiles={onFiles} />
         {errorMsg && <div className="mt-4"><ErrorBanner message={errorMsg} onRetry={() => setErrorMsg(undefined)} /></div>}
       </div>
     );

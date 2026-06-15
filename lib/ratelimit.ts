@@ -12,8 +12,11 @@ import { Redis } from "@upstash/redis";
  */
 const redis = Redis.fromEnv(); // UPSTASH_REDIS_REST_URL + UPSTASH_REDIS_REST_TOKEN
 
-const ipServer = new Ratelimit({ redis, limiter: Ratelimit.fixedWindow(3, "1 d"), prefix: "pp:ip:server" });
-const userServer = new Ratelimit({ redis, limiter: Ratelimit.fixedWindow(10, "1 d"), prefix: "pp:user:server" });
+/** Daily server-tool caps per tier — single source for limiters, badges, and /api/usage. */
+export const SERVER_DAILY = { anon: 3, free: 10 } as const;
+
+const ipServer = new Ratelimit({ redis, limiter: Ratelimit.fixedWindow(SERVER_DAILY.anon, "1 d"), prefix: "pp:ip:server" });
+const userServer = new Ratelimit({ redis, limiter: Ratelimit.fixedWindow(SERVER_DAILY.free, "1 d"), prefix: "pp:user:server" });
 const userAi = new Ratelimit({ redis, limiter: Ratelimit.fixedWindow(2, "30 d"), prefix: "pp:user:ai" });
 
 export type Plan = "free" | "pro";

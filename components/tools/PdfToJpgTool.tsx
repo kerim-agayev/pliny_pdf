@@ -86,7 +86,7 @@ export function PdfToJpgTool() {
   if (!file) {
     return (
       <div>
-        <FileDropzone accept="pdf" maxSizeMB={maxMB} onFiles={onFiles} />
+        <FileDropzone toolId="pdf-to-jpg" accept="pdf" maxSizeMB={maxMB} onFiles={onFiles} />
         {errorMsg && <div className="mt-4"><ErrorBanner message={errorMsg} onRetry={() => setErrorMsg(undefined)} /></div>}
       </div>
     );

@@ -78,7 +78,7 @@ export function JpgToPdfTool() {
 
   return (
     <div className="flex flex-col gap-5">
-      <FileDropzone accept="image" multiple onFiles={addFiles} />
+      <FileDropzone toolId="jpg-to-pdf" accept="image" multiple onFiles={addFiles} />
       {errorMsg && <ErrorBanner message={errorMsg} onRetry={() => setErrorMsg(undefined)} />}
 
       {files.length > 0 && (

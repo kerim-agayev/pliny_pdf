@@ -224,7 +224,7 @@ export function SignPdf() {
   if (!file) {
     return (
       <div>
-        <FileDropzone accept="pdf" checkPages onFiles={onFiles} title={tp("emptyTitle")} />
+        <FileDropzone toolId="sign-pdf" accept="pdf" checkPages onFiles={onFiles} title={tp("emptyTitle")} />
         {errorMsg && (
           <div className="mt-4">
             <ErrorBanner message={errorMsg} onRetry={() => setErrorMsg(undefined)} />

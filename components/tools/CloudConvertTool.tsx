@@ -112,6 +112,7 @@ export function CloudConvertTool({
     <div>
       <FileDropzone
         accept={accept}
+        toolId={endpoint.includes("pdf-to-word") ? "pdf-to-word" : "word-to-pdf"}
         maxSizeMB={maxMB}
         onFiles={onFiles}
         title={accept === "word" ? t("dropWordTitle") : undefined}

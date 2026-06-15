@@ -90,7 +90,7 @@ export function CompressTool() {
   if (!file) {
     return (
       <div>
-        <FileDropzone accept="pdf" maxSizeMB={maxMB} onFiles={onFiles} />
+        <FileDropzone toolId="compress" accept="pdf" maxSizeMB={maxMB} onFiles={onFiles} />
         {errorMsg && <div className="mt-4"><ErrorBanner message={errorMsg} onRetry={() => setErrorMsg(undefined)} /></div>}
       </div>
     );

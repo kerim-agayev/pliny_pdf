@@ -102,7 +102,7 @@ export function PdfToTextTool() {
   if (!file) {
     return (
       <div>
-        <FileDropzone accept="pdf" checkPages onFiles={onFiles} title={tp("dropTitle")} />
+        <FileDropzone toolId="pdfToText" accept="pdf" checkPages onFiles={onFiles} title={tp("dropTitle")} />
         {errorMsg && <div className="mt-4"><ErrorBanner message={errorMsg} onRetry={() => setErrorMsg(undefined)} /></div>}
       </div>
     );

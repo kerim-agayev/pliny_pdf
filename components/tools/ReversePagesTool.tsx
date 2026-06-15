@@ -81,7 +81,7 @@ export function ReversePagesTool() {
   if (!file) {
     return (
       <div>
-        <FileDropzone accept="pdf" checkPages onFiles={onFiles} title={tp("dropTitle")} />
+        <FileDropzone toolId="reversePages" accept="pdf" checkPages onFiles={onFiles} title={tp("dropTitle")} />
         {errorMsg && <div className="mt-4"><ErrorBanner message={errorMsg} onRetry={() => setErrorMsg(undefined)} /></div>}
       </div>
     );

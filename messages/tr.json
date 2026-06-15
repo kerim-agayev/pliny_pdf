@@ -135,6 +135,17 @@
     "errorGeneric": "Bir şeyler ters gitti. Lütfen tekrar deneyin.",
     "errorTooShort": "Parola en az 8 karakter olmalıdır."
   },
+  "LimitBadge": {
+    "max": "MAKS",
+    "mbUnit": "MB",
+    "pagesUnit": "sayfa",
+    "imagesUnit": "görsel",
+    "today": "Bugün {used}/{total}",
+    "anonTier": "Anonim seviye: {limits}",
+    "signIn": "{limits} için giriş yapın",
+    "over": "Bu dosya {fileSize} MB — {size} MB sınırınızın üzerinde",
+    "meter": "{used} MB / {max} MB"
+  },
   "PrivacyBadge": {
     "local": "Yerel",
     "cloud": "Bulut",

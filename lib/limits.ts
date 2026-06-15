@@ -1,4 +1,4 @@
-import type { Plan } from "./ratelimit";
+import { SERVER_DAILY, type Plan } from "./ratelimit";
 
 /**
  * File-size and page-count limits. Shared by the frontend dropzone (friendly
@@ -16,6 +16,61 @@ import type { Plan } from "./ratelimit";
 export function effectivePlan(plan: Plan | null | undefined): "anon" | "free" {
   if (plan === "free" || plan === "pro") return "free";
   return "anon";
+}
+
+// ─── Per-tool limit lookup (Phase 9 Wave 9A — LimitBadge + dropzone validation) ──
+
+export type BadgePlan = "anon" | "free";
+
+/** Everything the LimitBadge + pre-upload check need for one tool. */
+export interface ToolLimits {
+  /** Max file size in MB. */
+  mb: number;
+  /** Page (or image) allowance. */
+  count: number;
+  /** Whether `count` is pages or images (jpg-to-pdf). */
+  unit: "pages" | "images";
+  /** Cloud tools consume a shared daily quota and render the "Today x/y" line. */
+  cloud: boolean;
+  /** Daily server-tool cap for the plan (cloud tools only). */
+  dailyLimit?: number;
+}
+
+/**
+ * Resolves the correct limits for a tool id — the single source the LimitBadge and
+ * the FileDropzone pre-upload check both read. Values come from the same constants
+ * the backend routes enforce, so the displayed limit always matches reality.
+ *
+ * Notes:
+ *  - jpg-to-pdf caps image *count*, not pages.
+ *  - nup-layout / repeat-pages show their local input limits here; their *output*
+ *    page caps are a separate concept validated inside the tool.
+ *  - text-to-pdf / markdown-to-pdf have no file input and never call this.
+ */
+export function getToolLimits(toolId: string, plan: BadgePlan): ToolLimits {
+  const daily = SERVER_DAILY[plan];
+  switch (toolId) {
+    case "compress":
+    case "grayscale-pdf":
+      return { mb: CLOUD_MAX_MB[plan], count: CLOUD_MAX_PAGES[plan], unit: "pages", cloud: true, dailyLimit: daily };
+    case "merge":
+      return { mb: CLOUD_MAX_MB[plan], count: MERGE_MAX_PAGES[plan], unit: "pages", cloud: true, dailyLimit: daily };
+    case "pdf-to-jpg":
+      return { mb: CLOUD_MAX_MB[plan], count: PDF_TO_JPG_MAX_PAGES[plan], unit: "pages", cloud: true, dailyLimit: daily };
+    case "pdf-to-word":
+    case "word-to-pdf":
+    case "ocr-pdf":
+      return { mb: OFFICE_MAX_MB[plan], count: OFFICE_MAX_PAGES[plan], unit: "pages", cloud: true, dailyLimit: daily };
+    case "edit-pdf":
+      return { mb: EDITOR_MAX_MB[plan], count: EDITOR_MAX_PAGES[plan], unit: "pages", cloud: true, dailyLimit: daily };
+    case "summarize":
+      return { mb: CLOUD_MAX_MB[plan], count: CLOUD_MAX_PAGES[plan], unit: "pages", cloud: true, dailyLimit: daily };
+    case "jpg-to-pdf":
+      return { mb: LOCAL_MAX_MB[plan], count: JPG_TO_PDF_MAX_IMAGES[plan], unit: "images", cloud: false };
+    default:
+      // All local PDF-in tools (split, rotate, crop, organize, nup, repeat, booklet, …).
+      return { mb: LOCAL_MAX_MB[plan], count: LOCAL_MAX_PAGES[plan], unit: "pages", cloud: false };
+  }
 }
 
 // ─── Local tools ───────────────────────────────────────────────────────────────

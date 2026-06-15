@@ -8,9 +8,11 @@ import { Kbd, useModKey } from "@/components/shared/Kbd";
 import { Spinner } from "./Spinner";
 import { PasswordModal } from "@/components/shared/PasswordModal";
 import { validateFileType, validateFileSize, isPdfEncrypted } from "@/lib/validation";
-import { localMaxMB, localMaxPages } from "@/lib/limits";
+import { localMaxMB, localMaxPages, effectivePlan, getToolLimits } from "@/lib/limits";
 import { readPageCount } from "@/lib/pdf/common";
 import { useSession } from "@/lib/auth/client";
+import { LimitBadge } from "@/components/shared/LimitBadge";
+import { useDailyUsage } from "@/lib/hooks/useDailyUsage";
 
 type Accept = "pdf" | "image" | "word";
 
@@ -39,6 +41,7 @@ export function FileDropzone({
   multiple = false,
   onFiles,
   title,
+  toolId,
   maxSizeMB,
   checkPages = false,
   disablePasswordPrompt = false,
@@ -47,6 +50,8 @@ export function FileDropzone({
   multiple?: boolean;
   onFiles: (files: File[]) => void;
   title?: string;
+  /** Drives the LimitBadge + per-tool size/page limits (Wave 9A). */
+  toolId?: string;
   maxSizeMB?: number;
   checkPages?: boolean;
   disablePasswordPrompt?: boolean;
@@ -58,6 +63,9 @@ export function FileDropzone({
   const inputRef = useRef<HTMLInputElement>(null);
   const [glow, setGlow] = useState(false);
   const [busy, setBusy] = useState(false);
+  // Inline pre-upload errors (Wave 9A) — replace toasts when a badge is present.
+  const [sizeOver, setSizeOver] = useState<number | null>(null);
+  const [pageErr, setPageErr] = useState<string | null>(null);
 
   // Sequential password-unlock queue (only meaningful for accept="pdf").
   const queueRef = useRef<File[]>([]);
@@ -65,10 +73,16 @@ export function FileDropzone({
   const [pending, setPending] = useState<File | null>(null);
 
   const plan = (session?.user as { plan?: "free" | "pro" })?.plan ?? null;
-  // Cloud tools pass an explicit `maxSizeMB`; local tools fall back to the
-  // plan-aware local limit (10 / 25 / 50 MB).
-  const sizeLimitMB = maxSizeMB ?? localMaxMB(plan);
-  const pageLimit = localMaxPages(plan);
+  const badgePlan = effectivePlan(plan); // "anon" | "free"
+  // When a toolId is given (every shipped tool), per-tool limits are the single
+  // source of truth — matching the backend. toolId-less dropzones fall back to
+  // the legacy explicit/local limits.
+  const limits = toolId ? getToolLimits(toolId, badgePlan) : null;
+  const anonLimits = toolId ? getToolLimits(toolId, "anon") : null;
+  const freeLimits = toolId ? getToolLimits(toolId, "free") : null;
+  const usage = useDailyUsage(Boolean(limits?.cloud));
+  const sizeLimitMB = limits?.mb ?? maxSizeMB ?? localMaxMB(plan);
+  const pageLimit = limits?.count ?? localMaxPages(plan);
 
   const expected = accept === "pdf" ? "pdf" : accept === "word" ? "docx" : null;
   const maxBytes = sizeLimitMB * 1024 * 1024;
@@ -110,6 +124,8 @@ export function FileDropzone({
     if (!incoming.length) return;
 
     setBusy(true);
+    setSizeOver(null);
+    setPageErr(null);
     const accepted: File[] = [];
     for (const f of multiple ? incoming : incoming.slice(0, 1)) {
       if (expected) {
@@ -121,13 +137,18 @@ export function FileDropzone({
       }
       const sizeRes = validateFileSize(f, maxBytes);
       if (!sizeRes.ok) {
-        toast.error(te("fileTooLarge", { limitMB: sizeRes.limitMB, fileMB: sizeRes.fileMB }));
+        // With a badge present, surface the violation inline (red badge) instead
+        // of a toast — the user sees it before any upload attempt.
+        if (toolId) setSizeOver(sizeRes.fileMB);
+        else toast.error(te("fileTooLarge", { limitMB: sizeRes.limitMB, fileMB: sizeRes.fileMB }));
         continue;
       }
       if (checkPages && accept === "pdf") {
         const pages = await readPageCount(f).catch(() => 0);
         if (pages > pageLimit) {
-          toast.error(te("tooManyPagesLocal", { pages, limit: pageLimit }));
+          const msg = te("tooManyPagesLocal", { pages, limit: pageLimit });
+          if (toolId) setPageErr(msg);
+          else toast.error(msg);
           continue;
         }
       }
@@ -167,6 +188,11 @@ export function FileDropzone({
     <>
       <div
         className={`pp-drop ${glow ? "glow" : ""} ${busy ? "" : "cursor-pointer"}`}
+        style={
+          sizeOver != null
+            ? { borderColor: "rgba(239,68,68,0.5)", borderStyle: "solid", background: "rgba(239,68,68,0.06)" }
+            : undefined
+        }
         role="button"
         tabIndex={0}
         aria-busy={busy}
@@ -222,17 +248,42 @@ export function FileDropzone({
           </span>
           {multiple && <span style={{ color: "var(--text-3)" }}> · {t("multiple")}</span>}
         </div>
-        <div className="mt-3 flex items-center justify-center gap-2 text-[11px]" style={{ color: "var(--text-3)" }}>
-          <span className="pp-mono">{t("maxSize", { mb: sizeLimitMB })}</span>
-          {!busy && (
-            <>
-              <span aria-hidden>·</span>
-              <span className="inline-flex items-center gap-1">
-                <Kbd>{mod("O")}</Kbd> {t("shortcutOpen")}
-              </span>
-            </>
+        <div className="mt-4 flex justify-center">
+          {limits ? (
+            <LimitBadge
+              tier={badgePlan === "anon" ? "anonymous" : "free"}
+              size={sizeLimitMB}
+              count={limits.count}
+              unit={limits.unit}
+              cloud={limits.cloud}
+              quotaUsed={usage?.used}
+              quotaTotal={usage?.total ?? undefined}
+              over={sizeOver != null}
+              fileSize={sizeOver ?? 0}
+              signedInSize={freeLimits?.mb ?? sizeLimitMB}
+              signedInCount={freeLimits?.count ?? limits.count}
+              anonSize={anonLimits?.mb ?? sizeLimitMB}
+              anonCount={anonLimits?.count ?? limits.count}
+            />
+          ) : (
+            <span className="pp-mono text-[11px]" style={{ color: "var(--text-3)" }}>
+              {t("maxSize", { mb: sizeLimitMB })}
+            </span>
           )}
         </div>
+        {pageErr && (
+          <div className="mt-2 text-[11.5px]" style={{ color: "#FCA5A5" }}>
+            {pageErr}
+          </div>
+        )}
+        {!busy && (
+          <div
+            className="mt-2 flex items-center justify-center gap-1 text-[11px]"
+            style={{ color: "var(--text-3)" }}
+          >
+            <Kbd>{mod("O")}</Kbd> {t("shortcutOpen")}
+          </div>
+        )}
       </div>
 
       {pending && (

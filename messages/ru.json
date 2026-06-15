@@ -135,6 +135,17 @@
     "errorGeneric": "Что-то пошло не так. Попробуйте ещё раз.",
     "errorTooShort": "Пароль должен содержать не менее 8 символов."
   },
+  "LimitBadge": {
+    "max": "МАКС",
+    "mbUnit": "МБ",
+    "pagesUnit": "страниц",
+    "imagesUnit": "изображений",
+    "today": "Сегодня {used}/{total}",
+    "anonTier": "Анонимный уровень: {limits}",
+    "signIn": "Войдите для {limits}",
+    "over": "Этот файл {fileSize} МБ — превышает лимит {size} МБ",
+    "meter": "{used} МБ / {max} МБ"
+  },
   "PrivacyBadge": {
     "local": "Локально",
     "cloud": "Облако",

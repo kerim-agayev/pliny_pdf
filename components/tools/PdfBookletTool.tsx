@@ -87,7 +87,7 @@ export function PdfBookletTool() {
   if (!file) {
     return (
       <div>
-        <FileDropzone accept="pdf" onFiles={onFiles} checkPages title={tp("dropTitle")} />
+        <FileDropzone toolId="pdfBooklet" accept="pdf" onFiles={onFiles} checkPages title={tp("dropTitle")} />
         {errorMsg && (
           <div className="mt-4">
             <ErrorBanner message={errorMsg} onRetry={() => setErrorMsg(undefined)} />

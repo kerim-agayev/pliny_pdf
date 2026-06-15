@@ -212,7 +212,7 @@ export function HeaderFooter() {
   if (!file) {
     return (
       <div>
-        <FileDropzone accept="pdf" checkPages onFiles={onFiles} title={tp("emptyTitle")} />
+        <FileDropzone toolId="header-footer" accept="pdf" checkPages onFiles={onFiles} title={tp("emptyTitle")} />
         {errorMsg && (
           <div className="mt-4">
             <ErrorBanner message={errorMsg} onRetry={() => setErrorMsg(undefined)} />

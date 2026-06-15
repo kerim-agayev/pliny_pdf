@@ -117,7 +117,7 @@ export function MergeTool() {
 
   return (
     <div>
-      <FileDropzone accept="pdf" multiple maxSizeMB={maxMB} onFiles={addFiles} />
+      <FileDropzone toolId="merge" accept="pdf" multiple maxSizeMB={maxMB} onFiles={addFiles} />
 
       {errorMsg && <div className="mt-4"><ErrorBanner message={errorMsg} onRetry={() => setErrorMsg(undefined)} /></div>}
 

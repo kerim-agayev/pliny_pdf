@@ -78,7 +78,7 @@ export function GrayscalePdf() {
   if (!file) {
     return (
       <div>
-        <FileDropzone accept="pdf" maxSizeMB={maxMB} onFiles={onFiles} title={tp("emptyTitle")} />
+        <FileDropzone toolId="grayscale-pdf" accept="pdf" maxSizeMB={maxMB} onFiles={onFiles} title={tp("emptyTitle")} />
         {errorMsg && <div className="mt-4"><ErrorBanner message={errorMsg} onRetry={() => setErrorMsg(undefined)} /></div>}
       </div>
     );

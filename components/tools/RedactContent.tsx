@@ -231,7 +231,7 @@ export function RedactContent() {
     return (
       <div className="flex flex-col gap-4">
         {Warning}
-        <FileDropzone accept="pdf" checkPages onFiles={onFiles} title={tp("emptyTitle")} />
+        <FileDropzone toolId="redact-content" accept="pdf" checkPages onFiles={onFiles} title={tp("emptyTitle")} />
         {errorMsg && <ErrorBanner message={errorMsg} onRetry={() => setErrorMsg(undefined)} />}
       </div>
     );

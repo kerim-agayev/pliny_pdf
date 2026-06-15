@@ -135,6 +135,17 @@
     "errorGeneric": "Something went wrong. Please try again.",
     "errorTooShort": "Password must be at least 8 characters."
   },
+  "LimitBadge": {
+    "max": "MAX",
+    "mbUnit": "MB",
+    "pagesUnit": "pages",
+    "imagesUnit": "images",
+    "today": "Today {used}/{total}",
+    "anonTier": "Anonymous tier: {limits}",
+    "signIn": "Sign in for {limits}",
+    "over": "This file is {fileSize} MB — over your {size} MB limit",
+    "meter": "{used} MB / {max} MB"
+  },
   "PrivacyBadge": {
     "local": "Local",
     "cloud": "Cloud",

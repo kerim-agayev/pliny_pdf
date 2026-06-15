@@ -95,7 +95,7 @@ export function NupLayoutTool() {
   if (!file) {
     return (
       <div>
-        <FileDropzone accept="pdf" onFiles={onFiles} title={tp("dropTitle")} />
+        <FileDropzone toolId="nupLayout" accept="pdf" onFiles={onFiles} title={tp("dropTitle")} />
         {errorMsg && (
           <div className="mt-4">
             <ErrorBanner message={errorMsg} onRetry={() => setErrorMsg(undefined)} />
