@@ -168,7 +168,7 @@ export function EditorTool() {
 
       setReady(true);
       await renderPage(1);
-      if (isMobileRef.current) fitToScreen();
+      // initial mobile fit is driven by the ResizeObserver effect (keyed on `ready`)
     })();
     return () => {
       disposed = true;
@@ -405,22 +405,28 @@ export function EditorTool() {
   const fitToScreen = useCallback(() => {
     const wrap = wrapRef.current;
     if (!wrap) return;
+    // clientWidth/Height include the wrapper's padding (16px x, 18px y) — subtract it
+    // so the page fits inside the content box (never clipped under overflow:hidden).
     const availW = wrap.clientWidth - 32;
-    const availH = wrap.clientHeight - 32;
+    const availH = wrap.clientHeight - 36;
     if (availW <= 0 || availH <= 0) return;
     const z = Math.min(availW / baseDims.current.w, availH / baseDims.current.h);
     if (z > 0 && isFinite(z)) applyZoom(+z.toFixed(3));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // re-fit the page to the screen on rotate / resize (mobile only)
+  // Fit the page whenever the mobile canvas area has a size or changes size
+  // (initial mount, rotation, browser-chrome show/hide). A ResizeObserver is more
+  // reliable than a one-shot call that can run before layout settles.
   useEffect(() => {
-    if (!isMobile) return;
-    const onResize = () => fitToScreen();
-    window.addEventListener("resize", onResize);
-    window.addEventListener("orientationchange", onResize);
-    return () => { window.removeEventListener("resize", onResize); window.removeEventListener("orientationchange", onResize); };
-  }, [isMobile, fitToScreen]);
+    if (!(isMobile && ready)) return;
+    const wrap = wrapRef.current;
+    if (!wrap) return;
+    const raf = requestAnimationFrame(() => fitToScreen());
+    const ro = new ResizeObserver(() => fitToScreen());
+    ro.observe(wrap);
+    return () => { cancelAnimationFrame(raf); ro.disconnect(); };
+  }, [isMobile, ready, fitToScreen]);
 
   function clearAll() {
     const fc = fcRef.current;
@@ -593,10 +599,11 @@ export function EditorTool() {
           <button type="button" onClick={() => gotoPage(pageNum + 1)} disabled={pageNum >= numPages} style={{ ...navBtn, opacity: pageNum >= numPages ? 0.4 : 1 }}><IconChevron size={16} /></button>
         </div>
 
-        {/* canvas — flex:1 with minHeight:0 so the bottom toolbar is ALWAYS visible
-            (without min-height:0 the oversized page would expand the flex item and
-            push the toolbar off-screen). fitToScreen() scales the page to fit. */}
-        <div ref={wrapRef} style={{ flex: 1, minHeight: 0, minWidth: 0, position: "relative", overflow: "auto", display: "flex", alignItems: "center", justifyContent: "center", padding: "18px 16px", background: "repeating-linear-gradient(45deg, rgba(127,127,127,0.04) 0 1px, transparent 1px 16px), var(--bg-2)", touchAction: "none", userSelect: "none", WebkitUserSelect: "none", WebkitTouchCallout: "none" }}>
+        {/* canvas — flex:1 + minHeight:0 so it only ever fills the space BETWEEN the
+            bars (top bar + toolbar stay visible); overflow:hidden so the page can never
+            escape the wrapper (no upward overflow, no left/right scroll). fitToScreen()
+            scales the page to fit, centered with margins. */}
+        <div ref={wrapRef} style={{ flex: 1, minHeight: 0, minWidth: 0, position: "relative", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", padding: "18px 16px", background: "repeating-linear-gradient(45deg, rgba(127,127,127,0.04) 0 1px, transparent 1px 16px), var(--bg-2)", touchAction: "none", userSelect: "none", WebkitUserSelect: "none", WebkitTouchCallout: "none" }}>
           {canvasSurface}
           {hasSelection && (
             <button type="button" onClick={deleteSelected} aria-label={t("mobile.menuDelete")}
@@ -646,7 +653,9 @@ export function EditorTool() {
         {menu && (
           <MobileContextMenu
             x={menu.x} y={menu.y} t={t}
-            onColor={() => { closeMenu(); setRecolorOpen(true); }}
+            // defer opening the color sheet so the menu tap's trailing `click`
+            // doesn't land on the sheet backdrop and immediately dismiss it
+            onColor={() => { closeMenu(); window.setTimeout(() => setRecolorOpen(true), 120); }}
             onDuplicate={menuDuplicate} onEdit={menuEdit} onDelete={menuDelete} onClose={closeMenu}
           />
         )}
