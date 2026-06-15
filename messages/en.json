@@ -350,6 +350,8 @@
       "subtitle": "Combine multiple PDFs into a single file. Drag to reorder.",
       "filesToMerge": "Files to merge",
       "action": "Merge {count} files",
+      "totalTooManyPages": "These files total {pages} pages — over the {limit}-page merge limit.",
+      "totalTooLarge": "These files total {mb} MB — over the {limit} MB merge limit.",
       "successTitle": "Merged successfully."
     },
     "split": {

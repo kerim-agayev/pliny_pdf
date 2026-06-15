@@ -29,7 +29,7 @@ import { postBinary, ApiError } from "@/lib/api";
 import { formatBytes, downloadBlob } from "@/lib/format";
 import { analytics } from "@/lib/analytics";
 import { useSession } from "@/lib/auth/client";
-import { cloudMaxMB } from "@/lib/limits";
+import { cloudMaxMB, getToolLimits, effectivePlan, bytesToMB } from "@/lib/limits";
 
 type Row = { id: string; file: File; pages: number };
 type Status = "idle" | "uploading" | "done" | "error";
@@ -41,6 +41,11 @@ export function MergeTool() {
   const tp = useTranslations("ToolPages.merge");
   const { data: session } = useSession();
   const maxMB = cloudMaxMB((session?.user as { plan?: "free" | "pro" })?.plan ?? null);
+  // Merge enforces a TOTAL size + TOTAL page cap across all files (the backend
+  // sums them); FileDropzone only checks each file individually, so we guard the
+  // total here too — before any upload.
+  const badgePlan = effectivePlan((session?.user as { plan?: "free" | "pro" })?.plan ?? null);
+  const mergeLimits = getToolLimits("merge", badgePlan);
   const [rows, setRows] = useState<Row[]>([]);
   const [status, setStatus] = useState<Status>("idle");
   const [result, setResult] = useState<{ blob: Blob; pageCount: number } | null>(null);
@@ -53,6 +58,10 @@ export function MergeTool() {
   );
 
   const totalPages = rows.reduce((s, r) => s + r.pages, 0);
+  const totalMB = bytesToMB(rows.reduce((s, r) => s + r.file.size, 0));
+  const overPages = totalPages > mergeLimits.count;
+  const overSize = totalMB > mergeLimits.mb;
+  const overTotal = rows.length > 0 && (overPages || overSize);
 
   async function addFiles(files: File[]) {
     const pdfs = files.filter(isPdf);
@@ -148,6 +157,19 @@ export function MergeTool() {
             </SortableContext>
           </DndContext>
 
+          {overTotal && (
+            <div className="mt-4">
+              <ErrorBanner
+                message={
+                  overPages
+                    ? tp("totalTooManyPages", { pages: totalPages, limit: mergeLimits.count })
+                    : tp("totalTooLarge", { mb: totalMB, limit: mergeLimits.mb })
+                }
+                onRetry={() => {}}
+              />
+            </div>
+          )}
+
           <div className="mt-6 flex flex-wrap items-center justify-end gap-2.5">
             <button type="button" className="pp-btn pp-btn-ghost pp-btn-lg" onClick={reset}>
               {t("clear")}
@@ -161,7 +183,7 @@ export function MergeTool() {
                 type="button"
                 className="pp-btn pp-btn-lg min-w-[180px] justify-center"
                 onClick={startMerge}
-                disabled={rows.length < 2}
+                disabled={rows.length < 2 || overTotal}
               >
                 {tp("action", { count: rows.length })} <IconArrow size={15} />
               </button>

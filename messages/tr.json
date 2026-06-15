@@ -350,6 +350,8 @@
       "subtitle": "Birden fazla PDF'yi tek dosyada birleştirin. Sıralamak için sürükleyin.",
       "filesToMerge": "Birleştirilecek dosyalar",
       "action": "{count} dosyayı birleştir",
+      "totalTooManyPages": "Bu dosyalar toplam {pages} sayfa — {limit} sayfalık birleştirme sınırının üzerinde.",
+      "totalTooLarge": "Bu dosyalar toplam {mb} MB — {limit} MB birleştirme sınırının üzerinde.",
       "successTitle": "Başarıyla birleştirildi."
     },
     "split": {

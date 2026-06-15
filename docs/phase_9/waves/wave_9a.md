@@ -33,6 +33,24 @@
 7. EN/TR/RU all correct; dark + light.
 8. `bun run build` green ✔ (exit 0).
 
+## Full 33-tool audit (GATE 9A round 2)
+
+All tools use FileDropzone with the correct `toolId` (or are intentional exceptions). FileDropzone
+does inline size+page validation before `onFiles` for every PDF tool. Verified per tool:
+
+| Group | Tools | FileDropzone (toolId) | MB check | Page check | Badge |
+|---|---|---|---|---|---|
+| Local standard (20 PDF-in) | split, rotate, delete-pages, extract-pages, add-page-numbers, header-footer, crop-pdf, organize-pages, reversePages, sign-pdf, redact-content, remove-metadata, edit-metadata, flatten-pdf, pdfToText, watermark, protect, unlock, edit (Annotate), pdfBooklet | ✅ | ✅ inline | ✅ inline (FileDropzone) | ✅ local 10/25 MB · 30/100 pg |
+| No file input | text-to-pdf, markdown-to-pdf | n/a (correct) | n/a | n/a | none (correct) |
+| jpg-to-pdf | jpg-to-pdf | ✅ image, multiple | ✅ inline | image-count ✅ inline (B9-7 fix) | ✅ "{n} images" |
+| nup / repeat | nupLayout, repeatPages | ✅ | ✅ inline | input ✅ inline; output cap ✅ inline ErrorBanner + disabled | ✅ local input |
+| Cloud single-file | compress, grayscale-pdf, pdf-to-jpg, ocr-pdf, pdf-to-word | ✅ | ✅ inline | ✅ inline (FileDropzone) | ✅ + daily |
+| word-to-pdf | word-to-pdf | ✅ accept=word | ✅ inline | server-side only (docx) | ✅ + daily |
+| merge | merge | ✅ multiple | ✅ per-file + **total** (B9-7) | ✅ per-file + **total** (B9-7) | ✅ 20/75 MB · 100/300 pg + daily |
+| edit-pdf | edit-pdf | custom uploader | ✅ inline (over) | ✅ inline (over, before upload) | ✅ 10/30 MB · 15/50 pg + daily (B9-4) |
+
+Fixes this round: **B9-6** (jpg-to-pdf toast→inline), **B9-7** (merge total size/pages guard).
+
 ## Verify
 - `cd pliny_pdf && bun run dev`; open split (local), pdf-to-jpg (cloud+pages), ocr-pdf (office),
   edit-pdf, jpg-to-pdf at 1440px and 375px; exercise default/over-size/over-page/anon/cloud-quota

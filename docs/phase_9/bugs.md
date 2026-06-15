@@ -40,6 +40,23 @@ returning an old count; `useDailyUsage` now fetches with `{ cache: "no-store" }`
 Note: the count reflects Upstash's rolling 24h window (not the calendar day), and is exact
 for signed-in users (keyed by user id); anon is best-effort (IP).
 
+### B9-6 — JPG to PDF over-image-count used a toast
+`JpgToPdfTool.addFiles` showed `toast.error("tooManyImages")` and silently truncated.
+Switched to inline `setErrorMsg` (the tool already renders an `ErrorBanner`); removed the
+now-unused `sonner` import. Badge shows "{n} images" (unit="images").
+
+### B9-7 — Merge didn't check TOTAL size / TOTAL pages client-side
+FileDropzone validates each merged file individually, but the backend enforces the **total**
+across all files (`cloudMaxBytes` total, `mergeMaxPages` total). Added a client total guard in
+`MergeTool` (`getToolLimits("merge", plan)` → total MB + total pages): inline `ErrorBanner`
+(`totalTooManyPages` / `totalTooLarge`, EN/TR/RU) and the Merge button is disabled while over —
+before any upload.
+
+### Audit note — word-to-pdf page check is server-side only
+`.docx` page count can't be parsed client-side, so word-to-pdf's page limit is enforced by the
+backend (inline `ErrorBanner` on rejection); the badge shows the page limit informationally.
+This is inherent, not a defect.
+
 ## Open / watch
 - Anon daily-quota count in `/api/usage` is best-effort: the Next.js route (Vercel) and the
   cloud-tool backend (Hetzner) may see different `x-forwarded-for` IPs, so the anon "Today

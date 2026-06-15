@@ -19,3 +19,10 @@ Created index/decisions/architecture/bugs/log + waves/wave_9a..9j.
 - B9-5: `useDailyUsage` fetches with `cache: "no-store"`; verified `/api/usage` mapping (`used = total − remaining`) is correct.
 - `LimitBadge` gained `overUnit`/`filePages` + `overPages` i18n key (EN/TR/RU).
 - `bun run build` green (exit 0). **GATE 9A still pending user confirmation.**
+
+## [2026-06-15] Wave 9A — GATE 9A round 2: full 33-tool audit + 2 fixes
+- Audited all 33 tools (4 checks each: FileDropzone/toolId, MB, pages, badge). Table in waves/wave_9a.md.
+- B9-6: jpg-to-pdf image-count now inline (was toast); removed unused sonner import.
+- B9-7: merge now guards TOTAL size + TOTAL pages client-side (inline ErrorBanner + disabled button) — EN/TR/RU keys added.
+- Result: every tool enforces limits inline before processing (word-to-pdf pages remain server-side — docx can't be parsed client-side; documented).
+- `bun run build` green (exit 0). **GATE 9A still pending user confirmation.**

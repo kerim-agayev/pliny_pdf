@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { toast } from "sonner";
 import { FileDropzone } from "./FileDropzone";
 import { SuccessPanel, ErrorBanner } from "./ResultPanels";
 import { Spinner } from "./Spinner";
@@ -31,13 +30,12 @@ export function JpgToPdfTool() {
 
   function addFiles(incoming: File[]) {
     const imgs = incoming.filter(isImage);
+    const room = Math.max(0, maxImages - files.length);
+    // Inline error (not toast) — over the image-count cap or wrong type.
     if (imgs.length !== incoming.length) setErrorMsg(t("wrongTypeImage"));
+    else if (imgs.length > room) setErrorMsg(te("tooManyImages", { max: maxImages }));
     else setErrorMsg(undefined);
-    setFiles((prev) => {
-      const room = Math.max(0, maxImages - prev.length);
-      if (imgs.length > room) toast.error(te("tooManyImages", { max: maxImages }));
-      return [...prev, ...imgs.slice(0, room)];
-    });
+    setFiles((prev) => [...prev, ...imgs.slice(0, Math.max(0, maxImages - prev.length))]);
   }
 
   async function run() {
