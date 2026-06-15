@@ -1,6 +1,6 @@
 # Wave 9A — Limit UI Display (All 33 Tools)
 
-**Status:** implemented · `bun run build` green · **GATE 9A pending user confirmation** · not committed
+**Status:** ✅ **GATE 9A PASSED (2026-06-15, confirmed by user on Vercel)** · `bun run build` green · committed & pushed
 
 ## What shipped
 - `components/shared/LimitBadge.tsx` — ported from Phase 9 design (`phase9-kit.jsx`), fully i18n.

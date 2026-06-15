@@ -26,3 +26,6 @@ Created index/decisions/architecture/bugs/log + waves/wave_9a..9j.
 - B9-7: merge now guards TOTAL size + TOTAL pages client-side (inline ErrorBanner + disabled button) — EN/TR/RU keys added.
 - Result: every tool enforces limits inline before processing (word-to-pdf pages remain server-side — docx can't be parsed client-side; documented).
 - `bun run build` green (exit 0). **GATE 9A still pending user confirmation.**
+
+## [2026-06-15] ✅ GATE 9A PASSED (user-confirmed on Vercel)
+Wave 9A (Limit UI) complete: LimitBadge on all 33 tools, live daily quota, inline pre-upload size+page validation, full 33-tool audit. Next: Wave 9B (Annotate mobile) — awaiting user go-ahead.

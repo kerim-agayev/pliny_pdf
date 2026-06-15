@@ -4,11 +4,11 @@
 
 ## Current Status
 - Phase: 9 (pre-launch polish)
-- Active wave: **9A — Limit UI Display** (implementation complete; `bun run build` green; **GATE 9A pending user confirmation**)
-- Next step: user verifies GATE 9A → commit → Wave 9B (Annotate PDF mobile)
+- Last completed: **Wave 9A — Limit UI Display — ✅ GATE 9A PASSED (2026-06-15)**
+- Next step: **Wave 9B (Annotate PDF mobile)** — do NOT start until the user gives the go-ahead.
 
 ## Waves
-- 9A: Limit UI on all tools — LimitBadge + per-tool getToolLimits + live daily quota — **build green, gate pending**
+- 9A: Limit UI on all tools — LimitBadge + per-tool getToolLimits + live daily quota — **✅ GATE 9A PASSED (2026-06-15)**
 - 9B–9E: mobile redesigns (Annotate, Sign, Organize/Crop/Redact, form-heavy) — not started
 - 9F: 23 simple tools responsive audit — not started
 - 9G: perf/memory/bundle audit — not started
