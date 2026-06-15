@@ -405,10 +405,10 @@ export function EditorTool() {
   const fitToScreen = useCallback(() => {
     const wrap = wrapRef.current;
     if (!wrap) return;
-    // clientWidth/Height include the wrapper's padding (16px x, 18px y) — subtract it
-    // so the page fits inside the content box (never clipped under overflow:hidden).
-    const availW = wrap.clientWidth - 32;
-    const availH = wrap.clientHeight - 36;
+    // clientWidth/Height include the wrapper's padding (24px x, 28px y) — subtract it
+    // so the whole page is visible inside the content box at the initial fit.
+    const availW = wrap.clientWidth - 48;
+    const availH = wrap.clientHeight - 56;
     if (availW <= 0 || availH <= 0) return;
     const z = Math.min(availW / baseDims.current.w, availH / baseDims.current.h);
     if (z > 0 && isFinite(z)) applyZoom(+z.toFixed(3));
@@ -599,24 +599,38 @@ export function EditorTool() {
           <button type="button" onClick={() => gotoPage(pageNum + 1)} disabled={pageNum >= numPages} style={{ ...navBtn, opacity: pageNum >= numPages ? 0.4 : 1 }}><IconChevron size={16} /></button>
         </div>
 
-        {/* canvas — flex:1 + minHeight:0 so it only ever fills the space BETWEEN the
-            bars (top bar + toolbar stay visible); overflow:hidden so the page can never
-            escape the wrapper (no upward overflow, no left/right scroll). fitToScreen()
-            scales the page to fit, centered with margins. */}
-        <div ref={wrapRef} style={{ flex: 1, minHeight: 0, minWidth: 0, position: "relative", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center", padding: "18px 16px", background: "repeating-linear-gradient(45deg, rgba(127,127,127,0.04) 0 1px, transparent 1px 16px), var(--bg-2)", touchAction: "none", userSelect: "none", WebkitUserSelect: "none", WebkitTouchCallout: "none" }}>
-          {canvasSurface}
+        {/* Content area — copies Edit PDF (EditPdf/index.tsx + EditorCanvas.tsx):
+            an outer flex:1 / overflow:hidden / relative box hosts the absolutely-
+            positioned hint + FABs, and an inner scroll surface (wrapRef) does the
+            dark, scrollable, pinch-zoomable canvas. The bars stay fixed because this
+            outer box is bounded (flex:1 + minHeight:0) and only the inner div scrolls. */}
+        <div style={{ flex: 1, minHeight: 0, display: "flex", overflow: "hidden", position: "relative" }}>
+          <div
+            ref={wrapRef}
+            style={{
+              flex: 1, position: "relative", overflow: "auto",
+              display: "flex", justifyContent: "center", padding: "28px 24px",
+              background: "radial-gradient(70% 60% at 50% 0%, rgba(107,92,231,0.06), rgba(107,92,231,0) 70%), repeating-linear-gradient(45deg, rgba(127,127,127,0.04) 0 1px, transparent 1px 16px), var(--bg-2)",
+              // NO touchAction:none here — the scroll surface must pan natively; only
+              // the page (canvasSurface's overlay) blocks touch so Fabric can draw.
+              userSelect: "none", WebkitUserSelect: "none", WebkitTouchCallout: "none",
+            }}
+          >
+            {canvasSurface}
+          </div>
+
+          <div style={{ position: "absolute", top: 12, left: "50%", transform: "translateX(-50%)", display: "flex", alignItems: "center", gap: 7, padding: "6px 12px", borderRadius: 999, background: "rgba(15,15,15,0.7)", backdropFilter: "blur(6px)", border: "1px solid var(--line-2)", fontSize: 11, color: "var(--text-2)", whiteSpace: "nowrap", pointerEvents: "none", zIndex: 20 }}>
+            <IconZoomIn size={13} /> {t("mobile.hint")}
+          </div>
+          <button type="button" onClick={() => setPagesOpen(true)} style={{ position: "absolute", left: 14, bottom: 14, height: 44, padding: "0 16px", borderRadius: 999, background: "var(--card)", border: "1px solid var(--line-2)", color: "var(--text)", fontSize: 13, fontWeight: 500, display: "flex", alignItems: "center", gap: 8, boxShadow: "0 10px 26px -10px rgba(0,0,0,0.55)", cursor: "pointer", zIndex: 20 }}>
+            <IconFile size={15} /> {t("mobile.pages")}
+          </button>
           {hasSelection && (
             <button type="button" onClick={deleteSelected} aria-label={t("mobile.menuDelete")}
-              style={{ position: "absolute", right: 14, bottom: 14, width: 48, height: 48, borderRadius: 999, background: "var(--rose)", border: "none", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 10px 26px -10px rgba(244,63,94,0.7)", cursor: "pointer" }}>
+              style={{ position: "absolute", right: 14, bottom: 14, width: 48, height: 48, borderRadius: 999, background: "var(--rose)", border: "none", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 10px 26px -10px rgba(244,63,94,0.7)", cursor: "pointer", zIndex: 20 }}>
               <IconTrash size={20} sw={1.9} />
             </button>
           )}
-          <div style={{ position: "absolute", top: 12, left: "50%", transform: "translateX(-50%)", display: "flex", alignItems: "center", gap: 7, padding: "6px 12px", borderRadius: 999, background: "rgba(15,15,15,0.7)", backdropFilter: "blur(6px)", border: "1px solid var(--line-2)", fontSize: 11, color: "var(--text-2)", whiteSpace: "nowrap", pointerEvents: "none" }}>
-            <IconZoomIn size={13} /> {t("mobile.hint")}
-          </div>
-          <button type="button" onClick={() => setPagesOpen(true)} style={{ position: "absolute", left: 14, bottom: 14, height: 44, padding: "0 16px", borderRadius: 999, background: "var(--card)", border: "1px solid var(--line-2)", color: "var(--text)", fontSize: 13, fontWeight: 500, display: "flex", alignItems: "center", gap: 8, boxShadow: "0 10px 26px -10px rgba(0,0,0,0.55)", cursor: "pointer" }}>
-            <IconFile size={15} /> {t("mobile.pages")}
-          </button>
         </div>
 
         {/* bottom-fixed toolbar + option sheets */}
