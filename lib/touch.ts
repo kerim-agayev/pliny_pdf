@@ -28,7 +28,7 @@ function pinchInfo(touches: TouchList) {
  * The hook never owns zoom state — it multiplies the current scale by the pinch
  * ratio and hands it to `setScale`, which clamps.
  */
-export function usePinchZoom(ref: RefObject<HTMLElement | null>, opts: PinchOpts) {
+export function usePinchZoom(ref: RefObject<HTMLElement | null>, opts: PinchOpts, deps: unknown[] = []) {
   // keep the latest callbacks so the once-bound listeners never read stale zoom
   const optsRef = useRef(opts);
   optsRef.current = opts;
@@ -86,6 +86,8 @@ export function usePinchZoom(ref: RefObject<HTMLElement | null>, opts: PinchOpts
       el.removeEventListener("touchend", onEnd);
       el.removeEventListener("touchcancel", onEnd);
     };
+    // re-bind when the surface (re)mounts — e.g. EditorTool swaps the empty state
+    // for the editor, or switches between desktop and the mobile takeover (Wave 9B)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [ref]);
+  }, [ref, ...deps]);
 }

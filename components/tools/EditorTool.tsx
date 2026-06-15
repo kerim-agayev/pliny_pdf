@@ -51,6 +51,7 @@ export function EditorTool() {
   const [pagesOpen, setPagesOpen] = useState(false);
   const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
   const [recolorOpen, setRecolorOpen] = useState(false);
+  const [hasSelection, setHasSelection] = useState(false);
 
   const fabricRef = useRef<typeof Fabric | null>(null);
   const canvasElRef = useRef<HTMLCanvasElement>(null);
@@ -69,6 +70,7 @@ export function EditorTool() {
   const isMobileRef = useRef(false);
   const lpTimerRef = useRef(0);
   const lpTargetRef = useRef<Fabric.FabricObject | null>(null);
+  const lpStartRef = useRef<{ x: number; y: number } | null>(null);
 
   useEffect(() => { toolRef.current = tool; }, [tool]);
   useEffect(() => { colorRef.current = color; }, [color]);
@@ -84,8 +86,10 @@ export function EditorTool() {
     return () => { document.body.style.overflow = prev; };
   }, [file, isMobile, status]);
 
-  // two-finger pinch-to-zoom (single-finger touch draws via fabric's pointer events)
-  usePinchZoom(wrapRef, { getScale: () => zoom, setScale: applyZoom, panTarget: () => wrapRef.current });
+  // two-finger pinch-to-zoom (single-finger touch draws via fabric's pointer events).
+  // Re-bind on [file, isMobile] so the listeners attach once the canvas surface
+  // actually mounts (the empty state has no wrapRef) and follow the layout swap.
+  usePinchZoom(wrapRef, { getScale: () => zoom, setScale: applyZoom, panTarget: () => wrapRef.current }, [file, isMobile]);
 
   const snapshot = useCallback(() => {
     const fc = fcRef.current;
@@ -121,7 +125,11 @@ export function EditorTool() {
     fc.setZoom(zoom);
     fc.renderAll();
     suspendHistory.current = false;
-    undoStack.current = [];
+    // Baseline = the page's current state. The history keeps the *current* state on
+    // top of the undo stack; undo pops it and re-applies the new top, so the first
+    // undo actually reverts (Wave 9B fix — previously there was no baseline and undo
+    // reloaded the just-popped state, a no-op).
+    undoStack.current = [JSON.stringify(fc.toJSON())];
     redoStack.current = [];
   }, [zoom]);
 
@@ -154,9 +162,13 @@ export function EditorTool() {
       fc.on("mouse:down", onMouseDown);
       fc.on("mouse:move", onMouseMove);
       fc.on("mouse:up", onMouseUp);
+      fc.on("selection:created", () => setHasSelection(true));
+      fc.on("selection:updated", () => setHasSelection(true));
+      fc.on("selection:cleared", () => setHasSelection(false));
 
       setReady(true);
       await renderPage(1);
+      if (isMobileRef.current) fitToScreen();
     })();
     return () => {
       disposed = true;
@@ -202,18 +214,22 @@ export function EditorTool() {
     const sw = strokeRef.current;
     const p = pointer(opt);
 
-    // mobile: long-press a selectable object → context menu (Wave 9B)
+    // mobile: long-press a selectable object → context menu (Wave 9B).
+    // Fabric (v6, pointer events) fires mouse:move with ~0 delta right after
+    // mouse:down on touch; onMouseMove only cancels past a 10px threshold so the
+    // timer survives a stationary hold.
     if (isMobileRef.current && tl === "select" && opt.target) {
       const e = opt.e as MouseEvent & TouchEvent;
       const tp = e.touches?.[0] ?? e;
       const mx = tp.clientX, my = tp.clientY;
       lpTargetRef.current = opt.target;
+      lpStartRef.current = { x: mx, y: my };
       window.clearTimeout(lpTimerRef.current);
       lpTimerRef.current = window.setTimeout(() => {
         const fcc = fcRef.current;
         if (fcc && lpTargetRef.current) { fcc.setActiveObject(lpTargetRef.current); fcc.renderAll(); }
         setMenu({ x: mx, y: my });
-      }, 450);
+      }, 500);
     }
 
     if (tl === "eraser") {
@@ -262,7 +278,14 @@ export function EditorTool() {
   }, []);
 
   const onMouseMove = useCallback((opt: Fabric.TPointerEventInfo) => {
-    window.clearTimeout(lpTimerRef.current); // any drag cancels a pending long-press
+    // cancel a pending long-press only once the finger really moves (>10px)
+    if (lpTimerRef.current && lpStartRef.current) {
+      const e = opt.e as MouseEvent & TouchEvent;
+      const tp = e.touches?.[0] ?? e;
+      if (Math.hypot(tp.clientX - lpStartRef.current.x, tp.clientY - lpStartRef.current.y) > 10) {
+        window.clearTimeout(lpTimerRef.current); lpTimerRef.current = 0;
+      }
+    }
     const fc = fcRef.current;
     const draft = draftRef.current;
     const start = startRef.current;
@@ -283,7 +306,7 @@ export function EditorTool() {
   }, []);
 
   const onMouseUp = useCallback(() => {
-    window.clearTimeout(lpTimerRef.current);
+    window.clearTimeout(lpTimerRef.current); lpTimerRef.current = 0;
     const fc = fcRef.current;
     if (draftRef.current && fc) {
       const tl = toolRef.current;
@@ -308,31 +331,57 @@ export function EditorTool() {
   // ---- actions ----
   function undo() {
     const fc = fcRef.current;
-    if (!fc || undoStack.current.length === 0) return;
-    const current = JSON.stringify(fc.toJSON());
-    const prev = undoStack.current.pop()!;
+    if (!fc || undoStack.current.length <= 1) return; // keep the baseline at [0]
+    const current = undoStack.current.pop()!;
     redoStack.current.push(current);
+    const prev = undoStack.current[undoStack.current.length - 1];
     suspendHistory.current = true;
-    fc.loadFromJSON(prev).then(() => { fc.renderAll(); suspendHistory.current = false; });
+    fc.loadFromJSON(prev).then(() => { fc.renderAll(); suspendHistory.current = false; setHasSelection(false); });
   }
   function redo() {
     const fc = fcRef.current;
     if (!fc || redoStack.current.length === 0) return;
-    const current = JSON.stringify(fc.toJSON());
     const next = redoStack.current.pop()!;
-    undoStack.current.push(current);
+    undoStack.current.push(next);
     suspendHistory.current = true;
-    fc.loadFromJSON(next).then(() => { fc.renderAll(); suspendHistory.current = false; });
+    fc.loadFromJSON(next).then(() => { fc.renderAll(); suspendHistory.current = false; setHasSelection(false); });
+  }
+
+  // Delete the active object(s) and record an undo snapshot (mobile button + Del key).
+  function deleteSelected() {
+    const fc = fcRef.current;
+    if (!fc) return;
+    const objs = fc.getActiveObjects();
+    if (!objs.length) return;
+    objs.forEach((o) => fc.remove(o));
+    fc.discardActiveObject();
+    fc.renderAll();
+    snapshot();
+    setHasSelection(false);
   }
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
-      if (!(e.ctrlKey || e.metaKey)) return;
-      if (e.key === "z") { e.preventDefault(); undo(); }
-      else if (e.key === "y") { e.preventDefault(); redo(); }
+      if (e.ctrlKey || e.metaKey) {
+        if (e.key === "z") { e.preventDefault(); undo(); }
+        else if (e.key === "y") { e.preventDefault(); redo(); }
+        return;
+      }
+      // Delete / Backspace removes the selected object — unless a textbox is being
+      // edited or focus is in a real input (then it's normal character deletion).
+      if (e.key === "Delete" || e.key === "Backspace") {
+        const fc = fcRef.current;
+        const active = fc?.getActiveObject() as (Fabric.FabricObject & { isEditing?: boolean }) | undefined;
+        const el = document.activeElement;
+        const typing = el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement;
+        if (!active || active.isEditing || typing) return;
+        e.preventDefault();
+        deleteSelected();
+      }
     }
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function gotoPage(n: number) {
@@ -350,6 +399,28 @@ export function EditorTool() {
     fc.setZoom(z);
     fc.renderAll();
   }
+
+  // Mobile: scale the page so it fits entirely within the canvas area (contain),
+  // centered with margins — the user never has to scroll to fit (Wave 9B).
+  const fitToScreen = useCallback(() => {
+    const wrap = wrapRef.current;
+    if (!wrap) return;
+    const availW = wrap.clientWidth - 32;
+    const availH = wrap.clientHeight - 32;
+    if (availW <= 0 || availH <= 0) return;
+    const z = Math.min(availW / baseDims.current.w, availH / baseDims.current.h);
+    if (z > 0 && isFinite(z)) applyZoom(+z.toFixed(3));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // re-fit the page to the screen on rotate / resize (mobile only)
+  useEffect(() => {
+    if (!isMobile) return;
+    const onResize = () => fitToScreen();
+    window.addEventListener("resize", onResize);
+    window.addEventListener("orientationchange", onResize);
+    return () => { window.removeEventListener("resize", onResize); window.removeEventListener("orientationchange", onResize); };
+  }, [isMobile, fitToScreen]);
 
   function clearAll() {
     const fc = fcRef.current;
@@ -522,9 +593,17 @@ export function EditorTool() {
           <button type="button" onClick={() => gotoPage(pageNum + 1)} disabled={pageNum >= numPages} style={{ ...navBtn, opacity: pageNum >= numPages ? 0.4 : 1 }}><IconChevron size={16} /></button>
         </div>
 
-        {/* canvas */}
-        <div ref={wrapRef} style={{ flex: 1, position: "relative", overflow: "auto", display: "flex", justifyContent: "center", padding: "18px 16px", background: "repeating-linear-gradient(45deg, rgba(127,127,127,0.04) 0 1px, transparent 1px 16px), var(--bg-2)", touchAction: "none", userSelect: "none", WebkitUserSelect: "none", WebkitTouchCallout: "none" }}>
+        {/* canvas — flex:1 with minHeight:0 so the bottom toolbar is ALWAYS visible
+            (without min-height:0 the oversized page would expand the flex item and
+            push the toolbar off-screen). fitToScreen() scales the page to fit. */}
+        <div ref={wrapRef} style={{ flex: 1, minHeight: 0, minWidth: 0, position: "relative", overflow: "auto", display: "flex", alignItems: "center", justifyContent: "center", padding: "18px 16px", background: "repeating-linear-gradient(45deg, rgba(127,127,127,0.04) 0 1px, transparent 1px 16px), var(--bg-2)", touchAction: "none", userSelect: "none", WebkitUserSelect: "none", WebkitTouchCallout: "none" }}>
           {canvasSurface}
+          {hasSelection && (
+            <button type="button" onClick={deleteSelected} aria-label={t("mobile.menuDelete")}
+              style={{ position: "absolute", right: 14, bottom: 14, width: 48, height: 48, borderRadius: 999, background: "var(--rose)", border: "none", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 10px 26px -10px rgba(244,63,94,0.7)", cursor: "pointer" }}>
+              <IconTrash size={20} sw={1.9} />
+            </button>
+          )}
           <div style={{ position: "absolute", top: 12, left: "50%", transform: "translateX(-50%)", display: "flex", alignItems: "center", gap: 7, padding: "6px 12px", borderRadius: 999, background: "rgba(15,15,15,0.7)", backdropFilter: "blur(6px)", border: "1px solid var(--line-2)", fontSize: 11, color: "var(--text-2)", whiteSpace: "nowrap", pointerEvents: "none" }}>
             <IconZoomIn size={13} /> {t("mobile.hint")}
           </div>
@@ -629,8 +708,15 @@ export function EditorTool() {
       </div>
 
       {/* Canvas area */}
-      <div ref={wrapRef} className="flex max-h-[70vh] justify-center overflow-auto rounded-xl p-6" style={{ background: "var(--bg-2)", border: "1px solid var(--line)" }}>
+      <div ref={wrapRef} className="relative flex max-h-[70vh] justify-center overflow-auto rounded-xl p-6" style={{ background: "var(--bg-2)", border: "1px solid var(--line)" }}>
         {canvasSurface}
+        {hasSelection && (
+          <button type="button" onClick={deleteSelected} title={t("mobile.menuDelete")}
+            className="absolute right-4 top-4 flex items-center gap-1.5 rounded-lg px-3 py-2 text-[13px]"
+            style={{ background: "var(--rose)", color: "#fff", boxShadow: "0 8px 22px -10px rgba(244,63,94,0.7)" }}>
+            <IconTrash size={15} sw={1.8} /> {t("mobile.menuDelete")}
+          </button>
+        )}
       </div>
 
       {/* Bottom bar */}
