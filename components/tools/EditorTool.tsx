@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, type ComponentType } from "react";
 import { useTranslations } from "next-intl";
 import type * as Fabric from "fabric";
 import type { PDFDocumentProxy } from "pdfjs-dist";
@@ -13,10 +13,14 @@ import { isPdf } from "@/lib/pdf/common";
 import { downloadBlob, baseName } from "@/lib/format";
 import { usePinchZoom } from "@/lib/touch";
 import { analytics } from "@/lib/analytics";
+import { useMediaQuery } from "@/lib/hooks/useMediaQuery";
+import { BottomSheet } from "./EditPdf/BottomSheet";
+import { MobileAnnotateToolbar, SwatchGrid, ANNOT_MOBILE_COLORS } from "./MobileAnnotateToolbar";
 import {
   IconCursor, IconType, IconSticky, IconHighlight, IconStrike, IconUnderline,
   IconPen, IconRect, IconCircleShape, IconArrowDraw, IconLineShape, IconEraser,
   IconUndo, IconRedo, IconChevron, IconDownload, IconZoomIn,
+  IconFile, IconCopy, IconTrash, type IconProps,
 } from "@/components/shared/icons";
 
 type Tool =
@@ -42,6 +46,12 @@ export function EditorTool() {
   const [resultBlob, setResultBlob] = useState<Blob | null>(null);
   const [errorMsg, setErrorMsg] = useState<string>();
 
+  // mobile full-screen takeover UI (Wave 9B)
+  const isMobile = useMediaQuery("(max-width: 767px)");
+  const [pagesOpen, setPagesOpen] = useState(false);
+  const [menu, setMenu] = useState<{ x: number; y: number } | null>(null);
+  const [recolorOpen, setRecolorOpen] = useState(false);
+
   const fabricRef = useRef<typeof Fabric | null>(null);
   const canvasElRef = useRef<HTMLCanvasElement>(null);
   const fcRef = useRef<Fabric.Canvas | null>(null);
@@ -56,10 +66,23 @@ export function EditorTool() {
   const undoStack = useRef<string[]>([]);
   const redoStack = useRef<string[]>([]);
   const suspendHistory = useRef(false);
+  const isMobileRef = useRef(false);
+  const lpTimerRef = useRef(0);
+  const lpTargetRef = useRef<Fabric.FabricObject | null>(null);
 
   useEffect(() => { toolRef.current = tool; }, [tool]);
   useEffect(() => { colorRef.current = color; }, [color]);
   useEffect(() => { strokeRef.current = stroke; }, [stroke]);
+  useEffect(() => { isMobileRef.current = isMobile; }, [isMobile]);
+
+  // lock background scroll only while the mobile takeover is actually shown
+  // (released once we leave the editor for the success panel) — Wave 9B
+  useEffect(() => {
+    if (!(file && isMobile) || status === "done") return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = prev; };
+  }, [file, isMobile, status]);
 
   // two-finger pinch-to-zoom (single-finger touch draws via fabric's pointer events)
   usePinchZoom(wrapRef, { getScale: () => zoom, setScale: applyZoom, panTarget: () => wrapRef.current });
@@ -179,6 +202,20 @@ export function EditorTool() {
     const sw = strokeRef.current;
     const p = pointer(opt);
 
+    // mobile: long-press a selectable object → context menu (Wave 9B)
+    if (isMobileRef.current && tl === "select" && opt.target) {
+      const e = opt.e as MouseEvent & TouchEvent;
+      const tp = e.touches?.[0] ?? e;
+      const mx = tp.clientX, my = tp.clientY;
+      lpTargetRef.current = opt.target;
+      window.clearTimeout(lpTimerRef.current);
+      lpTimerRef.current = window.setTimeout(() => {
+        const fcc = fcRef.current;
+        if (fcc && lpTargetRef.current) { fcc.setActiveObject(lpTargetRef.current); fcc.renderAll(); }
+        setMenu({ x: mx, y: my });
+      }, 450);
+    }
+
     if (tl === "eraser") {
       const target = opt.target;
       if (target) fc.remove(target);
@@ -225,6 +262,7 @@ export function EditorTool() {
   }, []);
 
   const onMouseMove = useCallback((opt: Fabric.TPointerEventInfo) => {
+    window.clearTimeout(lpTimerRef.current); // any drag cancels a pending long-press
     const fc = fcRef.current;
     const draft = draftRef.current;
     const start = startRef.current;
@@ -245,6 +283,7 @@ export function EditorTool() {
   }, []);
 
   const onMouseUp = useCallback(() => {
+    window.clearTimeout(lpTimerRef.current);
     const fc = fcRef.current;
     if (draftRef.current && fc) {
       const tl = toolRef.current;
@@ -319,6 +358,58 @@ export function EditorTool() {
     fc.renderAll();
   }
 
+  // ---- mobile long-press context-menu actions (operate on lpTargetRef) ----
+  function closeMenu() { setMenu(null); }
+
+  function menuDelete() {
+    const fc = fcRef.current, tgt = lpTargetRef.current;
+    if (fc && tgt) { fc.remove(tgt); fc.discardActiveObject(); fc.renderAll(); snapshot(); }
+    closeMenu();
+  }
+
+  async function menuDuplicate() {
+    const fc = fcRef.current, tgt = lpTargetRef.current;
+    if (fc && tgt) {
+      const clone = await tgt.clone();
+      clone.set({ left: (tgt.left ?? 0) + 16, top: (tgt.top ?? 0) + 16 });
+      fc.add(clone);
+      fc.setActiveObject(clone);
+      fc.renderAll();
+      snapshot();
+    }
+    closeMenu();
+  }
+
+  function menuEdit() {
+    const fc = fcRef.current, tgt = lpTargetRef.current as Fabric.Textbox | null;
+    if (fc && tgt) {
+      fc.setActiveObject(tgt);
+      if (tgt.type === "textbox") { tgt.enterEditing?.(); tgt.selectAll?.(); }
+      fc.renderAll();
+    }
+    closeMenu();
+  }
+
+  // Recolor the selected object — sticky note → background (+ contrast text),
+  // text → fill, everything else → stroke.
+  function recolor(c: string) {
+    const fc = fcRef.current;
+    const tgt = lpTargetRef.current as (Fabric.FabricObject & { backgroundColor?: string }) | null;
+    if (!fc || !tgt) return;
+    if (tgt.backgroundColor) tgt.set({ backgroundColor: c, fill: contrastText(c) });
+    else if (tgt.type === "textbox") tgt.set({ fill: c });
+    else tgt.set({ stroke: c });
+    fc.renderAll();
+    snapshot();
+  }
+
+  function backToStart() {
+    const fc = fcRef.current;
+    const dirty = (fc?.getObjects().length ?? 0) > 0 || Object.values(annotations.current).some(Boolean);
+    if (dirty && !window.confirm(t("mobile.discardConfirm"))) return;
+    reset();
+  }
+
   async function onFiles(files: File[]) {
     const f = files[0];
     if (!f || !isPdf(f)) { setErrorMsg(tu("wrongTypePdf")); return; }
@@ -385,6 +476,105 @@ export function EditorTool() {
     );
   }
 
+  // The page image + Fabric overlay — rendered once, reused by both layouts so
+  // the canvas element (and its bound Fabric instance) never remounts.
+  const canvasSurface = (
+    <div className="relative" style={{ boxShadow: "var(--shadow-lg)", height: "fit-content" }}>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img ref={pageImgRef} alt="" className="block select-none" style={{ width: baseDims.current.w * zoom, height: baseDims.current.h * zoom }} draggable={false} />
+      <div className="absolute inset-0" style={{ touchAction: "none" }}>
+        <canvas ref={canvasElRef} />
+      </div>
+      {!ready && (
+        <div className="absolute inset-0 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.2)" }}><Spinner size={22} /></div>
+      )}
+    </div>
+  );
+
+  // ── Mobile: full-screen takeover (Wave 9B) ──────────────────────────────────
+  if (isMobile) {
+    const ctrlBtn: React.CSSProperties = { width: 44, height: 44, borderRadius: 9, background: "transparent", border: 0, color: "var(--text)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" };
+    const navBtn: React.CSSProperties = { ...ctrlBtn, color: "var(--text-2)" };
+    return (
+      <div style={{ position: "fixed", inset: 0, zIndex: 60, display: "flex", flexDirection: "column", background: "var(--bg)" }}>
+        {/* header */}
+        <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "env(safe-area-inset-top) 10px 0", height: `calc(52px + env(safe-area-inset-top))`, flexShrink: 0, background: "var(--card)", borderBottom: "1px solid var(--line)" }}>
+          <button type="button" onClick={backToStart} aria-label={t("mobile.back")} style={{ ...ctrlBtn, color: "var(--text)" }}>
+            <IconChevron size={20} style={{ transform: "rotate(180deg)" }} />
+          </button>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", lineHeight: 1.18, minWidth: 0, padding: "0 8px" }}>
+            <span style={{ fontFamily: "var(--font-display)", fontSize: 15, fontWeight: 600, color: "var(--text)" }}>{t("mobile.title")}</span>
+            <span className="pp-mono" style={{ fontSize: 10, color: "var(--text-3)", maxWidth: 180, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{file.name}</span>
+          </div>
+          <button type="button" onClick={save} disabled={status === "processing"} className="pp-btn" style={{ minWidth: 44, minHeight: 44, padding: "8px 12px", position: "relative", justifyContent: "center" }}>
+            {status === "processing" ? <Spinner /> : <IconDownload size={16} />}
+            <span style={{ position: "absolute", top: 6, right: 6, width: 7, height: 7, borderRadius: "50%", background: "#FACC15", border: "1.5px solid var(--card)" }} />
+          </button>
+        </header>
+
+        {/* secondary controls: undo/redo + page nav */}
+        <div style={{ display: "flex", alignItems: "center", gap: 2, padding: "0 8px", height: 48, flexShrink: 0, background: "var(--card)", borderBottom: "1px solid var(--line)" }}>
+          <button type="button" onClick={undo} aria-label={t("tools.undo")} style={ctrlBtn}><IconUndo size={18} /></button>
+          <button type="button" onClick={redo} aria-label={t("tools.redo")} style={navBtn}><IconRedo size={18} /></button>
+          <div style={{ flex: 1 }} />
+          <button type="button" onClick={() => gotoPage(pageNum - 1)} disabled={pageNum <= 1} style={{ ...navBtn, opacity: pageNum <= 1 ? 0.4 : 1 }}><IconChevron size={16} style={{ transform: "rotate(180deg)" }} /></button>
+          <span className="pp-mono" style={{ fontSize: 12.5, color: "var(--text)", minWidth: 46, textAlign: "center" }}>{pageNum}/{numPages}</span>
+          <button type="button" onClick={() => gotoPage(pageNum + 1)} disabled={pageNum >= numPages} style={{ ...navBtn, opacity: pageNum >= numPages ? 0.4 : 1 }}><IconChevron size={16} /></button>
+        </div>
+
+        {/* canvas */}
+        <div ref={wrapRef} style={{ flex: 1, position: "relative", overflow: "auto", display: "flex", justifyContent: "center", padding: "18px 16px", background: "repeating-linear-gradient(45deg, rgba(127,127,127,0.04) 0 1px, transparent 1px 16px), var(--bg-2)", touchAction: "none", userSelect: "none", WebkitUserSelect: "none", WebkitTouchCallout: "none" }}>
+          {canvasSurface}
+          <div style={{ position: "absolute", top: 12, left: "50%", transform: "translateX(-50%)", display: "flex", alignItems: "center", gap: 7, padding: "6px 12px", borderRadius: 999, background: "rgba(15,15,15,0.7)", backdropFilter: "blur(6px)", border: "1px solid var(--line-2)", fontSize: 11, color: "var(--text-2)", whiteSpace: "nowrap", pointerEvents: "none" }}>
+            <IconZoomIn size={13} /> {t("mobile.hint")}
+          </div>
+          <button type="button" onClick={() => setPagesOpen(true)} style={{ position: "absolute", left: 14, bottom: 14, height: 44, padding: "0 16px", borderRadius: 999, background: "var(--card)", border: "1px solid var(--line-2)", color: "var(--text)", fontSize: 13, fontWeight: 500, display: "flex", alignItems: "center", gap: 8, boxShadow: "0 10px 26px -10px rgba(0,0,0,0.55)", cursor: "pointer" }}>
+            <IconFile size={15} /> {t("mobile.pages")}
+          </button>
+        </div>
+
+        {/* bottom-fixed toolbar + option sheets */}
+        <MobileAnnotateToolbar
+          tool={tool} color={color} stroke={stroke}
+          onPickTool={(id) => setTool(id as Tool)} onColor={setColor} onStroke={setStroke}
+        />
+
+        {/* pages drawer */}
+        {pagesOpen && (
+          <BottomSheet title={t("mobile.pages")} subtitle={t("mobile.pagesSub", { count: numPages })} onClose={() => setPagesOpen(false)}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 14 }}>
+              {Array.from({ length: numPages }).map((_, i) => {
+                const n = i + 1, sel = n === pageNum;
+                return (
+                  <button key={n} type="button" onClick={() => { void gotoPage(n); setPagesOpen(false); }}
+                    style={{ position: "relative", aspectRatio: "0.77", borderRadius: 8, cursor: "pointer", background: "#fff", border: sel ? "2px solid var(--indigo)" : "1px solid var(--line-2)", display: "flex", alignItems: "flex-end", justifyContent: "center", padding: 6, boxShadow: "0 4px 12px -6px rgba(0,0,0,0.4)" }}>
+                    <span className="pp-mono" style={{ fontSize: 11, color: "#1f1f1f", fontWeight: sel ? 700 : 500 }}>{n}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </BottomSheet>
+        )}
+
+        {/* recolor sheet (from the long-press menu) */}
+        {recolorOpen && (
+          <BottomSheet title={t("mobile.menuColor")} maxH="48%" onClose={() => setRecolorOpen(false)}>
+            <SwatchGrid palette={ANNOT_MOBILE_COLORS} onPick={(c) => { recolor(c); setRecolorOpen(false); }} />
+          </BottomSheet>
+        )}
+
+        {/* long-press context menu */}
+        {menu && (
+          <MobileContextMenu
+            x={menu.x} y={menu.y} t={t}
+            onColor={() => { closeMenu(); setRecolorOpen(true); }}
+            onDuplicate={menuDuplicate} onEdit={menuEdit} onDelete={menuDelete} onClose={closeMenu}
+          />
+        )}
+      </div>
+    );
+  }
+
   const groups: { tools: { id: Tool; Icon: typeof IconCursor; label: string }[] }[] = [
     { tools: [{ id: "select", Icon: IconCursor, label: t("tools.select") }] },
     { tools: [{ id: "text", Icon: IconType, label: t("tools.text") }, { id: "sticky", Icon: IconSticky, label: t("tools.sticky") }] },
@@ -440,16 +630,7 @@ export function EditorTool() {
 
       {/* Canvas area */}
       <div ref={wrapRef} className="flex max-h-[70vh] justify-center overflow-auto rounded-xl p-6" style={{ background: "var(--bg-2)", border: "1px solid var(--line)" }}>
-        <div className="relative" style={{ boxShadow: "var(--shadow-lg)" }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img ref={pageImgRef} alt="" className="block select-none" style={{ width: baseDims.current.w * zoom, height: baseDims.current.h * zoom }} draggable={false} />
-          <div className="absolute inset-0" style={{ touchAction: "none" }}>
-            <canvas ref={canvasElRef} />
-          </div>
-          {!ready && (
-            <div className="absolute inset-0 flex items-center justify-center" style={{ background: "rgba(0,0,0,0.2)" }}><Spinner size={22} /></div>
-          )}
-        </div>
+        {canvasSurface}
       </div>
 
       {/* Bottom bar */}
@@ -473,6 +654,48 @@ export function EditorTool() {
       </div>
 
       {status === "error" && <ErrorBanner onRetry={() => setStatus("idle")} />}
+    </div>
+  );
+}
+
+/** Long-press menu floating at the touch point (Wave 9B). Mirrors the design's
+ *  AnnotContextMenu: Change color / Duplicate / Edit / Delete. Closes on outside tap. */
+function MobileContextMenu({
+  x, y, t, onColor, onDuplicate, onEdit, onDelete, onClose,
+}: {
+  x: number; y: number; t: ReturnType<typeof useTranslations>;
+  onColor: () => void; onDuplicate: () => void; onEdit: () => void; onDelete: () => void; onClose: () => void;
+}) {
+  useEffect(() => {
+    const close = () => onClose();
+    // defer so the long-press's own touchend doesn't immediately dismiss it
+    const id = window.setTimeout(() => {
+      window.addEventListener("pointerdown", close);
+      window.addEventListener("scroll", close, true);
+    }, 0);
+    return () => { window.clearTimeout(id); window.removeEventListener("pointerdown", close); window.removeEventListener("scroll", close, true); };
+  }, [onClose]);
+
+  const rows: [ComponentType<IconProps>, string, () => void, boolean][] = [
+    [IconHighlight, t("mobile.menuColor"), onColor, false],
+    [IconCopy, t("mobile.menuDuplicate"), onDuplicate, false],
+    [IconType, t("mobile.menuEdit"), onEdit, false],
+    [IconTrash, t("mobile.menuDelete"), onDelete, true],
+  ];
+  const left = Math.min(Math.max(8, x - 94), (typeof window !== "undefined" ? window.innerWidth : 375) - 196);
+  const top = Math.min(Math.max(8, y + 8), (typeof window !== "undefined" ? window.innerHeight : 812) - 220);
+
+  return (
+    <div
+      onPointerDown={(e) => e.stopPropagation()}
+      style={{ position: "fixed", left, top, zIndex: 95, width: 188, background: "var(--card)", border: "1px solid var(--line-2)", borderRadius: 14, padding: 6, boxShadow: "0 20px 50px -16px rgba(0,0,0,0.6)" }}
+    >
+      {rows.map(([Ic, label, action, danger]) => (
+        <button key={label} type="button" onPointerDown={(e) => { e.stopPropagation(); action(); }}
+          style={{ width: "100%", display: "flex", alignItems: "center", gap: 11, padding: "12px", borderRadius: 9, border: 0, background: "transparent", color: danger ? "#F87171" : "var(--text)", fontSize: 14, cursor: "pointer", textAlign: "left", fontFamily: "inherit" }}>
+          <Ic size={17} sw={1.7} /> {label}
+        </button>
+      ))}
     </div>
   );
 }

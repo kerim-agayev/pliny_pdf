@@ -780,6 +780,21 @@
         "eraser": "Eraser",
         "undo": "Undo",
         "redo": "Redo"
+      },
+      "mobile": {
+        "title": "Annotate PDF",
+        "back": "Back",
+        "pages": "Pages",
+        "pagesSub": "{count} pages · tap to jump",
+        "hint": "Pinch to zoom · long-press a mark to edit",
+        "color": "Color",
+        "width": "Stroke width",
+        "tapApply": "Tap the page to apply · settings stick",
+        "discardConfirm": "Discard your annotations and go back?",
+        "menuColor": "Change color",
+        "menuDuplicate": "Duplicate",
+        "menuEdit": "Edit",
+        "menuDelete": "Delete"
       }
     },
     "editPdf": {

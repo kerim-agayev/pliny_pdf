@@ -780,6 +780,21 @@
         "eraser": "Silgi",
         "undo": "Geri al",
         "redo": "Yinele"
+      },
+      "mobile": {
+        "title": "PDF'e Not Ekle",
+        "back": "Geri",
+        "pages": "Sayfalar",
+        "pagesSub": "{count} sayfa · atlamak için dokun",
+        "hint": "Yakınlaştırmak için sıkıştır · düzenlemek için işarete uzun bas",
+        "color": "Renk",
+        "width": "Çizgi kalınlığı",
+        "tapApply": "Uygulamak için sayfaya dokun · ayarlar kalıcıdır",
+        "discardConfirm": "Notlarınız silinsin ve geri dönülsün mü?",
+        "menuColor": "Rengi değiştir",
+        "menuDuplicate": "Çoğalt",
+        "menuEdit": "Düzenle",
+        "menuDelete": "Sil"
       }
     },
     "editPdf": {
