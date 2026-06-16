@@ -13,6 +13,7 @@ import { downloadBlob } from "@/lib/format";
 import { nupMaxOutputPages } from "@/lib/limits";
 import { useSession } from "@/lib/auth/client";
 import { analytics } from "@/lib/analytics";
+import { useMediaQuery } from "@/lib/hooks/useMediaQuery";
 
 type Status = "loaded" | "processing" | "done" | "error";
 type Paper = "a4" | "letter" | "legal";
@@ -276,7 +277,8 @@ function NupSheet({ layout, orientation, margin }: { layout: NupLayoutId; orient
   const { cols, rows } = NUP_GRID[layout];
   const n = cols * rows;
   const portrait = orientation === "portrait";
-  const longSide = 380;
+  const isMobile = useMediaQuery("(max-width: 767px)");
+  const longSide = isMobile ? 300 : 380; // 380 preserved on desktop → pixel-identical
   const shortSide = Math.round(longSide * 0.707);
   const sheetW = portrait ? shortSide : longSide;
   const sheetH = portrait ? longSide : shortSide;

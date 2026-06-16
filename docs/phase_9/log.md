@@ -27,6 +27,14 @@ Created index/decisions/architecture/bugs/log + waves/wave_9a..9j.
 - Result: every tool enforces limits inline before processing (word-to-pdf pages remain server-side — docx can't be parsed client-side; documented).
 - `bun run build` green (exit 0). **GATE 9A still pending user confirmation.**
 
+## [2026-06-16] Wave 9F — 23 simple tools responsive audit (gate pending)
+- Audited all 23 simple tools at 375px/768px. Codebase is mobile-first; 21 already responsive.
+- Self-responsive patterns (auto-fill grids, flex-wrap min-w buttons, max-w fields, tall textareas) left untouched.
+- Fix 1 — N-up Layout: `NupSheet` preview shrunk via `useMediaQuery` (`longSide` 380→300 on mobile); fixed 380px overflow.
+- Fix 2 — Reverse Pages: comparison strips stack on mobile (`flex-col sm:flex-row`); token row `overflow-x-auto py-3` + `sm:` reset (no badge clip); desktop pixel-identical.
+- CSS-only (1 hook reuse); no globals.css, no new components, no i18n, no backend.
+- `bun run build` green (exit 0). **GATE 9F pending user confirmation; not committed.**
+
 ## [2026-06-15] ✅ GATE 9A PASSED (user-confirmed on Vercel)
 Wave 9A (Limit UI) complete: LimitBadge on all 33 tools, live daily quota, inline pre-upload size+page validation, full 33-tool audit. Next: Wave 9B (Annotate mobile) — awaiting user go-ahead.
 

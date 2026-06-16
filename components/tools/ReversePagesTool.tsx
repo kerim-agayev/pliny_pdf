@@ -97,7 +97,7 @@ export function ReversePagesTool() {
       )}
 
       <div className="rounded-[18px] px-6 py-10 sm:px-10" style={{ background: "var(--bg-2)", border: "1px solid var(--line)" }}>
-        <div className="flex items-center justify-center gap-4 sm:gap-6">
+        <div className="flex flex-col items-center justify-center gap-4 sm:flex-row sm:gap-6">
           <OrderStrip label={tp("originalOrder")} tokens={orderTokens(pages, false)} />
           <div className="flex shrink-0 flex-col items-center gap-2">
             <div
@@ -136,7 +136,7 @@ function OrderStrip({ label, tokens }: { label: string; tokens: (number | "…")
   return (
     <div className="flex-1">
       <div className="pp-mono mb-4 text-center text-[10px] uppercase tracking-[0.12em]" style={{ color: "var(--text-3)" }}>{label}</div>
-      <div className="flex items-center justify-center gap-2 sm:gap-2.5">
+      <div className="flex max-w-full items-center justify-center gap-2 overflow-x-auto py-3 sm:gap-2.5 sm:overflow-x-visible sm:py-0">
         {tokens.map((tok, i) =>
           tok === "…" ? (
             <span key={i} className="pp-mono px-0.5 text-[14px]" style={{ color: "var(--text-3)" }}>…</span>
