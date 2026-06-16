@@ -7,7 +7,7 @@ import { ErrorBanner } from "./ResultPanels";
 import { Spinner } from "./Spinner";
 import { IconPen, IconType, IconImage, IconUpload, IconX, IconChevron, IconPlus, IconTrash, IconDownload, IconCheck } from "@/components/shared/icons";
 import { signPdf, typedSignatureToPng, type PlacedSignature, type SignPlacement } from "@/lib/pdf/signPdf";
-import type { Thumb, ThumbLoader } from "@/lib/pdf/thumbnailLoader";
+import { createThumbLoader, type Thumb, type ThumbLoader } from "@/lib/pdf/thumbnailLoader";
 import { downloadBlob, baseName } from "@/lib/format";
 import { analytics } from "@/lib/analytics";
 
@@ -27,25 +27,46 @@ const SIG_FONTS = [
 const DEFAULT_PLACE: SignPlacement = { xPct: 16, yPct: 70, wPct: 34 };
 const PAD_H = 200;
 
+const headerStyle: React.CSSProperties = {
+  display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8,
+  padding: "env(safe-area-inset-top) 8px 0", height: "calc(52px + env(safe-area-inset-top))",
+  flexShrink: 0, background: "var(--card)", borderBottom: "1px solid var(--line)",
+};
+const iconBtn: React.CSSProperties = { display: "flex", alignItems: "center", justifyContent: "center", width: 40, height: 40, borderRadius: 10, border: "1px solid var(--line)", background: "var(--bg-2)", color: "var(--text-2)" };
+
+// Module-level so it is a stable component type (defining it inside the parent would
+// remount the whole header on every render — including on every pointermove drag).
+function MobileHeader({ subtitle, onBack, backLabel, trailing }: { subtitle: string; onBack: () => void; backLabel: string; trailing?: React.ReactNode }) {
+  return (
+    <header style={headerStyle}>
+      <button type="button" onClick={onBack} style={iconBtn} aria-label={backLabel}>
+        <IconChevron size={18} style={{ transform: "rotate(180deg)" }} />
+      </button>
+      <div style={{ flex: 1, minWidth: 0, textAlign: "center" }}>
+        <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text)" }}>Sign PDF</div>
+        <div className="pp-mono" style={{ fontSize: 10.5, color: "var(--text-3)" }}>{subtitle}</div>
+      </div>
+      <div style={{ minWidth: 40, display: "flex", justifyContent: "flex-end" }}>{trailing ?? <div style={{ width: 40 }} />}</div>
+    </header>
+  );
+}
+
 /**
  * Full-screen mobile takeover for Sign PDF (Wave 9C). Two screens — Create (3-tab
  * signature maker) → Place (touch drag/resize of one or more signatures on the dark
  * page canvas). Mirrors the Edit/Annotate mobile pattern (Phase 8 / Wave 9B). The
  * desktop SignPdf renders this when `useMediaQuery("(max-width: 767px)")` is true.
+ *
+ * Owns its own thumbnail loader (created from `file`) rather than relying on the
+ * parent's ref — that keeps the Place screen working even when the parent re-renders
+ * independently, and avoids a null-loader crash.
  */
-export function SignPdfMobile({
-  file,
-  total,
-  loader,
-  onReset,
-}: {
-  file: File;
-  total: number;
-  loader: ThumbLoader | null;
-  onReset: () => void;
-}) {
+export function SignPdfMobile({ file, onReset }: { file: File; onReset: () => void }) {
   const t = useTranslations("ToolUI");
   const tp = useTranslations("ToolPages.signPdf");
+
+  const loaderRef = useRef<ThumbLoader | null>(null);
+  const [total, setTotal] = useState(0);
 
   const [screen, setScreen] = useState<Screen>("create");
   const [tab, setTab] = useState<Tab>("draw");
@@ -67,11 +88,29 @@ export function SignPdfMobile({
   const pageWrapRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<{ mode: "move" | "resize"; sx: number; sy: number; ox: number; oy: number; ow: number; idx: number } | null>(null);
 
-  // Init the fabric drawing pad while the Create screen + Draw tab are mounted.
-  // The canvas stays mounted across tab switches (visibility toggled) so fabric and
-  // React never fight over the same node — same approach as desktop SignPdf.
+  // Own the thumbnail loader so the Place screen never depends on a parent ref.
   useEffect(() => {
-    if (screen !== "create") return;
+    const loader = createThumbLoader(file);
+    loaderRef.current = loader;
+    let alive = true;
+    loader
+      .pageCount()
+      .then((n) => {
+        if (alive) setTotal(n);
+      })
+      .catch(() => {});
+    return () => {
+      alive = false;
+      loader.destroy();
+      loaderRef.current = null;
+    };
+  }, [file]);
+
+  // Init the fabric drawing pad ONCE, on mount. The Create layer (and this canvas)
+  // stays mounted for the component's whole life — even on the Place screen it is just
+  // hidden, never unmounted — so fabric and React never race to remove the same node.
+  // Disposing on a create→place transition is what crashed the Place screen.
+  useEffect(() => {
     let disposed = false;
     let fc: Fabric.Canvas | null = null;
     (async () => {
@@ -94,7 +133,7 @@ export function SignPdfMobile({
       }
       fcRef.current = null;
     };
-  }, [screen]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     const fc = fcRef.current;
@@ -103,6 +142,7 @@ export function SignPdfMobile({
 
   // Render the selected page for placement, on demand (loader caches).
   useEffect(() => {
+    const loader = loaderRef.current;
     if (screen !== "place" || !loader || total === 0) return;
     let cancelled = false;
     loader
@@ -114,7 +154,7 @@ export function SignPdfMobile({
     return () => {
       cancelled = true;
     };
-  }, [screen, previewPage, total, loader]);
+  }, [screen, previewPage, total]);
 
   function clearPad() {
     fcRef.current?.clear();
@@ -145,13 +185,17 @@ export function SignPdfMobile({
   const canPlace = tab === "draw" ? true : tab === "type" ? !!typed.trim() : !!uploaded;
 
   function placeOnPage() {
-    const url = buildSignature();
+    let url: string | null = null;
+    try {
+      url = buildSignature();
+    } catch {
+      setErrorMsg(t("errorTitle"));
+      return;
+    }
     if (!url) return;
     const next: PlacedSignature = { pngDataUrl: url, placement: { ...DEFAULT_PLACE }, scope: { mode: "current", index: previewPage - 1 } };
-    setInstances((prev) => {
-      setSelected(prev.length);
-      return [...prev, next];
-    });
+    setSelected(instances.length); // index of the about-to-be-appended item
+    setInstances((prev) => [...prev, next]);
     setScreen("place");
   }
 
@@ -228,40 +272,23 @@ export function SignPdfMobile({
   }
 
   const shell: React.CSSProperties = { position: "fixed", inset: 0, zIndex: 60, display: "flex", flexDirection: "column", background: "var(--bg)" };
-  const headerStyle: React.CSSProperties = {
-    display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8,
-    padding: "env(safe-area-inset-top) 8px 0", height: "calc(52px + env(safe-area-inset-top))",
-    flexShrink: 0, background: "var(--card)", borderBottom: "1px solid var(--line)",
-  };
-  const iconBtn: React.CSSProperties = { display: "flex", alignItems: "center", justifyContent: "center", width: 40, height: 40, borderRadius: 10, border: "1px solid var(--line)", background: "var(--bg-2)", color: "var(--text-2)" };
+  const tabs: { id: Tab; label: string; icon: typeof IconPen }[] = [
+    { id: "draw", label: tp("tabDraw"), icon: IconPen },
+    { id: "type", label: tp("tabType"), icon: IconType },
+    { id: "upload", label: tp("tabUpload"), icon: IconImage },
+  ];
+  const sel = instances[selected];
 
-  function Header({ trailing }: { trailing?: React.ReactNode }) {
-    return (
-      <header style={headerStyle}>
-        <button type="button" onClick={() => (screen === "create" ? (instances.length ? setScreen("place") : onReset()) : onReset())} style={iconBtn} aria-label={tp("back")}>
-          <IconChevron size={18} style={{ transform: "rotate(180deg)" }} />
-        </button>
-        <div style={{ flex: 1, minWidth: 0, textAlign: "center" }}>
-          <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text)" }}>Sign PDF</div>
-          <div className="pp-mono" style={{ fontSize: 10.5, color: "var(--text-3)" }}>
-            {screen === "create" ? tp("stepCreate") : tp("stepPlace")}
-          </div>
-        </div>
-        <div style={{ minWidth: 40, display: "flex", justifyContent: "flex-end" }}>{trailing ?? <div style={{ width: 40 }} />}</div>
-      </header>
-    );
-  }
-
-  // ── CREATE ────────────────────────────────────────────────────────────────
-  if (screen === "create") {
-    const tabs: { id: Tab; label: string; icon: typeof IconPen }[] = [
-      { id: "draw", label: tp("tabDraw"), icon: IconPen },
-      { id: "type", label: tp("tabType"), icon: IconType },
-      { id: "upload", label: tp("tabUpload"), icon: IconImage },
-    ];
-    return (
-      <div style={shell}>
-        <Header />
+  return (
+    <>
+      {/* ── CREATE layer — kept mounted (hidden, not unmounted, on Place) so the fabric
+          canvas is never torn down mid-life. Unmounting it mid-transition crashed Place. ── */}
+      <div style={{ ...shell, visibility: screen === "create" ? "visible" : "hidden" }} aria-hidden={screen !== "create"}>
+        <MobileHeader
+          subtitle={tp("stepCreate")}
+          backLabel={tp("back")}
+          onBack={() => (instances.length ? setScreen("place") : onReset())}
+        />
         <div style={{ flex: 1, overflowY: "auto", padding: 14, display: "flex", flexDirection: "column", gap: 16 }}>
           {/* tabs */}
           <div style={{ display: "flex", gap: 4, borderRadius: 12, padding: 4, background: "var(--bg-2)", border: "1px solid var(--line)" }}>
@@ -347,14 +374,14 @@ export function SignPdfMobile({
           <div className="pp-mono" style={{ marginTop: 8, textAlign: "center", fontSize: 10.5, color: "var(--text-3)" }}>{tp("createdInBrowser")}</div>
         </div>
       </div>
-    );
-  }
 
-  // ── PLACE ─────────────────────────────────────────────────────────────────
-  const sel = instances[selected];
-  return (
-    <div style={shell}>
-      <Header
+      {/* ── PLACE layer — overlays the Create layer when active ── */}
+      {screen === "place" && (
+      <div style={shell}>
+        <MobileHeader
+          subtitle={tp("stepPlace")}
+          backLabel={tp("back")}
+          onBack={onReset}
         trailing={
           total > 1 ? (
             <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
@@ -437,6 +464,8 @@ export function SignPdfMobile({
           <IconPlus size={14} /> {tp("addSignature")}
         </button>
       </div>
-    </div>
+      </div>
+      )}
+    </>
   );
 }

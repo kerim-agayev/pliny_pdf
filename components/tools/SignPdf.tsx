@@ -89,9 +89,10 @@ export function SignPdf() {
   }, [ink]);
 
   // Render only the selected page for signature placement, on demand (cached).
+  // On mobile the SignPdfMobile takeover owns its own loader/render, so skip here.
   useEffect(() => {
     const loader = loaderRef.current;
-    if (!loader || status === "idle" || total === 0) return;
+    if (isMobile || !loader || status === "idle" || total === 0) return;
     let cancelled = false;
     loader
       .renderPage(previewPage - 1, 0.8)
@@ -102,7 +103,7 @@ export function SignPdf() {
     return () => {
       cancelled = true;
     };
-  }, [previewPage, total, status]);
+  }, [previewPage, total, status, isMobile]);
 
   async function onFiles(files: File[]) {
     const f = files[0];
@@ -240,7 +241,7 @@ export function SignPdf() {
   }
 
   if (isMobile) {
-    return <SignPdfMobile file={file} total={total} loader={loaderRef.current} onReset={reset} />;
+    return <SignPdfMobile file={file} onReset={reset} />;
   }
 
   const tabs: { id: Tab; label: string; icon: typeof IconPen }[] = [
