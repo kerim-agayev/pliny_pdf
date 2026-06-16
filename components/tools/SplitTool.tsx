@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { FileDropzone } from "./FileDropzone";
 import { FileInfoBar } from "./FileInfoBar";
 import { SuccessPanel, ErrorBanner } from "./ResultPanels";
+import { NumberField } from "./NumberField";
 import { Spinner } from "./Spinner";
 import { IconArrow } from "@/components/shared/icons";
 import { splitRange, splitEach } from "@/lib/pdf/split";
@@ -92,9 +93,9 @@ export function SplitTool() {
       <div className="flex flex-col gap-2.5">
         <ModeOption active={mode === "range"} label={tp("modeRange")} onClick={() => setMode("range")} />
         {mode === "range" && (
-          <div className="flex items-end gap-3 pl-1">
-            <NumberField label={tp("from")} value={from} min={1} max={pages} onChange={setFrom} />
-            <NumberField label={tp("to")} value={to} min={from} max={pages} onChange={setTo} />
+          <div className="flex flex-col gap-3 pl-1 sm:flex-row sm:items-end">
+            <NumberField label={tp("from")} value={from} min={1} max={pages} onChange={setFrom} decreaseLabel={t("decrease")} increaseLabel={t("increase")} className="flex-1" />
+            <NumberField label={tp("to")} value={to} min={from} max={pages} onChange={setTo} decreaseLabel={t("decrease")} increaseLabel={t("increase")} className="flex-1" />
           </div>
         )}
         <ModeOption
@@ -154,34 +155,5 @@ function ModeOption({
       </span>
       {label}
     </button>
-  );
-}
-
-function NumberField({
-  label,
-  value,
-  min,
-  max,
-  onChange,
-}: {
-  label: string;
-  value: number;
-  min: number;
-  max: number;
-  onChange: (n: number) => void;
-}) {
-  return (
-    <label className="flex flex-col gap-1.5">
-      <span className="pp-mono text-[11px] uppercase tracking-[0.06em]" style={{ color: "var(--text-3)" }}>{label}</span>
-      <input
-        type="number"
-        className="pp-input"
-        style={{ width: 96 }}
-        value={value}
-        min={min}
-        max={max}
-        onChange={(e) => onChange(Math.max(min, Math.min(max, Number(e.target.value) || min)))}
-      />
-    </label>
   );
 }

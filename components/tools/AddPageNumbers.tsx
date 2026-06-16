@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { FileDropzone } from "./FileDropzone";
 import { FileInfoBar } from "./FileInfoBar";
 import { SuccessPanel, ErrorBanner } from "./ResultPanels";
+import { NumberField } from "./NumberField";
 import { Spinner } from "./Spinner";
 import { ProgressPanel } from "./ProgressPanel";
 import { ScaledPreview } from "./ScaledPreview";
@@ -267,26 +268,14 @@ export function AddPageNumbers() {
           </div>
 
           {/* Start page / first number */}
-          <div className="mb-5 grid grid-cols-2 gap-3.5">
+          <div className="mb-5 grid grid-cols-1 gap-3.5 sm:grid-cols-2">
             <div>
               <div className="mb-2 text-[13px] font-medium">{tp("startPage")}</div>
-              <input
-                className="pp-input"
-                type="number"
-                min={1}
-                value={opts.startPage}
-                onChange={(e) => set("startPage", Math.max(1, +e.target.value || 1))}
-              />
+              <NumberField value={opts.startPage} min={1} onChange={(n) => set("startPage", n)} decreaseLabel={t("decrease")} increaseLabel={t("increase")} />
             </div>
             <div>
               <div className="mb-2 text-[13px] font-medium">{tp("firstNumber")}</div>
-              <input
-                className="pp-input"
-                type="number"
-                min={1}
-                value={opts.startNum}
-                onChange={(e) => set("startNum", Math.max(1, +e.target.value || 1))}
-              />
+              <NumberField value={opts.startNum} min={1} onChange={(n) => set("startNum", n)} decreaseLabel={t("decrease")} increaseLabel={t("increase")} />
             </div>
           </div>
 

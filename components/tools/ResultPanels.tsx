@@ -47,7 +47,7 @@ export function SuccessPanel({
         >
           <IconCheck size={26} sw={2.4} />
         </div>
-        <div className="flex-1">
+        <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
             <h3 className="text-[22px] tracking-[-0.015em]">{title}</h3>
             {badge && (
@@ -59,27 +59,27 @@ export function SuccessPanel({
               </span>
             )}
           </div>
-          {meta && <p className="pp-mono mt-1 text-[13px]" style={{ color: "var(--text-2)" }}>{meta}</p>}
+          {meta && <p className="pp-mono mt-1 break-all text-[13px]" style={{ color: "var(--text-2)" }}>{meta}</p>}
         </div>
-        <div className="flex gap-2.5">
+        <div className="flex w-full flex-col gap-2.5 sm:w-auto sm:flex-row">
           <button
             type="button"
-            className="pp-btn pp-btn-ghost pp-btn-lg"
+            className="pp-btn pp-btn-ghost pp-btn-lg w-full justify-center sm:w-auto"
             onClick={onReset}
             data-pp-shortcut="reset"
             aria-keyshortcuts="Escape"
           >
-            {t("processAnother")} <Kbd>Esc</Kbd>
+            {t("processAnother")} <span className="hidden sm:inline-flex"><Kbd>Esc</Kbd></span>
           </button>
           <button
             type="button"
-            className="pp-btn pp-btn-lg"
+            className="pp-btn pp-btn-lg w-full justify-center sm:w-auto"
             onClick={onDownload}
             data-pp-shortcut="download"
             aria-keyshortcuts="Control+D Meta+D"
             style={{ background: "var(--emerald)", boxShadow: "0 8px 20px -10px rgba(16,185,129,0.6)" }}
           >
-            <IconDownload size={15} /> {t("download")} <Kbd>{mod("D")}</Kbd>
+            <IconDownload size={15} /> {t("download")} <span className="hidden sm:inline-flex"><Kbd>{mod("D")}</Kbd></span>
           </button>
         </div>
       </div>

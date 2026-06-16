@@ -317,6 +317,12 @@ input[type="range"].pp-range::-moz-range-thumb {
 }
 .pp-input:focus { border-color: var(--indigo); box-shadow: 0 0 0 3px var(--indigo-dim); }
 
+/* numeric field inside the NumberField stepper — hide native spinners (steppers replace them) */
+.pp-number::-webkit-outer-spin-button,
+.pp-number::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.pp-number { -moz-appearance: textfield; appearance: textfield; }
+.pp-number:focus { border-color: var(--indigo); }
+
 /* check icon dot */
 .pp-check {
   width: 18px; height: 18px; border-radius: 50%;

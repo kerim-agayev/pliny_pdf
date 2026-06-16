@@ -296,6 +296,8 @@
     "successTitle": "Done! Your file is ready.",
     "download": "Download",
     "processAnother": "Process another file",
+    "decrease": "Decrease",
+    "increase": "Increase",
     "tryAgain": "Try again",
     "errorTitle": "Something went wrong processing your file.",
     "neverUploaded": "Your file was never uploaded — nothing was stored.",

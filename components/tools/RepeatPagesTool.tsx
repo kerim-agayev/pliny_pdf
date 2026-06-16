@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { FileDropzone } from "./FileDropzone";
 import { FileInfoBar } from "./FileInfoBar";
 import { ErrorBanner } from "./ResultPanels";
+import { NumberField } from "./NumberField";
 import { Spinner } from "./Spinner";
 import { IconCopy, IconDownload } from "@/components/shared/icons";
 import { repeatPages, parsePageRanges, type Arrangement } from "@/lib/pdf/repeatPages";
@@ -174,31 +175,14 @@ export function RepeatPagesTool() {
                 {tp("countLabel")}
               </label>
             </div>
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => dirty(setCount)(Math.max(1, count - 1))}
-                className="pp-btn pp-btn-sm"
-                style={{ minWidth: 34, justifyContent: "center" }}
-              >
-                −
-              </button>
-              <input
-                type="number"
-                min={1}
-                value={count}
-                onChange={(e) => dirty(setCount)(Math.max(1, parseInt(e.target.value, 10) || 1))}
-                className="pp-input w-16 text-center"
-              />
-              <button
-                type="button"
-                onClick={() => dirty(setCount)(count + 1)}
-                className="pp-btn pp-btn-sm"
-                style={{ minWidth: 34, justifyContent: "center" }}
-              >
-                +
-              </button>
-            </div>
+            <NumberField
+              value={count}
+              min={1}
+              onChange={(n) => dirty(setCount)(n)}
+              decreaseLabel={t("decrease")}
+              increaseLabel={t("increase")}
+              className="max-w-[200px]"
+            />
           </div>
 
           {/* Arrangement */}

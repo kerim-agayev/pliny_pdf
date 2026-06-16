@@ -296,6 +296,8 @@
     "successTitle": "Hazır! Dosyanız indirilebilir.",
     "download": "İndir",
     "processAnother": "Başka dosya işle",
+    "decrease": "Azalt",
+    "increase": "Artır",
     "tryAgain": "Tekrar dene",
     "errorTitle": "Dosyanız işlenirken bir şeyler ters gitti.",
     "neverUploaded": "Dosyanız asla yüklenmedi — hiçbir şey saklanmadı.",
