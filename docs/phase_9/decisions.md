@@ -38,3 +38,27 @@ computation (surgical; no behavior change since `limits.mb` takes precedence).
 The badge supports a live "4.2 / 25 MB" meter, but the dropzone hands valid files off
 immediately (parent unmounts it), so there's no persistent loaded file to meter. Component
 supports it for future use; not triggered in 9A. Over-limit (rejection) IS wired.
+
+---
+
+# Wave 9D decisions
+> Numbered D9-D* to match the per-wave scheme (9B → D9-B*, 9C → D9-C*) and avoid colliding
+> with the Wave 9A globals D9-1..D9-7. (User shorthand "D9-1/2/3" = these three.)
+
+## D9-D1 — Organize Pages: blank-page feature + FAB skipped
+The design (mobile FAB + desktop "Add blank" button) implied adding a blank-page insert, but
+that's a NEW feature requiring new pdf-lib logic — and Phase 9 is "no new tools/features". User
+chose to skip it. The mobile Organize redesign is layout-only, reusing the existing operations
+(reorder / rotate / duplicate / move / delete / select). No FAB rendered.
+
+## D9-D2 — Redact: permanent-action confirm modal on BOTH platforms
+Redaction is irreversible and previously had only warning banners + a red button (no confirm) on
+either platform. User chose to add a confirmation modal on desktop AND mobile. Implemented as one
+shared `RedactConfirmModal` (centered modal on desktop, bottom-sheet on mobile); the Apply button
+now opens the confirm, whose primary action calls the existing `apply()`.
+
+## D9-D3 — Crop mobile: simplified controls (exact-box stays desktop-only)
+The Crop tool has aspect presets, All/Current/Range scope, a unit selector, and exact mm/in/px
+box inputs. The mobile pull-up panel surfaces only presets + All/This-page scope + reset + apply
+(matching the design). The exact-box inputs, unit selector, and page-range scope remain
+desktop-only — avoids cramming + touching the unit-conversion logic on phones.

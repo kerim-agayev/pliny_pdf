@@ -57,3 +57,18 @@ Wave 9B (Annotate PDF mobile) complete: full-screen takeover matching Edit PDF m
 
 ## [2026-06-16] ✅ GATE 9C PASSED (user-confirmed on Vercel)
 Wave 9C (Sign PDF mobile) complete: 2-screen takeover (Create→Place), multi-signature placement (drag/resize/delete, per-instance scope), Draw/Type/Upload, EN/TR/RU. Decisions D9-C1..C4 (streamlined takeover not 4-step wizard; no add date/initials; reuse existing fonts; no pressure) in waves/wave_9c.md. Next: Wave 9D (Organize/Crop/Redact mobile) — awaiting user go-ahead; ask for design link (`screen-p9-organize.jsx`, `screen-p9-crop.jsx`, `screen-p9-redact.jsx`).
+
+## [2026-06-16] Wave 9D — Organize/Crop/Redact mobile redesign implemented (gate pending)
+- Design screens already local (`screen-p9-organize/crop/redact.jsx`). User scope decisions D9-D1 (skip Organize blank-page/FAB), D9-D2 (Redact confirm on both platforms), D9-D3 (Crop mobile simplified).
+- Single-source-of-truth `useMediaQuery("(max-width:767px)")` branch in each component; full-screen mobile chrome; reused `BottomSheet`, dnd-kit, `createThumbLoader`.
+- Organize: `SortableRow` vertical list + `verticalListSortingStrategy` + press-hold sensor; 3-dot BottomSheet (uid-scoped rotate/duplicate/move/delete); select mode + bulk; sticky Apply. Crop: shared `CropCanvas`, 44×44 handle hit-areas, pull-up panel. Redact: shared `RedactCanvas` + shared `RedactConfirmModal` (desktop+mobile) + bottom toolbar/sheets.
+- i18n `mobile` + `confirm*` keys for organizePages/cropPdf/redactContent (en/tr/ru, key parity verified).
+- `bun run build` green. Committed `a3a55b7`, pushed for Vercel device testing.
+
+## [2026-06-16] Wave 9D — GATE 9D bug fixes (2 shared-level fixes)
+- B9-14: success "Download" button overflowed at 375px → shared `SuccessPanel` (`ResultPanels.tsx`) actions now stack full-width on mobile, hide keyboard chips, `break-all` filename. Fixes all 23 SuccessPanel tools.
+- B9-15: numeric inputs lacked touch steppers / values felt stuck → new shared `components/tools/NumberField.tsx` (`[−][input][+]`, 44×44 steppers, native spinners hidden via `.pp-number`, focus-gated value re-sync). Adopted in Split (From/To), Add Page Numbers (start/first), Repeat Pages (count); `ToolUI.decrease/increase` i18n (en/tr/ru). Crop manual inputs left as-is (desktop-only on mobile).
+- `bun run build` green. Committed `22ca88f`, pushed.
+
+## [2026-06-16] ✅ GATE 9D PASSED (user-confirmed on Vercel)
+Wave 9D (Organize/Crop/Redact mobile) complete: touch-friendly mobile redesigns matching the Edit-PDF bar — Organize list+press-hold reorder+action sheet, Crop 44×44 handles+pull-up panel, Redact draw+find/color sheets+confirm modal (desktop too). Decisions D9-D1..D3 in decisions.md; GATE-9D bug fixes B9-14/B9-15 (success-button overflow, shared NumberField steppers). EN/TR/RU complete. Next: Wave 9E (form-heavy tools mobile — Edit Metadata, Add Watermark, Header & Footer, Add Page Numbers, Sign PDF Form Fields) — do NOT start until user go-ahead; ask for Phase 9 design handoff link at 9E start.
