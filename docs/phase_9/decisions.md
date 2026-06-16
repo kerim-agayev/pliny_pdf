@@ -62,3 +62,22 @@ The Crop tool has aspect presets, All/Current/Range scope, a unit selector, and 
 box inputs. The mobile pull-up panel surfaces only presets + All/This-page scope + reset + apply
 (matching the design). The exact-box inputs, unit selector, and page-range scope remain
 desktop-only — avoids cramming + touching the unit-conversion logic on phones.
+
+---
+
+# Wave 9E decisions
+
+## D9-E1 — "Sign PDF Form Fields" skipped — tool does not exist
+CLAUDE_9.md Wave 9E listed 5 tools, but `lib/tools.ts` registers no AcroForm form-field
+fill/detect tool. Only `sign-pdf` (draw/type/upload a signature) exists — already mobile-done in
+Wave 9C — which is a different tool. Form fill/create is an explicit **Phase-2 do-not-build** item
+(CLAUDE.md §13). A design mock (`screen-p9-form-fields.jsx`) exists but was never implemented.
+User confirmed: skip it, build NO new feature. Wave 9E shipped mobile for the 4 existing
+form-heavy tools only.
+
+## D9-E2 — All controls inline on mobile (no BottomSheet) — minimal-safe
+The Phase-9 mocks tuck secondary style options (font/size/color) into a BottomSheet ("Font, size
+& color"). User chose the lowest-risk path instead: every existing control stays stacked inline in
+the scrollable area (preview on top, sticky Apply at bottom). Fewer moving parts, faster to verify,
+nothing new to wire — `useMediaQuery`, `NumberField`, `ScaledPreview`, and the safe-area pattern
+are reused, but `BottomSheet` is not used in this wave.

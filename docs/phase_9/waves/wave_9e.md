@@ -1,6 +1,6 @@
 # Wave 9E — Form-Heavy Tools Mobile Redesign
 
-Status: **implemented; GATE 9E pending user confirmation (not committed).**
+Status: **✅ GATE 9E PASSED (user-confirmed, 2026-06-16). DONE.**
 
 See `CLAUDE_9.md` for the full spec.
 
@@ -51,7 +51,7 @@ No backend changes. No shared-component changes (reused `useMediaQuery`, `Number
 - `bun run build` green (exit 0; 156 static pages).
 - Desktop paths unmodified (mobile branch inserted before the desktop `return`; same state/handlers).
 
-## GATE 9E (pending user confirmation, per tool @ 375px)
+## GATE 9E — ✅ PASSED (user-confirmed @ 375px, 2026-06-16)
 
 1. No horizontal overflow; header/preview/controls/Apply all reachable.
 2. Live preview renders + updates live (Watermark overlay aligned; H/F + Page Numbers scaled;

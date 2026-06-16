@@ -4,16 +4,15 @@
 
 ## Current Status
 - Phase: 9 (pre-launch polish)
-- Last completed: **Wave 9D — Organize / Crop / Redact mobile redesign — ✅ GATE 9D PASSED (2026-06-16)**
-- In progress: **Wave 9E (form-heavy tools mobile) — implemented; GATE 9E pending user confirmation (not committed).** Mobile redesign of 4 tools (Edit Metadata, Add Watermark, Header & Footer, Add Page Numbers). **Sign PDF Form Fields skipped (D9-E1) — tool does not exist** (no AcroForm fill tool; Phase-2 do-not-build item). All controls inline, no BottomSheet (D9-E2). `bun run build` green.
-- Next step: user device-test the 4 tools @ 375px → confirm GATE 9E → commit. Then Wave 9F (23 simple tools CSS responsive audit, no design needed).
+- Last completed: **Wave 9E — form-heavy tools mobile redesign — ✅ GATE 9E PASSED (2026-06-16)**. 4 tools (Edit Metadata, Add Watermark, Header & Footer, Add Page Numbers); Sign PDF Form Fields skipped (D9-E1, tool doesn't exist); all controls inline (D9-E2). Committed `d4946de`.
+- Next step: **Wave 9F (23 simple tools CSS responsive audit)** — CSS-only, no design handoff needed. Do NOT start until the user gives the go-ahead.
 
 ## Waves
 - 9A: Limit UI on all tools — LimitBadge + per-tool getToolLimits + live daily quota — **✅ GATE 9A PASSED (2026-06-15)**
 - 9B: Annotate PDF mobile — full-screen takeover (MobileAnnotateToolbar + Edit-PDF canvas pattern) — **✅ GATE 9B PASSED (2026-06-15)**
 - 9C: Sign PDF mobile — 2-screen takeover (Create→Place) + multi-placement (`signPdf` array engine) — **✅ GATE 9C PASSED (2026-06-16)**
 - 9D: Organize/Crop/Redact mobile — full-screen branches; Organize list+press-hold reorder, Crop 44×44 handles+pull-up panel, Redact draw+confirm modal (both platforms) — **✅ GATE 9D PASSED (2026-06-16)**
-- 9E: form-heavy tools mobile (Edit Metadata, Add Watermark, Header & Footer, Add Page Numbers) — **implemented, GATE 9E pending**. 4 tools (not 5: Sign PDF Form Fields skipped, D9-E1 — no such tool). Full-screen mobile branch per tool; all controls inline (D9-E2).
+- 9E: form-heavy tools mobile (Edit Metadata, Add Watermark, Header & Footer, Add Page Numbers) — **✅ GATE 9E PASSED (2026-06-16)**. 4 tools (not 5: Sign PDF Form Fields skipped, D9-E1 — no such tool). Full-screen mobile branch per tool; all controls inline (D9-E2). Commit `d4946de`.
   - NOTE: Wave 9D–9E design screens use `screen-p9-*.jsx` naming (e.g. `screen-p9-organize.jsx`), not `screen-*-mobile.jsx`. All present in `.design-handoff/phase-9/`.
 - 9F: 23 simple tools responsive audit — not started
 - 9G: perf/memory/bundle audit — not started
