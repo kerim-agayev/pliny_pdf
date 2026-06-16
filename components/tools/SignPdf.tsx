@@ -13,6 +13,8 @@ import { createThumbLoader, type Thumb, type ThumbLoader } from "@/lib/pdf/thumb
 import { isPdf } from "@/lib/pdf/common";
 import { downloadBlob, baseName, MAX_FILE_BYTES } from "@/lib/format";
 import { analytics } from "@/lib/analytics";
+import { useMediaQuery } from "@/lib/hooks/useMediaQuery";
+import { SignPdfMobile } from "./SignPdfMobile";
 
 type Status = "idle" | "loading" | "ready" | "error";
 type Tab = "draw" | "type" | "upload";
@@ -28,6 +30,7 @@ const SIG_FONTS = [
 export function SignPdf() {
   const t = useTranslations("ToolUI");
   const tp = useTranslations("ToolPages.signPdf");
+  const isMobile = useMediaQuery("(max-width: 767px)");
   const [file, setFile] = useState<File | null>(null);
   const loaderRef = useRef<ThumbLoader | null>(null);
   const [total, setTotal] = useState(0);
@@ -199,7 +202,9 @@ export function SignPdf() {
     setSaving(true);
     setErrorMsg(undefined);
     try {
-      const blob = await signPdf(file, sig.url, place, scope === "all" ? { mode: "all" } : { mode: "current", index: previewPage - 1 });
+      const blob = await signPdf(file, [
+        { pngDataUrl: sig.url, placement: place, scope: scope === "all" ? { mode: "all" } : { mode: "current", index: previewPage - 1 } },
+      ]);
       downloadBlob(blob, `${baseName(file.name)}-signed.pdf`);
       analytics.toolUsed("sign-pdf");
     } catch {
@@ -232,6 +237,10 @@ export function SignPdf() {
         )}
       </div>
     );
+  }
+
+  if (isMobile) {
+    return <SignPdfMobile file={file} total={total} loader={loaderRef.current} onReset={reset} />;
   }
 
   const tabs: { id: Tab; label: string; icon: typeof IconPen }[] = [

@@ -9,29 +9,34 @@ export interface SignPlacement {
   wPct: number;
 }
 
-/** Embed a PNG signature (data URL) at the placement on the target page(s). */
-export async function signPdf(
-  file: File,
-  pngDataUrl: string,
-  placement: SignPlacement,
-  scope: SignScope,
-): Promise<Blob> {
-  const bytes = await (await fetch(pngDataUrl)).arrayBuffer();
-  const doc = await PDFDocument.load(await file.arrayBuffer(), { ignoreEncryption: true });
-  const png = await doc.embedPng(bytes);
-  const aspect = png.height / png.width;
-  const pages = doc.getPages();
-  const targets = scope.mode === "all" ? pages.map((_, i) => i) : [scope.index];
+/** One placed signature: its PNG, where it sits, and which page(s) it lands on. */
+export interface PlacedSignature {
+  pngDataUrl: string;
+  placement: SignPlacement;
+  scope: SignScope;
+}
 
-  for (const i of targets) {
-    const page = pages[i];
-    if (!page) continue;
-    const { width, height } = page.getSize();
-    const w = (placement.wPct / 100) * width;
-    const h = w * aspect;
-    const x = (placement.xPct / 100) * width;
-    const yTop = (placement.yPct / 100) * height;
-    page.drawImage(png, { x, y: height - yTop - h, width: w, height: h });
+/** Embed one or more PNG signatures (data URLs) at their placements/page(s). */
+export async function signPdf(file: File, items: PlacedSignature[]): Promise<Blob> {
+  const doc = await PDFDocument.load(await file.arrayBuffer(), { ignoreEncryption: true });
+  const pages = doc.getPages();
+
+  for (const item of items) {
+    const bytes = await (await fetch(item.pngDataUrl)).arrayBuffer();
+    const png = await doc.embedPng(bytes);
+    const aspect = png.height / png.width;
+    const targets = item.scope.mode === "all" ? pages.map((_, i) => i) : [item.scope.index];
+
+    for (const i of targets) {
+      const page = pages[i];
+      if (!page) continue;
+      const { width, height } = page.getSize();
+      const w = (item.placement.wPct / 100) * width;
+      const h = w * aspect;
+      const x = (item.placement.xPct / 100) * width;
+      const yTop = (item.placement.yPct / 100) * height;
+      page.drawImage(png, { x, y: height - yTop - h, width: w, height: h });
+    }
   }
 
   const data = await doc.save();

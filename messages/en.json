@@ -513,7 +513,20 @@
       "scopeThis": "Just this page",
       "scopeAll": "All pages",
       "action": "Sign and download",
-      "emptyTitle": "Drop a PDF to sign"
+      "emptyTitle": "Drop a PDF to sign",
+      "back": "Back",
+      "prevPage": "Previous page",
+      "nextPage": "Next page",
+      "stepCreate": "Step 1 · Create",
+      "stepPlace": "Step 2 · Place",
+      "nextPlace": "Next · place on page",
+      "addToPage": "Add to page",
+      "createdInBrowser": "Created in your browser",
+      "drawHere": "draw your signature here",
+      "dragHint": "Drag to move · resize from the corner",
+      "deleteSig": "Delete signature",
+      "saveDownload": "Save & download",
+      "addSignature": "Add another signature"
     },
     "redactContent": {
       "subtitle": "Permanently remove sensitive content — draw boxes or auto-detect patterns.",

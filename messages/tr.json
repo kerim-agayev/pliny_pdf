@@ -513,7 +513,20 @@
       "scopeThis": "Yalnızca bu sayfa",
       "scopeAll": "Tüm sayfalar",
       "action": "İmzala ve indir",
-      "emptyTitle": "İmzalamak için bir PDF bırakın"
+      "emptyTitle": "İmzalamak için bir PDF bırakın",
+      "back": "Geri",
+      "prevPage": "Önceki sayfa",
+      "nextPage": "Sonraki sayfa",
+      "stepCreate": "Adım 1 · Oluştur",
+      "stepPlace": "Adım 2 · Yerleştir",
+      "nextPlace": "İleri · sayfaya yerleştir",
+      "addToPage": "Sayfaya ekle",
+      "createdInBrowser": "Tarayıcınızda oluşturuldu",
+      "drawHere": "imzanızı buraya çizin",
+      "dragHint": "Taşımak için sürükleyin · köşeden boyutlandırın",
+      "deleteSig": "İmzayı sil",
+      "saveDownload": "Kaydet ve indir",
+      "addSignature": "Başka bir imza ekle"
     },
     "redactContent": {
       "subtitle": "Hassas içeriği kalıcı olarak kaldırın — kutular çizin veya kalıpları otomatik algılayın.",
