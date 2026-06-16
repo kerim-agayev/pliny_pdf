@@ -42,3 +42,18 @@ Wave 9A (Limit UI) complete: LimitBadge on all 33 tools, live daily quota, inlin
 
 ## [2026-06-15] ✅ GATE 9B PASSED (user-confirmed on Vercel)
 Wave 9B (Annotate PDF mobile) complete: full-screen takeover matching Edit PDF mobile (scrollable dark canvas, pinch-zoom+pan, fixed bars), MobileAnnotateToolbar + option sheets, long-press menu, delete button + Del key, fixed undo/redo. Deviations D9-B1..B5 (no eraser/swipe-page/font-size/find on mobile) documented in waves/wave_9b.md. Next: Wave 9C (Sign PDF mobile) — awaiting user go-ahead; ask for design link (`screen-p9-sign.jsx`).
+
+## [2026-06-16] Wave 9C — Sign PDF mobile redesign implemented (gate pending)
+- Reused Phase 9 design (`screen-p9-sign.jsx`, already in `.design-handoff/phase-9/`).
+- Refactored `lib/pdf/signPdf.ts` to `signPdf(file, PlacedSignature[])` (multi-signature engine, single doc load); desktop passes a one-element array → desktop UI unchanged.
+- New `components/tools/SignPdfMobile.tsx`: full-screen 2-screen takeover (Create→Place). Create = Draw/Type/Upload + Fabric pad + ink/fonts; Place = dark canvas, touch drag/resize/delete per signature, per-instance scope, page nav, add-another. `SignPdf.tsx` renders it via `useMediaQuery("(max-width: 767px)")`.
+- Added 14 `ToolPages.signPdf` mobile keys (EN/TR/RU) via minimal targeted edits (reverted an accidental full-file JSON reformat first).
+- `bun run build` green. Committed `ae1f039`, pushed for Vercel device testing.
+
+## [2026-06-16] Wave 9C — GATE 9C round 1: B9-13 Place-screen crash fixed
+- B9-13: tapping "Next" crashed the Place screen (browser-level error, no React boundary). Root cause: create→place transition unmounted the Create screen + its Fabric-wrapped `<canvas>` while disposing fabric → React `removeChild` on a fabric-moved node threw in the commit phase (uncatchable, 100% repro).
+- Fix: keep the Create layer mounted (hidden via `visibility`, never unmounted), overlay the Place layer; init Fabric once, dispose only on full unmount (matches desktop `SignPdf`). Mobile takeover now owns its own thumbnail loader; parent render effect skipped on mobile.
+- Commit `aecc578`. `bun run build` green.
+
+## [2026-06-16] ✅ GATE 9C PASSED (user-confirmed on Vercel)
+Wave 9C (Sign PDF mobile) complete: 2-screen takeover (Create→Place), multi-signature placement (drag/resize/delete, per-instance scope), Draw/Type/Upload, EN/TR/RU. Decisions D9-C1..C4 (streamlined takeover not 4-step wizard; no add date/initials; reuse existing fonts; no pressure) in waves/wave_9c.md. Next: Wave 9D (Organize/Crop/Redact mobile) — awaiting user go-ahead; ask for design link (`screen-p9-organize.jsx`, `screen-p9-crop.jsx`, `screen-p9-redact.jsx`).

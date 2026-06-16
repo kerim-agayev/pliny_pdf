@@ -4,14 +4,15 @@
 
 ## Current Status
 - Phase: 9 (pre-launch polish)
-- Last completed: **Wave 9B — Annotate PDF mobile redesign — ✅ GATE 9B PASSED (2026-06-15)**
-- Next step: **Wave 9C (Sign PDF mobile)** — do NOT start until the user gives the go-ahead. Ask for the Phase 9 design handoff link at 9C start (design screen: `screen-p9-sign.jsx`).
+- Last completed: **Wave 9C — Sign PDF mobile redesign — ✅ GATE 9C PASSED (2026-06-16)**
+- Next step: **Wave 9D (Organize / Crop / Redact mobile)** — do NOT start until the user gives the go-ahead. Ask for the Phase 9 design handoff link at 9D start (design screens: `screen-p9-organize.jsx`, `screen-p9-crop.jsx`, `screen-p9-redact.jsx`).
 
 ## Waves
 - 9A: Limit UI on all tools — LimitBadge + per-tool getToolLimits + live daily quota — **✅ GATE 9A PASSED (2026-06-15)**
 - 9B: Annotate PDF mobile — full-screen takeover (MobileAnnotateToolbar + Edit-PDF canvas pattern) — **✅ GATE 9B PASSED (2026-06-15)**
-- 9C–9E: mobile redesigns (Sign, Organize/Crop/Redact, form-heavy) — not started
-  - NOTE: Wave 9C–9E design screens use `screen-p9-*.jsx` naming (e.g. `screen-p9-sign.jsx`), not `screen-*-mobile.jsx`. All present in `.design-handoff/phase-9/`.
+- 9C: Sign PDF mobile — 2-screen takeover (Create→Place) + multi-placement (`signPdf` array engine) — **✅ GATE 9C PASSED (2026-06-16)**
+- 9D–9E: mobile redesigns (Organize/Crop/Redact, form-heavy) — not started
+  - NOTE: Wave 9D–9E design screens use `screen-p9-*.jsx` naming (e.g. `screen-p9-organize.jsx`), not `screen-*-mobile.jsx`. All present in `.design-handoff/phase-9/`.
 - 9F: 23 simple tools responsive audit — not started
 - 9G: perf/memory/bundle audit — not started
 - 9H: SEO + landing + blog — not started
@@ -31,6 +32,12 @@
 - `components/tools/MobileAnnotateToolbar.tsx` — new, props/callback-driven bottom toolbar + option sheets
 - `lib/touch.ts` — `usePinchZoom` now takes an optional `deps` param (re-bind on mount)
 - Design screen: `.design-handoff/phase-9/.../project/screen-annotate-mobile.jsx` (+ `-core`, `-desktop`)
+
+## Key Files (Wave 9C)
+- `components/tools/SignPdfMobile.tsx` — new mobile takeover (Create→Place, multi-placement); Create layer stays mounted so fabric/React never race
+- `components/tools/SignPdf.tsx` — `useMediaQuery` mobile branch; array-form sign call; render effect mobile-guarded
+- `lib/pdf/signPdf.ts` — `signPdf(file, PlacedSignature[])` (multi-signature engine; desktop passes single-element array)
+- Design screen: `.design-handoff/phase-9/.../project/screen-p9-sign.jsx`
 
 ## Design Handoff
 - Saved to `.design-handoff/phase-9/`. LimitBadge + updated FileDropzone (`Dropzone9`) in `project/phase9-kit.jsx`; tokens in `project/brand.css`; behavior notes in `project/PlinyPDF Design.html`; intent in `chats/chat4.md`.
