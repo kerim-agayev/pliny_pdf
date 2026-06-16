@@ -5,14 +5,15 @@
 ## Current Status
 - Phase: 9 (pre-launch polish)
 - Last completed: **Wave 9D — Organize / Crop / Redact mobile redesign — ✅ GATE 9D PASSED (2026-06-16)**
-- Next step: **Wave 9E (form-heavy tools mobile)** — Edit Metadata, Add Watermark, Header & Footer, Add Page Numbers, Sign PDF Form Fields. Do NOT start until the user gives the go-ahead. **Ask for the Phase 9 design handoff link at 9E start** (design screens: `screen-p9-metadata.jsx`, `screen-p9-watermark.jsx`, `screen-p9-header-footer.jsx`, `screen-p9-page-numbers.jsx`, `screen-p9-form-fields.jsx`).
+- In progress: **Wave 9E (form-heavy tools mobile) — implemented; GATE 9E pending user confirmation (not committed).** Mobile redesign of 4 tools (Edit Metadata, Add Watermark, Header & Footer, Add Page Numbers). **Sign PDF Form Fields skipped (D9-E1) — tool does not exist** (no AcroForm fill tool; Phase-2 do-not-build item). All controls inline, no BottomSheet (D9-E2). `bun run build` green.
+- Next step: user device-test the 4 tools @ 375px → confirm GATE 9E → commit. Then Wave 9F (23 simple tools CSS responsive audit, no design needed).
 
 ## Waves
 - 9A: Limit UI on all tools — LimitBadge + per-tool getToolLimits + live daily quota — **✅ GATE 9A PASSED (2026-06-15)**
 - 9B: Annotate PDF mobile — full-screen takeover (MobileAnnotateToolbar + Edit-PDF canvas pattern) — **✅ GATE 9B PASSED (2026-06-15)**
 - 9C: Sign PDF mobile — 2-screen takeover (Create→Place) + multi-placement (`signPdf` array engine) — **✅ GATE 9C PASSED (2026-06-16)**
 - 9D: Organize/Crop/Redact mobile — full-screen branches; Organize list+press-hold reorder, Crop 44×44 handles+pull-up panel, Redact draw+confirm modal (both platforms) — **✅ GATE 9D PASSED (2026-06-16)**
-- 9E: form-heavy tools mobile (Edit Metadata, Add Watermark, Header & Footer, Add Page Numbers, Sign PDF Form Fields) — not started
+- 9E: form-heavy tools mobile (Edit Metadata, Add Watermark, Header & Footer, Add Page Numbers) — **implemented, GATE 9E pending**. 4 tools (not 5: Sign PDF Form Fields skipped, D9-E1 — no such tool). Full-screen mobile branch per tool; all controls inline (D9-E2).
   - NOTE: Wave 9D–9E design screens use `screen-p9-*.jsx` naming (e.g. `screen-p9-organize.jsx`), not `screen-*-mobile.jsx`. All present in `.design-handoff/phase-9/`.
 - 9F: 23 simple tools responsive audit — not started
 - 9G: perf/memory/bundle audit — not started
@@ -51,6 +52,15 @@
 - `components/tools/NumberField.tsx` — NEW shared touch number stepper (`[−][input][+]`, 44×44, native spinners hidden); used by Split / Add Page Numbers / Repeat Pages
 - `components/tools/ResultPanels.tsx` — `SuccessPanel` actions stack full-width on mobile (download no longer overflows)
 - `app/globals.css` — `.pp-number` spinner-hide rules
+
+## Key Files (Wave 9E)
+- `components/tools/EditMetadata.tsx` — mobile branch (no preview): header + scroll form + sticky Save
+- `components/tools/WatermarkTool.tsx` — mobile branch + responsive `previewW` (mobile fits 375px; desktop `=== PREVIEW_W`, unchanged); preview-top + inline controls + sticky Apply
+- `components/tools/HeaderFooter.tsx` — mobile branch; `ScaledPreview` (width-200) + band overlays + page nav on top; inline `BandConfig` ×2 + Skip-First + sticky Apply
+- `components/tools/AddPageNumbers.tsx` — mobile branch; `ScaledPreview` + nav on top; inline position grid / format dropdown / `NumberField` / sliders / swatches + sticky Apply
+- Shared reuse (as-is): `lib/hooks/useMediaQuery.ts`, `components/tools/NumberField.tsx`, `components/tools/ScaledPreview.tsx`, safe-area inline pattern
+- i18n: `ToolUI.removeFile` + per-tool `mobileTitle` (en/tr/ru, parity verified)
+- Design screens: `.design-handoff/phase-9/.../project/screen-p9-metadata.jsx`, `screen-p9-watermark.jsx`, `screen-p9-header-footer.jsx`, `screen-p9-page-numbers.jsx`
 
 ## Design Handoff
 - Saved to `.design-handoff/phase-9/`. LimitBadge + updated FileDropzone (`Dropzone9`) in `project/phase9-kit.jsx`; tokens in `project/brand.css`; behavior notes in `project/PlinyPDF Design.html`; intent in `chats/chat4.md`.

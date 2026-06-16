@@ -200,7 +200,7 @@
     "heroBadge": "33 PDF tools — all free",
     "heroBadgeLink": "No account needed",
     "headlineStart": "33 PDF tools,",
-    "headlineAccent": "all free.",
+    "headlineAccent": "all free",
     "subhead": "Edit, convert, sign — without leaving your browser.",
     "ctaPrimary": "Start Free — No signup",
     "ctaSecondary": "Explore Tools",
@@ -298,6 +298,7 @@
     "processAnother": "Process another file",
     "decrease": "Decrease",
     "increase": "Increase",
+    "removeFile": "Remove file",
     "tryAgain": "Try again",
     "errorTitle": "Something went wrong processing your file.",
     "neverUploaded": "Your file was never uploaded — nothing was stored.",
@@ -409,6 +410,7 @@
       "successTitle": "Pages extracted."
     },
     "addPageNumbers": {
+      "mobileTitle": "Page Numbers",
       "subtitle": "Number every page — choose format, position, and style with live preview.",
       "panelTitle": "Numbering settings",
       "position": "Position",
@@ -429,6 +431,7 @@
       "successTitle": "Page numbers added."
     },
     "headerFooter": {
+      "mobileTitle": "Header & Footer",
       "subtitle": "Add running text to the top and bottom of every page, with dynamic tokens.",
       "panelTitle": "Header & footer",
       "header": "Header",
@@ -604,6 +607,7 @@
       "emptyTitle": "Drop a PDF to clean its metadata"
     },
     "editMetadata": {
+      "mobileTitle": "Edit Metadata",
       "subtitle": "View and edit your PDF's document properties.",
       "field_title": "Title",
       "field_author": "Author",
@@ -775,6 +779,7 @@
       "zipNote": "one PDF per image, bundled as a .zip"
     },
     "watermark": {
+      "mobileTitle": "Add Watermark",
       "subtitle": "Stamp text across your PDF, with a live preview as you type.",
       "text": "Watermark text",
       "fontSize": "Font size",

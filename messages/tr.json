@@ -200,7 +200,7 @@
     "heroBadge": "33 PDF aracı — hepsi ücretsiz",
     "heroBadgeLink": "Hesap gerekmez",
     "headlineStart": "33 PDF aracı,",
-    "headlineAccent": "hepsi ücretsiz.",
+    "headlineAccent": "hepsi ücretsiz",
     "subhead": "Düzenle, dönüştür, imzala — tarayıcınızdan ayrılmadan.",
     "ctaPrimary": "Ücretsiz Başla — Kayıt yok",
     "ctaSecondary": "Tüm Araçları Keşfet",
@@ -298,6 +298,7 @@
     "processAnother": "Başka dosya işle",
     "decrease": "Azalt",
     "increase": "Artır",
+    "removeFile": "Dosyayı kaldır",
     "tryAgain": "Tekrar dene",
     "errorTitle": "Dosyanız işlenirken bir şeyler ters gitti.",
     "neverUploaded": "Dosyanız asla yüklenmedi — hiçbir şey saklanmadı.",
@@ -409,6 +410,7 @@
       "successTitle": "Sayfalar çıkarıldı."
     },
     "addPageNumbers": {
+      "mobileTitle": "Sayfa numaraları",
       "subtitle": "Her sayfayı numaralandırın — canlı önizleme ile biçim, konum ve stil seçin.",
       "panelTitle": "Numaralandırma ayarları",
       "position": "Konum",
@@ -429,6 +431,7 @@
       "successTitle": "Sayfa numaraları eklendi."
     },
     "headerFooter": {
+      "mobileTitle": "Üst ve alt bilgi",
       "subtitle": "Her sayfanın üstüne ve altına dinamik değişkenlerle metin ekleyin.",
       "panelTitle": "Üst & alt bilgi",
       "header": "Üst bilgi",
@@ -604,6 +607,7 @@
       "emptyTitle": "Meta verisini temizlemek için bir PDF bırakın"
     },
     "editMetadata": {
+      "mobileTitle": "Üst veriyi düzenle",
       "subtitle": "PDF'nizin belge özelliklerini görüntüleyin ve düzenleyin.",
       "field_title": "Başlık",
       "field_author": "Yazar",
@@ -775,6 +779,7 @@
       "zipNote": "her görsel için bir PDF, .zip olarak paketlenir"
     },
     "watermark": {
+      "mobileTitle": "Filigran ekle",
       "subtitle": "Yazarken canlı önizleme ile PDF'nize metin filigranı ekleyin.",
       "text": "Filigran metni",
       "fontSize": "Yazı boyutu",

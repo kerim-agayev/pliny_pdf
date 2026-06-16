@@ -8,6 +8,7 @@ import { SuccessPanel, ErrorBanner } from "./ResultPanels";
 import { Spinner } from "./Spinner";
 import { ScaledPreview } from "./ScaledPreview";
 import { IconCheck, IconChevron } from "@/components/shared/icons";
+import { useMediaQuery } from "@/lib/hooks/useMediaQuery";
 import {
   applyHeaderFooter,
   resolveTokens,
@@ -117,6 +118,7 @@ const bandStyle = (band: Band, where: "top" | "bottom"): React.CSSProperties => 
 export function HeaderFooter() {
   const t = useTranslations("ToolUI");
   const tp = useTranslations("ToolPages.headerFooter");
+  const isMobile = useMediaQuery("(max-width: 767px)");
   const [file, setFile] = useState<File | null>(null);
   const loaderRef = useRef<ThumbLoader | null>(null);
   const [total, setTotal] = useState(0);
@@ -224,6 +226,98 @@ export function HeaderFooter() {
 
   const ctx = { page: previewPage, total, date: today, filename: file.name };
   const skipped = skipFirst && previewPage === 1;
+
+  if (isMobile) {
+    return (
+      <div style={{ position: "fixed", inset: 0, zIndex: 60, display: "flex", flexDirection: "column", background: "var(--bg)" }}>
+        <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, padding: "env(safe-area-inset-top) 8px 0", height: "calc(52px + env(safe-area-inset-top))", flexShrink: 0, background: "var(--card)", borderBottom: "1px solid var(--line)" }}>
+          <button type="button" onClick={reset} aria-label={t("removeFile")} style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 40, height: 40, borderRadius: 10, border: "1px solid var(--line)", background: "var(--bg-2)", color: "var(--text-2)" }}>
+            <IconChevron size={18} style={{ transform: "rotate(180deg)" }} />
+          </button>
+          <div style={{ flex: 1, minWidth: 0, textAlign: "center" }}>
+            <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text)" }}>{tp("mobileTitle")}</div>
+            <div className="pp-mono" style={{ fontSize: 10.5, color: "var(--text-3)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{file.name}</div>
+          </div>
+          <div style={{ width: 40, flexShrink: 0 }} />
+        </header>
+
+        {/* Live preview at top */}
+        <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 10, padding: "14px 16px", background: "radial-gradient(70% 60% at 50% 30%, rgba(107,92,231,0.08), rgba(107,92,231,0) 70%), var(--bg-2)", borderBottom: "1px solid var(--line)" }}>
+          {status === "loading" || !thumb ? (
+            <div className="flex items-center gap-2 py-8" style={{ color: "var(--text-3)" }}><Spinner size={16} /> {t("processing")}</div>
+          ) : (
+            <>
+              <div style={{ width: 200 }}>
+                <ScaledPreview width={thumb.w} height={thumb.h}>
+                  <div className="relative" style={{ width: thumb.w, height: thumb.h }}>
+                    <img src={thumb.url} alt={`page ${previewPage}`} className="rounded shadow-lg" style={{ width: thumb.w, height: thumb.h }} draggable={false} />
+                    {!skipped && header.text.trim() && (
+                      <div style={bandStyle(header, "top")}>
+                        <span className="pp-mono relative" style={{ fontSize: header.size * PREVIEW_SCALE, color: header.color }}>
+                          {resolveTokens(header.text, ctx)}
+                          <span className="pointer-events-none absolute rounded-[4px]" style={{ inset: "-4px -6px", border: "1px dashed rgba(107,92,231,0.5)" }} />
+                        </span>
+                      </div>
+                    )}
+                    {!skipped && footer.text.trim() && (
+                      <div style={bandStyle(footer, "bottom")}>
+                        <span className="pp-mono relative" style={{ fontSize: footer.size * PREVIEW_SCALE, color: footer.color }}>
+                          {resolveTokens(footer.text, ctx)}
+                          <span className="pointer-events-none absolute rounded-[4px]" style={{ inset: "-4px -6px", border: "1px dashed rgba(107,92,231,0.5)" }} />
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </ScaledPreview>
+              </div>
+              <div className="flex items-center gap-3.5">
+                <button type="button" onClick={() => setPreviewPage((p) => Math.max(1, p - 1))} className="flex rounded-lg p-2" style={{ background: "var(--card)", border: "1px solid var(--line)", color: "var(--text-2)" }} aria-label="previous page">
+                  <IconChevron size={14} style={{ transform: "rotate(180deg)" }} />
+                </button>
+                <span className="pp-mono text-[13px]">
+                  {tp("pageLabel", { n: previewPage })} <span style={{ color: "var(--text-3)" }}>/ {total}</span>
+                </span>
+                <button type="button" onClick={() => setPreviewPage((p) => Math.min(total, p + 1))} className="flex rounded-lg p-2" style={{ background: "var(--card)", border: "1px solid var(--line)", color: "var(--text-2)" }} aria-label="next page">
+                  <IconChevron size={14} />
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Controls */}
+        <div style={{ flex: 1, overflowY: "auto", padding: 16, display: "flex", flexDirection: "column", gap: 18 }}>
+          <BandConfig kind="header" band={header} onChange={setHeader} tp={tp} />
+          <div style={{ borderTop: "1px solid var(--line)" }} />
+          <BandConfig kind="footer" band={footer} onChange={setFooter} tp={tp} />
+          <div style={{ borderTop: "1px solid var(--line)" }} />
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="text-[13.5px] font-medium">{tp("skipFirst")}</div>
+              <div className="text-[12px]" style={{ color: "var(--text-3)" }}>{tp("skipFirstHint")}</div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setSkipFirst((s) => !s)}
+              className="flex p-[3px]"
+              style={{ width: 40, height: 24, borderRadius: 999, background: skipFirst ? "var(--indigo)" : "var(--line-2)", justifyContent: skipFirst ? "flex-end" : "flex-start", transition: "background 0.18s" }}
+              aria-pressed={skipFirst}
+            >
+              <span className="size-[18px] rounded-full bg-white" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.3)" }} />
+            </button>
+          </div>
+          {status === "error" && <ErrorBanner onRetry={() => setStatus("ready")} />}
+        </div>
+
+        {/* Sticky apply */}
+        <div style={{ flexShrink: 0, padding: "12px 16px calc(12px + env(safe-area-inset-bottom))", background: "var(--card)", borderTop: "1px solid var(--line)" }}>
+          <button type="button" className="pp-btn pp-btn-lg" style={{ width: "100%", justifyContent: "center" }} onClick={run} disabled={status === "processing" || (!header.text.trim() && !footer.text.trim())}>
+            {status === "processing" ? <><Spinner /> {t("processing")}</> : <><IconCheck size={15} sw={2} /> {tp("action", { count: total })}</>}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-[400px_1fr]">

@@ -6,7 +6,8 @@ import { FileDropzone } from "./FileDropzone";
 import { FileInfoBar } from "./FileInfoBar";
 import { SuccessPanel, ErrorBanner } from "./ResultPanels";
 import { Spinner } from "./Spinner";
-import { IconCheck } from "@/components/shared/icons";
+import { IconCheck, IconChevron } from "@/components/shared/icons";
+import { useMediaQuery } from "@/lib/hooks/useMediaQuery";
 import { readMetadata, setMetadata, META_FIELDS, type PdfMeta } from "@/lib/pdf/metadata";
 import { isPdf } from "@/lib/pdf/common";
 import { downloadBlob, baseName, MAX_FILE_BYTES } from "@/lib/format";
@@ -18,6 +19,7 @@ const EMPTY: PdfMeta = { title: "", author: "", subject: "", keywords: "", creat
 export function EditMetadata() {
   const t = useTranslations("ToolUI");
   const tp = useTranslations("ToolPages.editMetadata");
+  const isMobile = useMediaQuery("(max-width: 767px)");
   const [file, setFile] = useState<File | null>(null);
   const [meta, setMeta] = useState<PdfMeta>(EMPTY);
   const [status, setStatus] = useState<Status>("idle");
@@ -81,6 +83,48 @@ export function EditMetadata() {
       <div>
         <FileDropzone toolId="edit-metadata" accept="pdf" checkPages onFiles={onFiles} title={tp("emptyTitle")} />
         {errorMsg && <div className="mt-4"><ErrorBanner message={errorMsg} onRetry={() => setErrorMsg(undefined)} /></div>}
+      </div>
+    );
+  }
+
+  if (isMobile) {
+    return (
+      <div style={{ position: "fixed", inset: 0, zIndex: 60, display: "flex", flexDirection: "column", background: "var(--bg)" }}>
+        <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, padding: "env(safe-area-inset-top) 8px 0", height: "calc(52px + env(safe-area-inset-top))", flexShrink: 0, background: "var(--card)", borderBottom: "1px solid var(--line)" }}>
+          <button type="button" onClick={reset} aria-label={t("removeFile")} style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 40, height: 40, borderRadius: 10, border: "1px solid var(--line)", background: "var(--bg-2)", color: "var(--text-2)" }}>
+            <IconChevron size={18} style={{ transform: "rotate(180deg)" }} />
+          </button>
+          <div style={{ flex: 1, minWidth: 0, textAlign: "center" }}>
+            <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text)" }}>{tp("mobileTitle")}</div>
+            <div className="pp-mono" style={{ fontSize: 10.5, color: "var(--text-3)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{file.name}</div>
+          </div>
+          <div style={{ width: 40, flexShrink: 0 }} />
+        </header>
+
+        <div style={{ flex: 1, overflowY: "auto", padding: 16, display: "flex", flexDirection: "column", gap: 16 }}>
+          {status === "loading" ? (
+            <div className="flex items-center gap-2 py-10" style={{ color: "var(--text-3)" }}><Spinner size={16} /> {t("processing")}</div>
+          ) : (
+            META_FIELDS.map((k) => (
+              <div key={k}>
+                <label className="mb-1.5 block text-[13px] font-medium" htmlFor={`meta-${k}`}>{tp(`field_${k}`)}</label>
+                {k === "subject" ? (
+                  <textarea id={`meta-${k}`} className="pp-input" rows={3} value={meta[k]} onChange={(e) => setMeta((m) => ({ ...m, [k]: e.target.value }))} />
+                ) : (
+                  <input id={`meta-${k}`} className="pp-input" style={{ minHeight: 48 }} value={meta[k]} onChange={(e) => setMeta((m) => ({ ...m, [k]: e.target.value }))} />
+                )}
+                {k === "keywords" && <p className="mt-1 text-[12px]" style={{ color: "var(--text-3)" }}>{tp("keywordsHint")}</p>}
+              </div>
+            ))
+          )}
+          {status === "error" && <ErrorBanner onRetry={() => setStatus("ready")} />}
+        </div>
+
+        <div style={{ flexShrink: 0, padding: "12px 16px calc(12px + env(safe-area-inset-bottom))", background: "var(--card)", borderTop: "1px solid var(--line)" }}>
+          <button type="button" className="pp-btn pp-btn-lg" style={{ width: "100%", justifyContent: "center" }} onClick={run} disabled={status === "processing" || status === "loading"}>
+            {status === "processing" ? <><Spinner /> {t("processing")}</> : <><IconCheck size={15} sw={2} /> {tp("action")}</>}
+          </button>
+        </div>
       </div>
     );
   }

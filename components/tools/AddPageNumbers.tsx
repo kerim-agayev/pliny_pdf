@@ -10,6 +10,7 @@ import { Spinner } from "./Spinner";
 import { ProgressPanel } from "./ProgressPanel";
 import { ScaledPreview } from "./ScaledPreview";
 import { IconCheck, IconChevron } from "@/components/shared/icons";
+import { useMediaQuery } from "@/lib/hooks/useMediaQuery";
 import {
   formatPageNumber,
   type PageNumPosition,
@@ -38,6 +39,7 @@ const POSITIONS: PageNumPosition[] = ["TL", "TC", "TR", "ML", "MC", "MR", "BL", 
 export function AddPageNumbers() {
   const t = useTranslations("ToolUI");
   const tp = useTranslations("ToolPages.addPageNumbers");
+  const isMobile = useMediaQuery("(max-width: 767px)");
   const [file, setFile] = useState<File | null>(null);
   const loaderRef = useRef<ThumbLoader | null>(null);
   const [total, setTotal] = useState(0);
@@ -184,6 +186,205 @@ export function AddPageNumbers() {
   };
 
   const curFmt = FORMATS.find((f) => f.id === opts.format);
+
+  if (isMobile) {
+    return (
+      <div style={{ position: "fixed", inset: 0, zIndex: 60, display: "flex", flexDirection: "column", background: "var(--bg)" }}>
+        <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, padding: "env(safe-area-inset-top) 8px 0", height: "calc(52px + env(safe-area-inset-top))", flexShrink: 0, background: "var(--card)", borderBottom: "1px solid var(--line)" }}>
+          <button type="button" onClick={reset} aria-label={t("removeFile")} style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 40, height: 40, borderRadius: 10, border: "1px solid var(--line)", background: "var(--bg-2)", color: "var(--text-2)" }}>
+            <IconChevron size={18} style={{ transform: "rotate(180deg)" }} />
+          </button>
+          <div style={{ flex: 1, minWidth: 0, textAlign: "center" }}>
+            <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text)" }}>{tp("mobileTitle")}</div>
+            <div className="pp-mono" style={{ fontSize: 10.5, color: "var(--text-3)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{file.name}</div>
+          </div>
+          <div style={{ width: 40, flexShrink: 0 }} />
+        </header>
+
+        {/* Live preview at top */}
+        <div style={{ flexShrink: 0, display: "flex", flexDirection: "column", alignItems: "center", gap: 10, padding: "14px 16px", background: "radial-gradient(70% 60% at 50% 30%, rgba(107,92,231,0.08), rgba(107,92,231,0) 70%), var(--bg-2)", borderBottom: "1px solid var(--line)" }}>
+          {status === "loading" || !thumb ? (
+            <div className="flex items-center gap-2 py-8" style={{ color: "var(--text-3)" }}><Spinner size={16} /> {t("processing")}</div>
+          ) : (
+            <>
+              <div style={{ width: 200 }}>
+                <ScaledPreview width={thumb.w} height={thumb.h}>
+                  <div className="relative" style={{ width: thumb.w, height: thumb.h }}>
+                    <img src={thumb.url} alt={`page ${previewPage}`} className="rounded shadow-lg" style={{ width: thumb.w, height: thumb.h }} draggable={false} />
+                    {previewLabel !== null ? (
+                      <div style={numStyle}>
+                        {previewLabel}
+                        <span className="pointer-events-none absolute rounded-[4px]" style={{ inset: -6, border: "1px dashed rgba(107,92,231,0.6)" }} />
+                      </div>
+                    ) : (
+                      <div className="pp-mono absolute italic" style={{ bottom: opts.margin * PREVIEW_SCALE, left: "50%", transform: "translateX(-50%)", fontSize: 10, color: "#C7C2BB" }}>
+                        {tp("firstPageSkipped")}
+                      </div>
+                    )}
+                  </div>
+                </ScaledPreview>
+              </div>
+              <div className="flex items-center gap-3.5">
+                <button type="button" onClick={() => setPreviewPage((p) => Math.max(1, p - 1))} className="flex rounded-lg p-2" style={{ background: "var(--card)", border: "1px solid var(--line)", color: "var(--text-2)" }} aria-label="previous page">
+                  <IconChevron size={14} style={{ transform: "rotate(180deg)" }} />
+                </button>
+                <span className="pp-mono text-[13px]">
+                  {tp("pageLabel", { n: previewPage })} <span style={{ color: "var(--text-3)" }}>/ {total}</span>
+                </span>
+                <button type="button" onClick={() => setPreviewPage((p) => Math.min(total, p + 1))} className="flex rounded-lg p-2" style={{ background: "var(--card)", border: "1px solid var(--line)", color: "var(--text-2)" }} aria-label="next page">
+                  <IconChevron size={14} />
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Controls */}
+        <div style={{ flex: 1, overflowY: "auto", padding: 16 }}>
+          {/* Position */}
+          <div className="mb-5">
+            <div className="mb-2 text-[13px] font-medium">{tp("position")}</div>
+            <div className="flex items-center gap-4">
+              <div className="grid shrink-0 grid-cols-3 gap-1.5" style={{ width: 120, aspectRatio: "1 / 1.3" }}>
+                {POSITIONS.map((id) => {
+                  const active = opts.position === id;
+                  const v = id[0];
+                  const h = id[1];
+                  return (
+                    <button
+                      key={id}
+                      type="button"
+                      title={id}
+                      onClick={() => set("position", id)}
+                      className="flex rounded-md p-1.5 transition-colors"
+                      style={{
+                        background: active ? "rgba(107,92,231,0.18)" : "var(--bg-2)",
+                        border: active ? "1px solid var(--indigo)" : "1px solid var(--line)",
+                        alignItems: v === "T" ? "flex-start" : v === "B" ? "flex-end" : "center",
+                        justifyContent: h === "L" ? "flex-start" : h === "R" ? "flex-end" : "center",
+                      }}
+                    >
+                      <span className="size-1.5 rounded-full" style={{ background: active ? "#BFB5FF" : "var(--text-3)", boxShadow: active ? "0 0 6px #BFB5FF" : "none" }} />
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="text-[12.5px] leading-relaxed" style={{ color: "var(--text-2)" }}>
+                {tp("positionHint")} <span className="pp-mono" style={{ color: "#BFB5FF" }}>{opts.position}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Format */}
+          <div className="mb-5">
+            <div className="mb-2 text-[13px] font-medium">{tp("format")}</div>
+            <div className="relative">
+              <button type="button" className="pp-input flex items-center justify-between text-left" style={{ minHeight: 48 }} onClick={() => setFmtOpen((o) => !o)}>
+                <span>{curFmt?.label}</span>
+                <IconChevron size={14} color="var(--text-3)" style={{ transform: fmtOpen ? "rotate(90deg)" : "none" }} />
+              </button>
+              {fmtOpen && (
+                <div className="absolute left-0 right-0 z-30 mt-1 rounded-[10px] p-1" style={{ top: "100%", background: "var(--card-hi)", border: "1px solid var(--line-2)", boxShadow: "var(--shadow-md)" }}>
+                  {FORMATS.map((o) => (
+                    <button
+                      key={o.id}
+                      type="button"
+                      onClick={() => { set("format", o.id); setFmtOpen(false); }}
+                      className="flex w-full items-center justify-between rounded-md px-2.5 py-2.5 text-left text-[13.5px]"
+                      style={{ background: o.id === opts.format ? "rgba(107,92,231,0.14)" : "transparent", color: o.id === opts.format ? "#BFB5FF" : "var(--text)" }}
+                    >
+                      {o.label}
+                      {o.id === opts.format && <IconCheck size={13} />}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Start page / first number */}
+          <div className="mb-5 grid grid-cols-2 gap-3.5">
+            <div>
+              <div className="mb-2 text-[13px] font-medium">{tp("startPage")}</div>
+              <NumberField value={opts.startPage} min={1} onChange={(n) => set("startPage", n)} decreaseLabel={t("decrease")} increaseLabel={t("increase")} />
+            </div>
+            <div>
+              <div className="mb-2 text-[13px] font-medium">{tp("firstNumber")}</div>
+              <NumberField value={opts.startNum} min={1} onChange={(n) => set("startNum", n)} decreaseLabel={t("decrease")} increaseLabel={t("increase")} />
+            </div>
+          </div>
+
+          {/* Skip first */}
+          <div className="mb-5 flex items-center justify-between border-y py-3" style={{ borderColor: "var(--line)" }}>
+            <div>
+              <div className="text-[13.5px] font-medium">{tp("skipFirst")}</div>
+              <div className="text-[12px]" style={{ color: "var(--text-3)" }}>{tp("skipFirstHint")}</div>
+            </div>
+            <button
+              type="button"
+              onClick={() => set("skipFirst", !opts.skipFirst)}
+              className="flex p-[3px]"
+              style={{ width: 40, height: 24, borderRadius: 999, background: opts.skipFirst ? "var(--indigo)" : "var(--line-2)", justifyContent: opts.skipFirst ? "flex-end" : "flex-start", transition: "background 0.18s" }}
+              aria-pressed={opts.skipFirst}
+            >
+              <span className="size-[18px] rounded-full bg-white" style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.3)" }} />
+            </button>
+          </div>
+
+          {/* Font size */}
+          <div className="mb-5">
+            <div className="mb-2 flex justify-between text-[13px] font-medium">
+              <span>{tp("fontSize")}</span>
+              <span className="pp-mono" style={{ color: "var(--text-2)" }}>{opts.size}pt</span>
+            </div>
+            <input type="range" min={8} max={24} value={opts.size} onChange={(e) => set("size", +e.target.value)} className="w-full" />
+          </div>
+
+          {/* Color */}
+          <div className="mb-5">
+            <div className="mb-2 text-[13px] font-medium">{tp("color")}</div>
+            <div className="flex items-center gap-3">
+              {SWATCHES.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => set("color", c)}
+                  className="rounded-lg"
+                  style={{
+                    width: 34,
+                    height: 34,
+                    background: c,
+                    border: c === "#FFFFFF" ? "1px solid var(--line-2)" : "0",
+                    boxShadow: opts.color === c ? `0 0 0 2px var(--card), 0 0 0 4px ${c === "#FFFFFF" ? "var(--indigo)" : c}` : "inset 0 0 0 1px rgba(255,255,255,0.08)",
+                  }}
+                  aria-label={c}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Margin */}
+          <div className="mb-2">
+            <div className="mb-2 flex justify-between text-[13px] font-medium">
+              <span>{tp("margin")}</span>
+              <span className="pp-mono" style={{ color: "var(--text-2)" }}>{opts.margin}pt</span>
+            </div>
+            <input type="range" min={10} max={50} value={opts.margin} onChange={(e) => set("margin", +e.target.value)} className="w-full" />
+          </div>
+
+          {status === "error" && <div className="mt-3"><ErrorBanner onRetry={() => setStatus("ready")} /></div>}
+        </div>
+
+        {/* Sticky apply */}
+        <div style={{ flexShrink: 0, padding: "12px 16px calc(12px + env(safe-area-inset-bottom))", background: "var(--card)", borderTop: "1px solid var(--line)" }}>
+          <button type="button" className="pp-btn pp-btn-lg" style={{ width: "100%", justifyContent: "center" }} onClick={run} disabled={status === "processing"}>
+            {status === "processing" ? <><Spinner /> {t("processing")}</> : <><IconCheck size={15} sw={2} /> {tp("action", { count: total })}</>}
+          </button>
+          {status === "processing" && <ProgressPanel page={progress.page} total={progress.total} />}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-[380px_1fr]">

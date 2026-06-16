@@ -5,7 +5,8 @@ import { useTranslations } from "next-intl";
 import { FileDropzone } from "./FileDropzone";
 import { SuccessPanel, ErrorBanner } from "./ResultPanels";
 import { Spinner } from "./Spinner";
-import { IconWatermark, IconArrow } from "@/components/shared/icons";
+import { IconWatermark, IconArrow, IconChevron } from "@/components/shared/icons";
+import { useMediaQuery } from "@/lib/hooks/useMediaQuery";
 import { getPdfjs } from "@/lib/pdf/pdfjs";
 import { applyWatermark, type WatermarkPosition } from "@/lib/pdf/watermark";
 import { isPdf } from "@/lib/pdf/common";
@@ -27,6 +28,7 @@ interface Settings {
 export function WatermarkTool() {
   const t = useTranslations("ToolUI");
   const tp = useTranslations("ToolPages.watermark");
+  const isMobile = useMediaQuery("(max-width: 767px)");
   const [file, setFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<{ url: string; w: number; h: number } | null>(null);
   const [w, setW] = useState<Settings>({ text: "CONFIDENTIAL", size: 56, opacity: 0.32, color: "#F43F5E", position: "diagonal" });
@@ -101,9 +103,102 @@ export function WatermarkTool() {
     );
   }
 
-  const scale = PREVIEW_W / preview.w;
+  const previewW = isMobile ? Math.min(300, Math.round(300 * (preview.w / preview.h))) : PREVIEW_W;
+  const scale = previewW / preview.w;
   const previewH = preview.h * scale;
   const pxSize = w.size * scale;
+
+  if (isMobile) {
+    return (
+      <div style={{ position: "fixed", inset: 0, zIndex: 60, display: "flex", flexDirection: "column", background: "var(--bg)" }}>
+        <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, padding: "env(safe-area-inset-top) 8px 0", height: "calc(52px + env(safe-area-inset-top))", flexShrink: 0, background: "var(--card)", borderBottom: "1px solid var(--line)" }}>
+          <button type="button" onClick={reset} aria-label={t("removeFile")} style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 40, height: 40, borderRadius: 10, border: "1px solid var(--line)", background: "var(--bg-2)", color: "var(--text-2)" }}>
+            <IconChevron size={18} style={{ transform: "rotate(180deg)" }} />
+          </button>
+          <div style={{ flex: 1, minWidth: 0, textAlign: "center" }}>
+            <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text)" }}>{tp("mobileTitle")}</div>
+            <div className="pp-mono" style={{ fontSize: 10.5, color: "var(--text-3)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{file.name}</div>
+          </div>
+          <div style={{ width: 40, flexShrink: 0 }} />
+        </header>
+
+        {/* Live preview at top */}
+        <div style={{ flexShrink: 0, display: "flex", justifyContent: "center", alignItems: "center", padding: "16px 16px 12px", background: "radial-gradient(70% 60% at 50% 30%, rgba(107,92,231,0.08), rgba(107,92,231,0) 70%), var(--bg-2)", borderBottom: "1px solid var(--line)" }}>
+          <div style={{ position: "relative", width: previewW, height: previewH, borderRadius: 6, overflow: "hidden", boxShadow: "var(--shadow-lg)" }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={preview.url} alt="page 1" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "contain" }} />
+            <WatermarkOverlay settings={w} pxSize={pxSize} width={previewW} height={previewH} />
+          </div>
+        </div>
+
+        {/* Controls */}
+        <div style={{ flex: 1, overflowY: "auto", padding: 16 }}>
+          <Row label={tp("text")}>
+            <input className="pp-input" style={{ minHeight: 48 }} value={w.text} onChange={(e) => update("text", e.target.value)} />
+          </Row>
+          <Row label={tp("fontSize")} value={`${w.size}px`}>
+            <input className="pp-range" type="range" min={12} max={120} value={w.size} onChange={(e) => update("size", Number(e.target.value))} />
+          </Row>
+          <Row label={tp("opacity")} value={`${Math.round(w.opacity * 100)}%`}>
+            <input className="pp-range" type="range" min={0.05} max={1} step={0.01} value={w.opacity} onChange={(e) => update("opacity", Number(e.target.value))} />
+          </Row>
+          <Row label={tp("position")}>
+            <div className="grid grid-cols-3 gap-1 rounded-[10px] p-1" style={{ background: "var(--bg-2)", border: "1px solid var(--line)" }}>
+              {(["center", "diagonal", "tile"] as WatermarkPosition[]).map((pos) => {
+                const active = w.position === pos;
+                return (
+                  <button
+                    key={pos}
+                    type="button"
+                    onClick={() => update("position", pos)}
+                    className="rounded-[7px] px-2 text-[13px] font-medium"
+                    style={{
+                      minHeight: 44,
+                      background: active ? "rgba(107,92,231,0.18)" : "transparent",
+                      color: active ? "#BFB5FF" : "var(--text-2)",
+                      border: active ? "1px solid rgba(107,92,231,0.3)" : "1px solid transparent",
+                    }}
+                  >
+                    {tp(pos === "center" ? "posCenter" : pos === "tile" ? "posTile" : "posDiagonal")}
+                  </button>
+                );
+              })}
+            </div>
+          </Row>
+          <Row label={tp("color")}>
+            <div className="flex items-center gap-3">
+              {SWATCHES.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => update("color", c)}
+                  className="rounded-lg"
+                  style={{
+                    width: 36,
+                    height: 36,
+                    background: c,
+                    boxShadow: w.color === c ? `0 0 0 2px var(--bg), 0 0 0 4px ${c}` : "inset 0 0 0 1px rgba(127,127,127,0.3)",
+                  }}
+                  aria-label={c}
+                />
+              ))}
+            </div>
+          </Row>
+          {status === "error" && <div className="mt-1"><ErrorBanner onRetry={() => setStatus("idle")} /></div>}
+        </div>
+
+        {/* Sticky apply */}
+        <div style={{ flexShrink: 0, padding: "12px 16px calc(12px + env(safe-area-inset-bottom))", background: "var(--card)", borderTop: "1px solid var(--line)" }}>
+          <button type="button" className="pp-btn pp-btn-lg" style={{ width: "100%", justifyContent: "center" }} onClick={run} disabled={status === "processing"}>
+            {status === "processing" ? <><Spinner /> {t("processing")}</> : <><IconWatermark size={15} sw={1.7} /> {tp("action")}</>}
+          </button>
+          <div className="mt-2 flex items-center justify-center gap-1.5 text-[11.5px]" style={{ color: "var(--text-3)" }}>
+            <span className="pp-dot" style={{ color: "#34D399" }} /> {t("localNote")}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-[380px_1fr]">
