@@ -472,7 +472,13 @@
       "cropLabel": "Crop",
       "pageLabel": "Page {n}",
       "emptyTitle": "Drop a PDF to crop",
-      "successTitle": "PDF cropped."
+      "successTitle": "PDF cropped.",
+      "mobile": {
+        "title": "Crop PDF",
+        "back": "Back",
+        "hint": "Drag handles · pinch to zoom",
+        "reset": "Reset"
+      }
     },
     "organizePages": {
       "subtitle": "Reorder, rotate, duplicate, and delete pages by drag-and-drop.",
@@ -492,7 +498,19 @@
       "hintMulti": "Ctrl/Cmd-click to multi-select",
       "hintRange": "Shift-click for a range",
       "emptyTitle": "Drop a PDF to organize its pages",
-      "startOver": "Start over with another file"
+      "startOver": "Start over with another file",
+      "mobile": {
+        "title": "Organize Pages",
+        "back": "Back",
+        "select": "Select",
+        "cancel": "Cancel",
+        "reorderHint": "Hold & drag to reorder",
+        "apply": "Apply changes",
+        "applyNote": "{count} changes · processed in your browser",
+        "pageN": "Page {n}",
+        "chooseAction": "Choose an action",
+        "original": "Original"
+      }
     },
     "signPdf": {
       "subtitle": "Create a signature, then drag it onto the page. Nothing is uploaded.",
@@ -552,7 +570,21 @@
       "privacyNote": "All detection runs in your browser. The document is never uploaded.",
       "reviewNote": "Review every box — once downloaded, content is gone for good.",
       "action": "Apply redactions & download",
-      "emptyTitle": "Drop a PDF to redact"
+      "emptyTitle": "Drop a PDF to redact",
+      "confirmTitle": "Apply {count} redactions?",
+      "confirmBody": "Content under each bar is permanently deleted. This can't be undone after download.",
+      "confirmYes": "Redact permanently",
+      "confirmNo": "Keep editing",
+      "mobile": {
+        "title": "Redact Content",
+        "back": "Back",
+        "drawBox": "Draw box",
+        "findText": "Find text",
+        "undo": "Undo",
+        "applyN": "Apply {count} redactions",
+        "findTitle": "Find & redact text",
+        "findSub": "Auto-mark every match"
+      }
     },
     "removeMetadata": {
       "subtitle": "Strip author, title, and other hidden document info from your PDF.",

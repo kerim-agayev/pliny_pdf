@@ -6,10 +6,12 @@ import { FileDropzone } from "./FileDropzone";
 import { FileInfoBar } from "./FileInfoBar";
 import { ErrorBanner } from "./ResultPanels";
 import { Spinner } from "./Spinner";
-import { IconWhiteout, IconEraser, IconCursor, IconUndo, IconRedo, IconSearch, IconShield, IconAlert, IconChevron, IconX } from "@/components/shared/icons";
+import { IconWhiteout, IconEraser, IconCursor, IconUndo, IconSearch, IconShield, IconAlert, IconChevron, IconX, IconRect, IconArrow, IconCheck } from "@/components/shared/icons";
+import { BottomSheet } from "./EditPdf/BottomSheet";
 import { redactPdf, pageTextHits, REDACT_PATTERNS, type RedactBox, type TextHit } from "@/lib/pdf/redactPdf";
 import { renderThumbnails, type Thumb } from "@/lib/pdf/thumbnails";
 import { isPdf } from "@/lib/pdf/common";
+import { useMediaQuery } from "@/lib/hooks/useMediaQuery";
 import { downloadBlob, baseName, MAX_FILE_BYTES } from "@/lib/format";
 import { analytics } from "@/lib/analytics";
 
@@ -20,9 +22,96 @@ type BoxUI = RedactBox & { id: string };
 const FILLS: [string, string][] = [["#0F0F0F", "Black"], ["#FFFFFF", "White"], ["#6B7280", "Gray"]];
 const PATTERN_KEYS = ["email", "phone", "card", "ssn"] as const;
 
+// Shared draggable redaction surface (page image + boxes + resize handle).
+// Used by both the desktop sidebar layout and the mobile full-screen editor.
+function RedactCanvas({
+  wrapRef, thumb, displayW, boxes, selId, tool, onSurfaceDown, onBoxDown, onResizeDown, isMobile,
+}: {
+  wrapRef: React.RefObject<HTMLDivElement | null>;
+  thumb: Thumb;
+  displayW: number;
+  boxes: BoxUI[];
+  selId: string | null;
+  tool: Tool;
+  onSurfaceDown: (e: React.PointerEvent) => void;
+  onBoxDown: (e: React.PointerEvent, b: BoxUI) => void;
+  onResizeDown: (e: React.PointerEvent, b: BoxUI) => void;
+  isMobile: boolean;
+}) {
+  const handle = isMobile ? 22 : 10;
+  return (
+    <div
+      ref={wrapRef}
+      className="relative shrink-0 select-none"
+      style={{ width: displayW, maxWidth: "100%", aspectRatio: `${thumb.w} / ${thumb.h}`, cursor: tool === "redact" ? "crosshair" : "default", touchAction: "none" }}
+      onPointerDown={onSurfaceDown}
+    >
+      <img src={thumb.url} alt="page" className="h-full w-full rounded shadow-lg" draggable={false} />
+      {boxes.map((b) => {
+        const sel = b.id === selId;
+        return (
+          <div
+            key={b.id}
+            onPointerDown={(e) => onBoxDown(e, b)}
+            className="absolute"
+            style={{ left: `${b.xPct}%`, top: `${b.yPct}%`, width: `${b.wPct}%`, height: `${b.hPct}%`, background: b.color, borderRadius: 1, cursor: tool === "erase" ? "not-allowed" : "move", boxShadow: sel ? "0 0 0 2px var(--indigo), 0 0 0 4px rgba(107,92,231,0.3)" : "none" }}
+          >
+            {sel && tool !== "erase" && (
+              <div onPointerDown={(e) => onResizeDown(e, b)} className="absolute rounded-[2px] bg-white" style={{ width: handle, height: handle, right: -handle / 2, bottom: -handle / 2, border: "1.5px solid var(--indigo)", cursor: "nwse-resize", touchAction: "none" }} />
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// Permanent-action confirmation (Wave 9D) — centered modal on desktop, bottom sheet on mobile.
+function RedactConfirmModal({
+  count, isMobile, onConfirm, onCancel, title, body, confirmLabel, cancelLabel,
+}: {
+  count: number;
+  isMobile: boolean;
+  onConfirm: () => void;
+  onCancel: () => void;
+  title: string;
+  body: string;
+  confirmLabel: string;
+  cancelLabel: string;
+}) {
+  const inner = (
+    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
+      <div style={{ width: 56, height: 56, borderRadius: 16, background: "rgba(245,158,11,0.16)", color: "#FBBF24", display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 16 }}><IconAlert size={26} sw={2} /></div>
+      <h3 style={{ fontFamily: "var(--font-display)", fontSize: 20, letterSpacing: "-0.02em", marginBottom: 8 }}>{title}</h3>
+      <p style={{ fontSize: 13.5, color: "var(--text-2)", marginBottom: 20, maxWidth: 330, lineHeight: 1.5 }}>{body}</p>
+      <button type="button" className="pp-btn pp-btn-lg" style={{ width: "100%", justifyContent: "center", background: "#F43F5E", marginBottom: 10, boxShadow: "0 12px 28px -12px rgba(244,63,94,0.6)" }} onClick={onConfirm}><IconCheck size={16} sw={2.4} /> {confirmLabel}</button>
+      <button type="button" className="pp-btn pp-btn-ghost" style={{ width: "100%", justifyContent: "center" }} onClick={onCancel}>{cancelLabel}</button>
+    </div>
+  );
+  if (isMobile) {
+    return (
+      <div style={{ position: "fixed", inset: 0, zIndex: 90, background: "rgba(0,0,0,0.55)", backdropFilter: "blur(3px)", display: "flex", alignItems: "flex-end" }} onClick={onCancel}>
+        <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", background: "var(--card)", borderRadius: "22px 22px 0 0", padding: "26px 20px calc(20px + env(safe-area-inset-bottom))", boxShadow: "0 -16px 40px -16px rgba(0,0,0,0.6)" }}>
+          {inner}
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 90, background: "rgba(0,0,0,0.5)", backdropFilter: "blur(2px)", display: "flex", alignItems: "center", justifyContent: "center", padding: 20 }} onClick={onCancel}>
+      <div onClick={(e) => e.stopPropagation()} className="pp-card" style={{ width: 440, maxWidth: "100%", padding: 28 }}>
+        {inner}
+      </div>
+    </div>
+  );
+}
+
 export function RedactContent() {
   const t = useTranslations("ToolUI");
   const tp = useTranslations("ToolPages.redactContent");
+  const isMobile = useMediaQuery("(max-width: 767px)");
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [sheet, setSheet] = useState<"find" | "color" | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [thumbs, setThumbs] = useState<Thumb[]>([]);
   const [status, setStatus] = useState<Status>("idle");
@@ -239,6 +328,93 @@ export function RedactContent() {
 
   const displayW = thumb ? Math.min(thumb.w, 520) : 520;
 
+  if (isMobile) {
+    const mobileW = thumb ? Math.min(thumb.w, 252) : 252;
+    return (
+      <div style={{ position: "fixed", inset: 0, zIndex: 60, display: "flex", flexDirection: "column", background: "var(--bg)" }}>
+        {/* header */}
+        <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, padding: "env(safe-area-inset-top) 8px 0", height: "calc(52px + env(safe-area-inset-top))", flexShrink: 0, background: "var(--card)", borderBottom: "1px solid var(--line)" }}>
+          <button type="button" onClick={reset} aria-label={tp("mobile.back")} style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 40, height: 40, borderRadius: 10, border: "1px solid var(--line)", background: "var(--bg-2)", color: "var(--text-2)" }}>
+            <IconChevron size={18} style={{ transform: "rotate(180deg)" }} />
+          </button>
+          <div style={{ flex: 1, minWidth: 0, textAlign: "center" }}>
+            <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text)" }}>{tp("mobile.title")}</div>
+            <div className="pp-mono" style={{ fontSize: 10.5, color: "var(--text-3)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{file.name}</div>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <button type="button" onClick={() => { setPreviewPage((p) => Math.max(1, p - 1)); setSelId(null); }} aria-label="previous page" style={{ width: 30, height: 30, borderRadius: 8, background: "transparent", border: 0, color: "var(--text-2)", display: "flex", alignItems: "center", justifyContent: "center" }}><IconChevron size={15} style={{ transform: "rotate(180deg)" }} /></button>
+            <span className="pp-mono" style={{ fontSize: 12, color: "var(--text)", minWidth: 30, textAlign: "center" }}>{previewPage}/{thumbs.length}</span>
+            <button type="button" onClick={() => { setPreviewPage((p) => Math.min(thumbs.length, p + 1)); setSelId(null); }} aria-label="next page" style={{ width: 30, height: 30, borderRadius: 8, background: "transparent", border: 0, color: "var(--text-2)", display: "flex", alignItems: "center", justifyContent: "center" }}><IconChevron size={15} /></button>
+          </div>
+        </header>
+
+        {/* compact warning */}
+        <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 14px", background: "rgba(244,63,94,0.08)", borderBottom: "1px solid rgba(244,63,94,0.3)", color: "#FCA5A5", fontSize: 12.5, flexShrink: 0 }}>
+          <IconAlert size={16} sw={2} style={{ flexShrink: 0 }} />
+          <span><strong>{tp("warnTitle")}</strong> <span style={{ color: "var(--text-2)" }}>{tp("warnBody")}</span></span>
+        </div>
+
+        {/* preview */}
+        <div style={{ flex: 1, position: "relative", overflow: "hidden", background: "repeating-linear-gradient(45deg, rgba(127,127,127,0.04) 0 1px, transparent 1px 16px), var(--bg-2)", display: "flex", alignItems: "center", justifyContent: "center", padding: 14 }}>
+          {status === "loading" || !thumb ? (
+            <div className="flex items-center gap-2" style={{ color: "var(--text-3)" }}><Spinner size={18} /> {t("processing")}</div>
+          ) : (
+            <RedactCanvas wrapRef={wrapRef} thumb={thumb} displayW={mobileW} boxes={boxes} selId={selId} tool={tool} onSurfaceDown={onSurfaceDown} onBoxDown={onBoxDown} onResizeDown={onResizeDown} isMobile />
+          )}
+        </div>
+
+        {/* bottom toolbar */}
+        <div style={{ flexShrink: 0, background: "var(--card)", borderTop: "1px solid var(--line)", padding: "10px 14px calc(10px + env(safe-area-inset-bottom))" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <button type="button" onClick={() => setTool("redact")} style={{ flex: 1, height: 46, borderRadius: 12, border: tool === "redact" ? "1px solid var(--indigo)" : "1px solid var(--line)", background: tool === "redact" ? "rgba(107,92,231,0.16)" : "var(--bg-2)", color: tool === "redact" ? "#BFB5FF" : "var(--text-2)", fontSize: 13.5, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: 7 }}><IconRect size={16} /> {tp("mobile.drawBox")}</button>
+            <button type="button" onClick={() => setSheet("find")} style={{ flex: 1, height: 46, borderRadius: 12, border: "1px solid var(--line)", background: "var(--bg-2)", color: "var(--text-2)", fontSize: 13.5, fontWeight: 600, display: "flex", alignItems: "center", justifyContent: "center", gap: 7 }}><IconSearch size={16} /> {tp("mobile.findText")}</button>
+            <button type="button" onClick={() => setSheet("color")} aria-label={tp("fill")} style={{ width: 46, height: 46, borderRadius: 12, border: "1px solid var(--line)", background: "var(--bg-2)", display: "flex", alignItems: "center", justifyContent: "center" }}><span style={{ width: 20, height: 20, borderRadius: 6, background: color, border: "1px solid var(--line-2)" }} /></button>
+            <button type="button" onClick={undo} disabled={boxes.length === 0} aria-label={tp("mobile.undo")} style={{ width: 46, height: 46, borderRadius: 12, border: "1px solid var(--line)", background: "var(--bg-2)", color: boxes.length ? "var(--text-2)" : "var(--text-3)", display: "flex", alignItems: "center", justifyContent: "center" }}><IconUndo size={17} /></button>
+          </div>
+          <button type="button" onClick={() => setConfirmOpen(true)} disabled={saving || totalBoxes === 0} className="pp-btn pp-btn-lg" style={{ width: "100%", justifyContent: "center", marginTop: 10, background: "#F43F5E", boxShadow: "0 12px 30px -14px rgba(244,63,94,0.6)" }}>
+            {saving ? <><Spinner /> {t("processing")}</> : <>{tp("mobile.applyN", { count: totalBoxes })} <IconArrow size={15} /></>}
+          </button>
+        </div>
+
+        {sheet === "find" && (
+          <BottomSheet title={tp("mobile.findTitle")} subtitle={tp("mobile.findSub")} onClose={() => setSheet(null)} maxH="54%">
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              <input className="pp-input" value={search} onChange={(e) => setSearch(e.target.value)} placeholder={tp("searchPlaceholder")} style={{ height: 48, fontSize: 15 }} />
+              {search.trim() && (
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "13px 15px", borderRadius: 12, background: "var(--bg-2)", border: "1px solid var(--line)" }}>
+                  <span style={{ fontSize: 14, color: "var(--text-2)" }}><span className="pp-mono" style={{ color: "#BFB5FF" }}>{searchMatches.length}</span> {tp("matches")}</span>
+                  <button type="button" className="pp-btn" style={{ background: "#F43F5E", padding: "8px 14px" }} onClick={() => { redactSearch(); setSheet(null); }} disabled={searchMatches.length === 0}>{tp("redactAll")}</button>
+                </div>
+              )}
+            </div>
+          </BottomSheet>
+        )}
+        {sheet === "color" && (
+          <BottomSheet title={tp("fill")} onClose={() => setSheet(null)} maxH="36%">
+            <div style={{ display: "flex", gap: 12 }}>
+              {FILLS.map(([c, name]) => (
+                <button key={c} type="button" onClick={() => { setColor(c); setSheet(null); }} title={name} style={{ width: 48, height: 48, borderRadius: 12, background: c, border: c === "#FFFFFF" ? "1px solid var(--line-2)" : 0, boxShadow: color === c ? "0 0 0 2px var(--card), 0 0 0 4px var(--indigo)" : "inset 0 0 0 1px rgba(255,255,255,0.08)" }} />
+              ))}
+            </div>
+          </BottomSheet>
+        )}
+        {confirmOpen && (
+          <RedactConfirmModal
+            count={totalBoxes}
+            isMobile
+            onConfirm={() => { setConfirmOpen(false); apply(); }}
+            onCancel={() => setConfirmOpen(false)}
+            title={tp("confirmTitle", { count: totalBoxes })}
+            body={tp("confirmBody")}
+            confirmLabel={tp("confirmYes")}
+            cancelLabel={tp("confirmNo")}
+          />
+        )}
+        {errorMsg && <div style={{ position: "absolute", left: 14, right: 14, bottom: 120, zIndex: 80 }}><ErrorBanner message={errorMsg} onRetry={() => setErrorMsg(undefined)} /></div>}
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-4">
       <FileInfoBar file={file} pages={thumbs.length || undefined} onRemove={reset} />
@@ -276,29 +452,7 @@ export function RedactContent() {
               <div className="flex items-center gap-2 py-24" style={{ color: "var(--text-3)" }}><Spinner size={18} /> {t("processing")}</div>
             ) : (
               <div className="flex flex-col items-center gap-5">
-                <div
-                  ref={wrapRef}
-                  className="relative shrink-0 select-none"
-                  style={{ width: displayW, maxWidth: "100%", aspectRatio: `${thumb.w} / ${thumb.h}`, cursor: tool === "redact" ? "crosshair" : "default", touchAction: "none" }}
-                  onPointerDown={onSurfaceDown}
-                >
-                  <img src={thumb.url} alt={`page ${previewPage}`} className="h-full w-full rounded shadow-lg" draggable={false} />
-                  {boxes.map((b) => {
-                    const sel = b.id === selId;
-                    return (
-                      <div
-                        key={b.id}
-                        onPointerDown={(e) => onBoxDown(e, b)}
-                        className="absolute"
-                        style={{ left: `${b.xPct}%`, top: `${b.yPct}%`, width: `${b.wPct}%`, height: `${b.hPct}%`, background: b.color, borderRadius: 1, cursor: tool === "erase" ? "not-allowed" : "move", boxShadow: sel ? "0 0 0 2px var(--indigo), 0 0 0 4px rgba(107,92,231,0.3)" : "none" }}
-                      >
-                        {sel && tool !== "erase" && (
-                          <div onPointerDown={(e) => onResizeDown(e, b)} className="absolute -bottom-1 -right-1 size-2.5 rounded-[2px] bg-white" style={{ border: "1.5px solid var(--indigo)", cursor: "nwse-resize" }} />
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
+                <RedactCanvas wrapRef={wrapRef} thumb={thumb} displayW={displayW} boxes={boxes} selId={selId} tool={tool} onSurfaceDown={onSurfaceDown} onBoxDown={onBoxDown} onResizeDown={onResizeDown} isMobile={false} />
                 {/* navigator */}
                 <div className="flex items-center gap-3">
                   <button type="button" onClick={() => { setPreviewPage((p) => Math.max(1, p - 1)); setSelId(null); }} className="flex rounded-lg p-2" style={{ background: "var(--card)", border: "1px solid var(--line)", color: "var(--text-2)" }} aria-label="previous page"><IconChevron size={14} style={{ transform: "rotate(180deg)" }} /></button>
@@ -363,12 +517,25 @@ export function RedactContent() {
         <div className="flex items-center gap-2 text-[13px]" style={{ color: "var(--text-2)" }}>
           <IconAlert size={15} color="#F87171" sw={1.8} /> {tp("reviewNote")}
         </div>
-        <button type="button" className="pp-btn pp-btn-lg" onClick={apply} disabled={saving || totalBoxes === 0} style={{ background: "#F43F5E", boxShadow: "0 8px 20px -10px rgba(244,63,94,0.6)" }}>
+        <button type="button" className="pp-btn pp-btn-lg" onClick={() => setConfirmOpen(true)} disabled={saving || totalBoxes === 0} style={{ background: "#F43F5E", boxShadow: "0 8px 20px -10px rgba(244,63,94,0.6)" }}>
           {saving ? <><Spinner /> {t("processing")}</> : <><IconWhiteout size={15} sw={1.7} /> {tp("action")}</>}
         </button>
       </div>
 
       {errorMsg && <ErrorBanner message={errorMsg} onRetry={() => setErrorMsg(undefined)} />}
+
+      {confirmOpen && (
+        <RedactConfirmModal
+          count={totalBoxes}
+          isMobile={false}
+          onConfirm={() => { setConfirmOpen(false); apply(); }}
+          onCancel={() => setConfirmOpen(false)}
+          title={tp("confirmTitle", { count: totalBoxes })}
+          body={tp("confirmBody")}
+          confirmLabel={tp("confirmYes")}
+          cancelLabel={tp("confirmNo")}
+        />
+      )}
     </div>
   );
 }

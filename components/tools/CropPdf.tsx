@@ -7,7 +7,7 @@ import { FileInfoBar } from "./FileInfoBar";
 import { SuccessPanel, ErrorBanner } from "./ResultPanels";
 import { Spinner } from "./Spinner";
 import { ProgressPanel } from "./ProgressPanel";
-import { IconRect, IconCheck, IconChevron, IconCompress, IconFile, IconCursor } from "@/components/shared/icons";
+import { IconRect, IconCheck, IconChevron, IconCompress, IconFile, IconCursor, IconRefresh, IconArrow, IconZoomIn } from "@/components/shared/icons";
 import {
   getPageSizes,
   aspectInsets,
@@ -20,6 +20,7 @@ import { parsePageRanges } from "@/lib/pdf/extract";
 import { createThumbLoader, type Thumb, type ThumbLoader } from "@/lib/pdf/thumbnailLoader";
 import { runPdfOp } from "@/lib/workers/pdfOpsClient";
 import { isPdf } from "@/lib/pdf/common";
+import { useMediaQuery } from "@/lib/hooks/useMediaQuery";
 import { downloadBlob, baseName, MAX_FILE_BYTES } from "@/lib/format";
 import { analytics } from "@/lib/analytics";
 
@@ -51,9 +52,75 @@ function unitToPt(v: number, unit: Unit): number {
   return v;
 }
 
+// Shared crop preview (page image + darkened scrim + draggable frame + 8 handles).
+// Used by both the desktop two-column layout and the mobile full-screen editor.
+// On touch the handles keep their 12px visual but gain a 44×44 transparent hit area.
+function CropCanvas({
+  thumb, displayW, insets, darken, frameRef, onHandleDown, isMobile, dimLabel,
+}: {
+  thumb: Thumb;
+  displayW: number;
+  insets: CropInsets;
+  darken: string;
+  frameRef: React.RefObject<HTMLDivElement | null>;
+  onHandleDown: (h: Handle, e: React.PointerEvent) => void;
+  isMobile: boolean;
+  dimLabel: string;
+}) {
+  const HIT = isMobile ? 44 : 12;
+  const half = HIT / 2;
+  return (
+    <div ref={frameRef} className="relative shrink-0 select-none" style={{ width: displayW, maxWidth: "100%", aspectRatio: `${thumb.w} / ${thumb.h}` }}>
+      <img src={thumb.url} alt="page" className="h-full w-full rounded shadow-lg" draggable={false} />
+      {/* darken */}
+      <div className="pointer-events-none absolute inset-0">
+        <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: `${insets.top}%`, background: darken }} />
+        <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: `${insets.bottom}%`, background: darken }} />
+        <div style={{ position: "absolute", top: `${insets.top}%`, bottom: `${insets.bottom}%`, left: 0, width: `${insets.left}%`, background: darken }} />
+        <div style={{ position: "absolute", top: `${insets.top}%`, bottom: `${insets.bottom}%`, right: 0, width: `${insets.right}%`, background: darken }} />
+      </div>
+      {/* crop frame */}
+      <div
+        className="absolute"
+        style={{ top: `${insets.top}%`, left: `${insets.left}%`, right: `${insets.right}%`, bottom: `${insets.bottom}%`, border: "1.5px solid var(--indigo)", boxShadow: "0 0 0 1px rgba(0,0,0,0.3)" }}
+      >
+        <div className="pointer-events-none absolute inset-0">
+          <div style={{ position: "absolute", top: "33.33%", left: 0, right: 0, height: 1, background: "rgba(255,255,255,0.18)" }} />
+          <div style={{ position: "absolute", top: "66.66%", left: 0, right: 0, height: 1, background: "rgba(255,255,255,0.18)" }} />
+          <div style={{ position: "absolute", left: "33.33%", top: 0, bottom: 0, width: 1, background: "rgba(255,255,255,0.18)" }} />
+          <div style={{ position: "absolute", left: "66.66%", top: 0, bottom: 0, width: 1, background: "rgba(255,255,255,0.18)" }} />
+        </div>
+        <div className="pp-mono absolute" style={{ left: 6, top: 6, fontSize: 10, color: "white", background: "rgba(107,92,231,0.9)", borderRadius: 4, padding: "2px 7px" }}>
+          {dimLabel}
+        </div>
+        {HANDLES.map((h) => {
+          const corner = h.length === 2 && !h.includes("c");
+          const style: React.CSSProperties = {
+            position: "absolute", width: HIT, height: HIT, zIndex: 4, touchAction: "none",
+            display: "flex", alignItems: "center", justifyContent: "center",
+          };
+          if (h.includes("t")) style.top = -half;
+          if (h.includes("b")) style.bottom = -half;
+          if (h.includes("l")) style.left = -half;
+          if (h.includes("r")) style.right = -half;
+          if (h === "tc" || h === "bc") { style.left = "50%"; style.marginLeft = -half; style.cursor = "ns-resize"; }
+          else if (h === "ml" || h === "mr") { style.top = "50%"; style.marginTop = -half; style.cursor = "ew-resize"; }
+          else style.cursor = h === "tl" || h === "br" ? "nwse-resize" : "nesw-resize";
+          return (
+            <div key={h} style={style} onPointerDown={(e) => onHandleDown(h, e)}>
+              <div style={{ width: 12, height: 12, borderRadius: corner ? 3 : 6, background: "white", border: "2px solid var(--indigo)", boxShadow: "0 2px 6px rgba(0,0,0,0.4)" }} />
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export function CropPdf() {
   const t = useTranslations("ToolUI");
   const tp = useTranslations("ToolPages.cropPdf");
+  const isMobile = useMediaQuery("(max-width: 767px)");
   const [file, setFile] = useState<File | null>(null);
   const loaderRef = useRef<ThumbLoader | null>(null);
   const [pageCount, setPageCount] = useState(0);
@@ -245,6 +312,76 @@ export function CropPdf() {
   ];
   const rangeIndices = scope === "range" ? parsePageRanges(rangeStr, total) : [];
 
+  if (isMobile) {
+    const mobileW = thumb ? Math.min(thumb.w, 240) : 240;
+    return (
+      <div style={{ position: "fixed", inset: 0, zIndex: 60, display: "flex", flexDirection: "column", background: "var(--bg)" }}>
+        {/* header */}
+        <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, padding: "env(safe-area-inset-top) 8px 0", height: "calc(52px + env(safe-area-inset-top))", flexShrink: 0, background: "var(--card)", borderBottom: "1px solid var(--line)" }}>
+          <button type="button" onClick={reset} aria-label={tp("mobile.back")} style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 40, height: 40, borderRadius: 10, border: "1px solid var(--line)", background: "var(--bg-2)", color: "var(--text-2)" }}>
+            <IconChevron size={18} style={{ transform: "rotate(180deg)" }} />
+          </button>
+          <div style={{ flex: 1, minWidth: 0, textAlign: "center" }}>
+            <div style={{ fontSize: 14, fontWeight: 600, color: "var(--text)" }}>{tp("mobile.title")}</div>
+            <div className="pp-mono" style={{ fontSize: 10.5, color: "var(--text-3)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{file!.name}</div>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 2 }}>
+            <button type="button" onClick={() => setPreviewPage((p) => Math.max(1, p - 1))} aria-label="previous page" style={{ width: 30, height: 30, borderRadius: 8, background: "transparent", border: 0, color: "var(--text-2)", display: "flex", alignItems: "center", justifyContent: "center" }}><IconChevron size={15} style={{ transform: "rotate(180deg)" }} /></button>
+            <span className="pp-mono" style={{ fontSize: 12, color: "var(--text)", minWidth: 30, textAlign: "center" }}>{previewPage}/{total}</span>
+            <button type="button" onClick={() => setPreviewPage((p) => Math.min(total, p + 1))} aria-label="next page" style={{ width: 30, height: 30, borderRadius: 8, background: "transparent", border: 0, color: "var(--text-2)", display: "flex", alignItems: "center", justifyContent: "center" }}><IconChevron size={15} /></button>
+          </div>
+        </header>
+
+        {/* preview */}
+        <div style={{ flex: 1, position: "relative", overflow: "hidden", background: "repeating-linear-gradient(45deg, rgba(127,127,127,0.04) 0 1px, transparent 1px 16px), var(--bg-2)", display: "flex", alignItems: "center", justifyContent: "center", padding: 16 }}>
+          {status === "loading" || !thumb ? (
+            <div className="flex items-center gap-2" style={{ color: "var(--text-3)" }}><Spinner size={18} /> {t("processing")}</div>
+          ) : (
+            <>
+              <CropCanvas thumb={thumb} displayW={mobileW} insets={insets} darken={darken} frameRef={frameRef} onHandleDown={onHandleDown} isMobile dimLabel={`${Math.round(outW)} × ${Math.round(outH)} ${unit}`} />
+              <div style={{ position: "absolute", top: 12, left: "50%", transform: "translateX(-50%)", display: "flex", alignItems: "center", gap: 7, padding: "6px 12px", borderRadius: 999, background: "rgba(15,15,15,0.62)", backdropFilter: "blur(6px)", border: "1px solid var(--line-2)", fontSize: 11, color: "var(--text-2)", whiteSpace: "nowrap" }}><IconZoomIn size={13} /> {tp("mobile.hint")}</div>
+            </>
+          )}
+        </div>
+
+        {/* bottom panel */}
+        <div style={{ flexShrink: 0, background: "var(--card)", borderTop: "1px solid var(--line)", borderRadius: "20px 20px 0 0", padding: "8px 16px calc(8px + env(safe-area-inset-bottom))", boxShadow: "0 -10px 30px -16px rgba(0,0,0,0.5)" }}>
+          <div style={{ width: 40, height: 5, borderRadius: 3, background: "var(--line-2)", margin: "4px auto 14px" }} />
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <div>
+              <div className="pp-mono" style={{ fontSize: 10, letterSpacing: "0.1em", color: "var(--text-3)", marginBottom: 9 }}>{tp("presets").toUpperCase()}</div>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                {PRESETS.map((p) => {
+                  const on = preset === p.id;
+                  return (
+                    <button key={p.id} type="button" onClick={() => applyPreset(p.id)} style={{ height: 36, padding: "0 14px", borderRadius: 10, fontSize: 13, border: on ? "1px solid var(--indigo)" : "1px solid var(--line)", background: on ? "rgba(107,92,231,0.16)" : "var(--bg-2)", color: on ? "#BFB5FF" : "var(--text-2)", fontWeight: on ? 600 : 400 }}>{tp(`preset_${p.id}`)}</button>
+                  );
+                })}
+              </div>
+            </div>
+            <div style={{ display: "flex", gap: 12, alignItems: "flex-end" }}>
+              <div style={{ flex: 1 }}>
+                <div className="pp-mono" style={{ fontSize: 10, letterSpacing: "0.1em", color: "var(--text-3)", marginBottom: 9 }}>{tp("applyTo").toUpperCase()}</div>
+                <div style={{ display: "flex", gap: 3, padding: 4, background: "var(--bg-2)", border: "1px solid var(--line)", borderRadius: 11 }}>
+                  {(["all", "current"] as const).map((s) => {
+                    const on = scope === s;
+                    return <button key={s} type="button" onClick={() => setScope(s)} style={{ flex: 1, height: 38, borderRadius: 8, border: 0, background: on ? "var(--card-hi)" : "transparent", color: on ? "var(--text)" : "var(--text-2)", fontSize: 13, fontWeight: on ? 600 : 500, boxShadow: on ? "0 1px 3px rgba(0,0,0,0.25)" : "none" }}>{tp(`scope_${s}`)}</button>;
+                  })}
+                </div>
+              </div>
+              <button type="button" onClick={() => { setInsets({ top: 8, right: 8, bottom: 8, left: 8 }); setPreset("custom"); }} style={{ height: 46, padding: "0 16px", borderRadius: 11, background: "var(--bg-2)", border: "1px solid var(--line)", color: "var(--text-2)", fontSize: 13, display: "inline-flex", alignItems: "center", gap: 7 }}><IconRefresh size={14} /> {tp("mobile.reset")}</button>
+            </div>
+          </div>
+          <div style={{ padding: "14px 0 4px" }}>
+            <button type="button" className="pp-btn pp-btn-lg" style={{ width: "100%", justifyContent: "center", boxShadow: "0 12px 30px -14px rgba(107,92,231,0.6)" }} onClick={run} disabled={status === "processing"}>
+              {status === "processing" ? <><Spinner /> {t("processing")}</> : <>{tp("action")} <IconArrow size={15} /></>}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-1 gap-8 lg:grid-cols-[340px_1fr]">
       {/* Settings */}
@@ -376,45 +513,8 @@ export function CropPdf() {
           </div>
         ) : (
           <>
-            <div ref={frameRef} className="relative mt-6 shrink-0 select-none" style={{ width: displayW, maxWidth: "100%", aspectRatio: `${thumb.w} / ${thumb.h}` }}>
-              <img src={thumb.url} alt={`page ${previewPage}`} className="h-full w-full rounded shadow-lg" draggable={false} />
-              {/* darken */}
-              <div className="pointer-events-none absolute inset-0">
-                <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: `${insets.top}%`, background: darken }} />
-                <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: `${insets.bottom}%`, background: darken }} />
-                <div style={{ position: "absolute", top: `${insets.top}%`, bottom: `${insets.bottom}%`, left: 0, width: `${insets.left}%`, background: darken }} />
-                <div style={{ position: "absolute", top: `${insets.top}%`, bottom: `${insets.bottom}%`, right: 0, width: `${insets.right}%`, background: darken }} />
-              </div>
-              {/* crop frame */}
-              <div
-                className="absolute"
-                style={{ top: `${insets.top}%`, left: `${insets.left}%`, right: `${insets.right}%`, bottom: `${insets.bottom}%`, border: "1.5px solid var(--indigo)", boxShadow: "0 0 0 1px rgba(0,0,0,0.3)" }}
-              >
-                <div className="pointer-events-none absolute inset-0">
-                  <div style={{ position: "absolute", top: "33.33%", left: 0, right: 0, height: 1, background: "rgba(255,255,255,0.18)" }} />
-                  <div style={{ position: "absolute", top: "66.66%", left: 0, right: 0, height: 1, background: "rgba(255,255,255,0.18)" }} />
-                  <div style={{ position: "absolute", left: "33.33%", top: 0, bottom: 0, width: 1, background: "rgba(255,255,255,0.18)" }} />
-                  <div style={{ position: "absolute", left: "66.66%", top: 0, bottom: 0, width: 1, background: "rgba(255,255,255,0.18)" }} />
-                </div>
-                <div className="pp-mono absolute" style={{ left: 6, top: 6, fontSize: 10, color: "white", background: "rgba(107,92,231,0.9)", borderRadius: 4, padding: "2px 7px" }}>
-                  {Math.round(outW)} × {Math.round(outH)} {unit}
-                </div>
-                {HANDLES.map((h) => {
-                  const corner = h.length === 2 && !h.includes("c");
-                  const style: React.CSSProperties = {
-                    position: "absolute", width: 12, height: 12, borderRadius: corner ? 3 : 6,
-                    background: "white", border: "2px solid var(--indigo)", boxShadow: "0 2px 6px rgba(0,0,0,0.4)", zIndex: 4, touchAction: "none",
-                  };
-                  if (h.includes("t")) { style.top = -6; }
-                  if (h.includes("b")) { style.bottom = -6; }
-                  if (h.includes("l")) { style.left = -6; }
-                  if (h.includes("r")) { style.right = -6; }
-                  if (h === "tc" || h === "bc") { style.left = "50%"; style.marginLeft = -6; style.cursor = "ns-resize"; }
-                  else if (h === "ml" || h === "mr") { style.top = "50%"; style.marginTop = -6; style.cursor = "ew-resize"; }
-                  else style.cursor = h === "tl" || h === "br" ? "nwse-resize" : "nesw-resize";
-                  return <div key={h} style={style} onPointerDown={(e) => onHandleDown(h, e)} />;
-                })}
-              </div>
+            <div className="mt-6">
+              <CropCanvas thumb={thumb} displayW={displayW} insets={insets} darken={darken} frameRef={frameRef} onHandleDown={onHandleDown} isMobile={false} dimLabel={`${Math.round(outW)} × ${Math.round(outH)} ${unit}`} />
             </div>
 
             {/* page navigator + thumb strip */}

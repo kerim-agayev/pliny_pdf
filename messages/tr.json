@@ -472,7 +472,13 @@
       "cropLabel": "Kırp",
       "pageLabel": "Sayfa {n}",
       "emptyTitle": "Kırpmak için bir PDF bırakın",
-      "successTitle": "PDF kırpıldı."
+      "successTitle": "PDF kırpıldı.",
+      "mobile": {
+        "title": "PDF Kırp",
+        "back": "Geri",
+        "hint": "Tutamaçları sürükleyin · yakınlaştırmak için sıkıştırın",
+        "reset": "Sıfırla"
+      }
     },
     "organizePages": {
       "subtitle": "Sürükle bırak ile sayfaları yeniden sıralayın, döndürün, çoğaltın ve silin.",
@@ -492,7 +498,19 @@
       "hintMulti": "Çoklu seçim için Ctrl/Cmd+tık",
       "hintRange": "Aralık için Shift+tık",
       "emptyTitle": "Sayfaları düzenlemek için bir PDF bırakın",
-      "startOver": "Başka bir dosyayla baştan başla"
+      "startOver": "Başka bir dosyayla baştan başla",
+      "mobile": {
+        "title": "Sayfaları Düzenle",
+        "back": "Geri",
+        "select": "Seç",
+        "cancel": "İptal",
+        "reorderHint": "Yeniden sıralamak için basılı tutup sürükleyin",
+        "apply": "Değişiklikleri uygula",
+        "applyNote": "{count} değişiklik · tarayıcınızda işlenir",
+        "pageN": "Sayfa {n}",
+        "chooseAction": "Bir işlem seçin",
+        "original": "Orijinal"
+      }
     },
     "signPdf": {
       "subtitle": "Bir imza oluşturun, sonra sayfaya sürükleyin. Hiçbir şey yüklenmez.",
@@ -552,7 +570,21 @@
       "privacyNote": "Tüm algılama tarayıcınızda çalışır. Belge asla yüklenmez.",
       "reviewNote": "Her kutuyu gözden geçirin — indirildikten sonra içerik tamamen kaybolur.",
       "action": "Karartmaları uygula & indir",
-      "emptyTitle": "Karartmak için bir PDF bırakın"
+      "emptyTitle": "Karartmak için bir PDF bırakın",
+      "confirmTitle": "{count} karartma uygulansın mı?",
+      "confirmBody": "Her çubuğun altındaki içerik kalıcı olarak silinir. İndirdikten sonra geri alınamaz.",
+      "confirmYes": "Kalıcı olarak karart",
+      "confirmNo": "Düzenlemeye devam et",
+      "mobile": {
+        "title": "İçeriği Karart",
+        "back": "Geri",
+        "drawBox": "Kutu çiz",
+        "findText": "Metin bul",
+        "undo": "Geri al",
+        "applyN": "{count} karartmayı uygula",
+        "findTitle": "Metin bul ve karart",
+        "findSub": "Her eşleşmeyi otomatik işaretle"
+      }
     },
     "removeMetadata": {
       "subtitle": "PDF'nizden yazar, başlık ve diğer gizli belge bilgilerini silin.",
