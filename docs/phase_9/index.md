@@ -4,8 +4,8 @@
 
 ## Current Status
 - Phase: 9 (pre-launch polish)
-- Last completed: **Wave 9E — form-heavy tools mobile redesign — ✅ GATE 9E PASSED (2026-06-16)**. 4 tools (Edit Metadata, Add Watermark, Header & Footer, Add Page Numbers); Sign PDF Form Fields skipped (D9-E1, tool doesn't exist); all controls inline (D9-E2). Committed `d4946de`.
-- Next step: **Wave 9F (23 simple tools CSS responsive audit)** — CSS-only, no design handoff needed. Do NOT start until the user gives the go-ahead.
+- Last completed: **Wave 9F — 23 simple tools responsive audit — ✅ GATE 9F PASSED (2026-06-16)**. Codebase mobile-first; 21/23 already responsive, 2 genuine fixes (N-up Layout preview shrink, Reverse Pages strip stack). CSS-only. Committed `bcca2b8`.
+- Next step: **Wave 9G (Performance + Memory + Bundle audit)** — may need Hetzner deploy if backend perf issues found. Do NOT start until the user gives the go-ahead.
 
 ## Waves
 - 9A: Limit UI on all tools — LimitBadge + per-tool getToolLimits + live daily quota — **✅ GATE 9A PASSED (2026-06-15)**
@@ -14,7 +14,7 @@
 - 9D: Organize/Crop/Redact mobile — full-screen branches; Organize list+press-hold reorder, Crop 44×44 handles+pull-up panel, Redact draw+confirm modal (both platforms) — **✅ GATE 9D PASSED (2026-06-16)**
 - 9E: form-heavy tools mobile (Edit Metadata, Add Watermark, Header & Footer, Add Page Numbers) — **✅ GATE 9E PASSED (2026-06-16)**. 4 tools (not 5: Sign PDF Form Fields skipped, D9-E1 — no such tool). Full-screen mobile branch per tool; all controls inline (D9-E2). Commit `d4946de`.
   - NOTE: Wave 9D–9E design screens use `screen-p9-*.jsx` naming (e.g. `screen-p9-organize.jsx`), not `screen-*-mobile.jsx`. All present in `.design-handoff/phase-9/`.
-- 9F: 23 simple tools responsive audit — not started
+- 9F: 23 simple tools responsive audit — **✅ GATE 9F PASSED (2026-06-16)**. 21/23 already responsive (mobile-first codebase); fixes: N-up Layout preview `longSide` 380→300 on mobile (`useMediaQuery`), Reverse Pages strips stack `flex-col sm:flex-row` + token-row `overflow-x-auto py-3`/`sm:` reset. CSS-only, desktop pixel-identical. Commit `bcca2b8`.
 - 9G: perf/memory/bundle audit — not started
 - 9H: SEO + landing + blog — not started
 - 9I: critical pre-launch items — not started

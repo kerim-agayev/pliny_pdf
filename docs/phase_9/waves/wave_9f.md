@@ -1,6 +1,6 @@
 # Wave 9F — 23 Simple Tools Responsive Audit
 
-**Status:** implemented — GATE 9F pending user confirmation (not committed).
+**Status:** ✅ DONE — GATE 9F PASSED (2026-06-16, user-confirmed on real device). Commit `bcca2b8`.
 
 See CLAUDE_9.md for the full spec.
 

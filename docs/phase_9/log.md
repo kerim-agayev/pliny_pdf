@@ -35,6 +35,11 @@ Created index/decisions/architecture/bugs/log + waves/wave_9a..9j.
 - CSS-only (1 hook reuse); no globals.css, no new components, no i18n, no backend.
 - `bun run build` green (exit 0). **GATE 9F pending user confirmation; not committed.**
 
+## [2026-06-16] ✅ GATE 9F PASSED (user-confirmed on real device)
+- All 23 simple tools verified green at 375px/768px; desktop pixel-identical.
+- N-up Layout + Reverse Pages fixes committed `bcca2b8` (frontend only, no Hetzner deploy).
+- Next: Wave 9G — Performance + Memory + Bundle audit (next session).
+
 ## [2026-06-15] ✅ GATE 9A PASSED (user-confirmed on Vercel)
 Wave 9A (Limit UI) complete: LimitBadge on all 33 tools, live daily quota, inline pre-upload size+page validation, full 33-tool audit. Next: Wave 9B (Annotate mobile) — awaiting user go-ahead.
 
