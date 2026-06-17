@@ -57,7 +57,16 @@ before any upload.
 backend (inline `ErrorBanner` on rejection); the badge shows the page limit informationally.
 This is inherent, not a defect.
 
+## Wave 9J — final QA
+- No new bugs found. Automated checks all green (build exit 0, i18n parity en=tr=ru, 33
+  tool routes + `summarize` all resolve, 12 landing pages + sitemap, 5 blog posts). All
+  GATE-fixed bugs from earlier waves (B9-1..B9-15) remain fixed. See `log.md` Wave 9J entry.
+
 ## Open / watch
 - Anon daily-quota count in `/api/usage` is best-effort: the Next.js route (Vercel) and the
   cloud-tool backend (Hetzner) may see different `x-forwarded-for` IPs, so the anon "Today
-  x/3" can be approximate. Signed-in counts (keyed by user id) are exact.
+  x/3" can be approximate. Signed-in counts (keyed by user id) are exact. (Known limitation,
+  not a launch blocker — documented for Phase 10.)
+- `PostHogProvider` defaults `api_host` to `us.i.posthog.com` while the layout preconnects
+  `eu`; assumed overridden by `NEXT_PUBLIC_POSTHOG_HOST` in prod — confirm the env var is set
+  (flagged in Wave 9I, not a code defect).

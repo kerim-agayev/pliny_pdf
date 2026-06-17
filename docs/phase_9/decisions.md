@@ -116,3 +116,61 @@ related-tools linking, sitemap, and robots already shipped. Only genuinely missi
 (added via `organizationSchema`, rendered once in the locale layout; logo points at the dynamic
 `/api/og` PNG since no standalone logo asset exists). `summarize` (available:false) keeps its dormant
 SEO/FAQ data — harmless, left as-is.
+
+---
+
+# Wave 9B decisions (re-layout only — Phase 9 adds no new features)
+> Full detail in `waves/wave_9b.md`. Backfilled here in Wave 9J for a single decisions index.
+
+## D9-B1 — No eraser on mobile
+Deletion is via the long-press context menu / Delete button (matches the design); the eraser tool
+is not surfaced on the mobile Annotate toolbar.
+
+## D9-B2 — No swipe-to-page
+Page navigation uses chevrons + the Pages drawer. Single-finger touch is reserved for draw/move;
+the design uses explicit page controls. User-accepted.
+
+## D9-B3 — Text/sticky option sheets are Color-only
+No font/size/bold-italic, no highlight-opacity slider, no shape-fill toggle on mobile — the Annotate
+engine doesn't have those, and adding them would be new features.
+
+## D9-B4 — No Find pill on mobile
+Annotate has no find/replace, so no Find control in the mobile secondary row.
+
+## D9-B5 — Real safe-area insets replace mockup chrome
+The mockup's `StatusBar9`/`HomeIndicator` are device-frame chrome → implemented with real
+`env(safe-area-inset-*)`.
+
+---
+
+# Wave 9C decisions
+
+## D9-C1 — Streamlined 2-screen takeover, not the literal 4-step wizard
+Mobile Sign PDF uses a Create→Place 2-screen takeover (reusing the Wave 9B pattern) rather than the
+4-step Phone9 wizard in `screen-p9-sign.jsx`.
+
+## D9-C2 — No "Add date" / "Add initials"
+Those Place-step extras from the design were skipped (not in the gate; Simplicity First).
+
+## D9-C3 — Reuse existing `SIG_FONTS`
+Type mode reuses the shipped signature font families rather than loading the design's Google
+handwriting fonts (avoids new web-font weight).
+
+## D9-C4 — No pressure sensitivity
+Fabric's `PencilBrush` doesn't expose pointer pressure; out of scope.
+
+---
+
+# Wave 9I decisions
+
+## D9-I1 — Cookie consent = cookieless + light notice (not a GDPR consent wall)
+PostHog uses `persistence: "localStorage"` only → no tracking cookie → the privacy page's
+"no analytics cookies" claim is true. A first-visit dismissible `PrivacyNotice` (Got it / Opt out)
+covers transparency. Lowest risk to analytics capture.
+
+## D9-I2 — PWA icons generated via `next/og` (no binary PNG assets)
+`app/icon.tsx` (512) + `app/apple-icon.tsx` (180) render a "P" mark on indigo, consistent with the
+OG route — no standalone image files to maintain.
+
+## D9-I3 — Email verification left disabled
+Intentional Phase 1 decision (`requireEmailVerification:false`). Wave 9I item 9 treated as a no-op.

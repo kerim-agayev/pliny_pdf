@@ -3,9 +3,9 @@
 > Read `CLAUDE_9.md` first, then this file. Phase 1–8 docs are READ-ONLY.
 
 ## Current Status
-- Phase: 9 (pre-launch polish)
-- Last completed: **Wave 9I — critical pre-launch items — ✅ COMPLETE / GATE 9I PASSED (2026-06-17, user-confirmed on Vercel)**. Scope check found most of 9I already shipped (OG images, favicon, Sentry, keyboard shortcuts, tool-page skeletons). Built gaps only: cookieless PostHog + first-visit `PrivacyNotice`, branded 404 (localized + catch-all + root fallback), PWA manifest + `next/og` icons, branded `error.tsx`/`global-error.tsx`, OfflineIndicator, BrowserWarning (IE/Safari<14), dashboard/tools loading skeletons. Email verification left disabled (intentional). Frontend only. (D9-I1..I3.) Commit `fb7f32c`.
-- Current: **Wave 9J — final QA + Phase 9 docs** (full QA pass, real-device testing, perf regression check, complete docs/phase_9/, final commit). NOT started — do NOT start until the user gives the go-ahead.
+- Phase: 9 (pre-launch polish) — **✅ COMPLETE (all 10 waves 9A–9J gate-passed; GATE 9J 2026-06-17)**
+- Last completed: **Wave 9J — final QA + Phase 9 docs — ✅ COMPLETE / GATE 9J PASSED (2026-06-17, user-confirmed)**. Closing wave, no new code. Automated checks all green (build exit 0; i18n parity en=tr=ru 27 namespaces / 958 keys; 33 available tools + `summarize` dormant all route; 12 EN landing pages + sitemap; 5 blog posts). Final spot-check (tools desktop+375px, landing, blog EN/TR/RU, dark mode, iPhone+Android) confirmed. Docs completed: decisions backfilled (D9-B*/C*/I*), architecture summary, bugs reaffirmed, all wave files DONE. Docs-only commit.
+- **Phase 9 closed → Phase 10 can begin** (launch prep: ProductHunt/HN/Reddit, Help/FAQ, demo video, onboarding, social proof — see CLAUDE_9.md §8).
 
 ## Waves
 - 9A: Limit UI on all tools — LimitBadge + per-tool getToolLimits + live daily quota — **✅ GATE 9A PASSED (2026-06-15)**
@@ -18,7 +18,7 @@
 - 9G: perf/memory/bundle audit — **✅ GATE 9G PASSED (2026-06-17)**. Audit-first (system already strong: tools code-split, fonts swap+subset, rate limits enforced). 1 mem leak fixed (JpgToPdf object URL). Lighthouse round-2 fixes: security headers (BP 77→100), preconnect + PostHog trim + `.browserslistrc` + edit-pdf SSR LCP placeholder (Perf), a11y heading-order + `--text-3`→`--text-2` contrast, footer `contain:layout` (CLS), canonical→www. www→apex `redirects()` tried & reverted (loop). Frontend only.
 - 9H: SEO + landing + blog — **✅ GATE 9H PASSED (2026-06-17)**. Scope check: ~85% already done (33-tool meta, SoftwareApplication/FAQPage/HowTo, related-tools, sitemap, robots, 5 blog posts). Built gaps only: `breadcrumbSchema` (Home→Tools→tool on 33 pages; Home→Blog→post; Home→landing) + `organizationSchema` (global in layout, logo=`/api/og`) + 12 EN-only landing pages (template `app/[locale]/landing/[slug]` + `lib/landing.ts`, `notFound()` for tr/ru) + EN-only sitemap entries. Existing 5 blog posts kept (D9-H2), no category hubs (D9-H3). 36→12 EN landing (D9-H1).
 - 9I: critical pre-launch items — **✅ GATE 9I PASSED (2026-06-17)**. Scope check: most already shipped (OG/favicon/Sentry/shortcuts/tool skeletons). Built gaps: cookieless PostHog (`persistence:"localStorage"`) + `PrivacyNotice` (D9-I1); branded 404 (`not-found.tsx` localized + `[...rest]` catch-all + root `not-found.tsx`); PWA `manifest.ts` + `icon.tsx`/`apple-icon.tsx` via `next/og` (D9-I2); `error.tsx`/`global-error.tsx` (Sentry capture); `OfflineIndicator`; `BrowserWarning` (IE/Safari<14); dashboard/tools `loading.tsx`. Email verify left off (D9-I3). Commit `fb7f32c`.
-- 9J: final QA + docs — not started
+- 9J: final QA + docs — **✅ GATE 9J PASSED (2026-06-17)**. Automated checks green (build, i18n parity, tool routes, 12 landing, sitemap, 5 blog); manual spot-check confirmed; docs/phase_9 completed. **Phase 9 COMPLETE.**
 
 ## Key Files (Wave 9A)
 - `components/shared/LimitBadge.tsx` — reusable limit indicator (ported from Phase 9 design)
