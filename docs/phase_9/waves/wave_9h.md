@@ -1,6 +1,6 @@
 # Wave 9H — SEO + Landing Pages + Blog
 
-**Status:** ✅ GATE 9H PASSED (2026-06-17)
+**Status:** DONE ✅ — GATE 9H PASSED (2026-06-17, user-confirmed on Vercel)
 
 ## Scope check first (per CLAUDE_9.md)
 Most of Wave 9H's spec was already shipped in earlier Phase 9 work:

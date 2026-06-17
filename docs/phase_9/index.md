@@ -4,8 +4,8 @@
 
 ## Current Status
 - Phase: 9 (pre-launch polish)
-- Last completed: **Wave 9H — SEO + landing pages + blog — ✅ GATE 9H PASSED (2026-06-17)**. Scope check found most of 9H already shipped; built only gaps: BreadcrumbList schema (tool/blog/landing) + standalone Organization schema (global layout) + 12 EN-only landing pages (one template, `lib/landing.ts`) + EN-only sitemap entries. Existing 5 blog posts kept. Frontend only. (D9-H1..H4.)
-- Next step: **Wave 9I (critical pre-launch items)** — do NOT start until the user gives the go-ahead.
+- Last completed: **Wave 9H — SEO + landing pages + blog — ✅ COMPLETE / GATE 9H PASSED (2026-06-17, user-confirmed on Vercel)**. Scope check found most of 9H already shipped; built only gaps: BreadcrumbList schema (tool/blog/landing) + standalone Organization schema (global layout) + 12 EN-only landing pages (one template, `lib/landing.ts`) + EN-only sitemap entries. Existing 5 blog posts kept. Frontend only. (D9-H1..H4.) Commit `7f01556`.
+- Current: **Wave 9I — critical pre-launch items** (404 page, OG image, cookie consent, favicon, loading skeletons, offline indicator, browser warning, Sentry monitoring). NOT started — do NOT start until the user gives the go-ahead.
 
 ## Waves
 - 9A: Limit UI on all tools — LimitBadge + per-tool getToolLimits + live daily quota — **✅ GATE 9A PASSED (2026-06-15)**
