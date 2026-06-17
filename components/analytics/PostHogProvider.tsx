@@ -19,6 +19,9 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
       // Privacy-first brand: don't autocapture every DOM interaction.
       autocapture: false,
       persistence: "localStorage+cookie",
+      // Wave 9G: don't fetch surveys.js / dead-clicks-autocapture.js on every page.
+      disable_surveys: true,
+      capture_dead_clicks: false,
     });
   }, []);
 

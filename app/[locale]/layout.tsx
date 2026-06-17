@@ -65,6 +65,10 @@ export default async function LocaleLayout({
         suppressHydrationWarning
         className="min-h-full flex flex-col bg-background text-foreground"
       >
+        {/* Wave 9G: warm up analytics/error connections early to cut LCP delay. */}
+        <link rel="preconnect" href="https://eu.i.posthog.com" />
+        <link rel="preconnect" href="https://eu-assets.i.posthog.com" />
+        <link rel="preconnect" href="https://o4511506695127040.ingest.de.sentry.io" />
         <ThemeProvider>
           <PostHogProvider>
             <NextIntlClientProvider>

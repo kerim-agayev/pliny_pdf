@@ -45,9 +45,11 @@ export function ToolCard({
       >
         <Icon size={20} sw={1.6} />
       </div>
-      <h3 className="mb-1.5 font-semibold tracking-tight" style={{ fontSize: compact ? 15 : 16 }}>
+      {/* Card title is a styled <p>, not a heading — keeps page heading order
+          valid (h1 → card titles no longer skip to h3). Wave 9G a11y fix. */}
+      <p className="mb-1.5 font-semibold tracking-tight" style={{ fontSize: compact ? 15 : 16 }}>
         {t(`${tool.id}.name`)}
-      </h3>
+      </p>
       <p className="mb-3.5 text-[13px] leading-relaxed" style={{ color: "var(--text-2)" }}>
         {t(`${tool.id}.desc`)}
       </p>

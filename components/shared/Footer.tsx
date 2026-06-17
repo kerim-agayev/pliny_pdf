@@ -45,7 +45,7 @@ export function Footer() {
   ];
 
   return (
-    <footer style={{ borderTop: "1px solid var(--line)", background: "var(--bg)" }}>
+    <footer style={{ borderTop: "1px solid var(--line)", background: "var(--bg)", contain: "layout" }}>
       <div className="mx-auto max-w-[1240px] px-5 pt-14 pb-8 sm:px-10">
         <div className="grid grid-cols-2 gap-10 md:grid-cols-[1.4fr_1fr_1fr_1fr_1fr]">
           <div className="col-span-2 md:col-span-1">
@@ -64,7 +64,7 @@ export function Footer() {
             <div key={col.title}>
               <div
                 className="mb-3.5 text-[11px] font-semibold uppercase tracking-[0.1em]"
-                style={{ color: "var(--text-3)" }}
+                style={{ color: "var(--text-2)" }}
               >
                 {col.title}
               </div>
@@ -87,7 +87,7 @@ export function Footer() {
           <div>
             <div
               className="mb-3.5 text-[11px] font-semibold uppercase tracking-[0.1em]"
-              style={{ color: "var(--text-3)" }}
+              style={{ color: "var(--text-2)" }}
             >
               {t("languages")}
             </div>
