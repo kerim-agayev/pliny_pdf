@@ -1,4 +1,30 @@
 {
+  "PrivacyNotice": {
+    "body": "Gizliliğe duyarlı, çerezsiz analiz kullanıyoruz — takip çerezi yok.",
+    "gotIt": "Anladım",
+    "optOut": "Devre dışı bırak",
+    "privacyLink": "Gizlilik politikamızı okuyun"
+  },
+  "NotFound": {
+    "title": "Bu sayfa kaybolmuş",
+    "body": "Aradığınız sayfa mevcut değil ya da taşınmış. Bunun yerine popüler araçlarımızdan birini deneyin.",
+    "home": "Ana sayfa",
+    "allTools": "Tüm araçlar",
+    "popular": "Popüler araçlar"
+  },
+  "ErrorPage": {
+    "title": "Bir şeyler ters gitti",
+    "body": "Beklenmeyen bir hata oluştu. Tekrar deneyebilir veya ana sayfaya dönebilirsiniz.",
+    "retry": "Tekrar dene",
+    "home": "Ana sayfa"
+  },
+  "OfflineIndicator": {
+    "message": "Çevrimdışısınız — çalışmanızı kaydetmek ve bulut araçlarını kullanmak için yeniden bağlanın."
+  },
+  "BrowserWarning": {
+    "message": "Tarayıcınız güncel değil — bazı araçlar çalışmayabilir. En iyi deneyim için lütfen güncelleyin.",
+    "dismiss": "Kapat"
+  },
   "Nav": {
     "tools": "Araçlar",
     "about": "Hakkında",

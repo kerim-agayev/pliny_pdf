@@ -1,4 +1,30 @@
 {
+  "PrivacyNotice": {
+    "body": "We use privacy-friendly, cookieless analytics — no tracking cookies.",
+    "gotIt": "Got it",
+    "optOut": "Opt out",
+    "privacyLink": "Read our privacy policy"
+  },
+  "NotFound": {
+    "title": "This page wandered off",
+    "body": "The page you're looking for doesn't exist or has moved. Try one of our popular tools instead.",
+    "home": "Go home",
+    "allTools": "All tools",
+    "popular": "Popular tools"
+  },
+  "ErrorPage": {
+    "title": "Something went wrong",
+    "body": "An unexpected error occurred. You can try again, or head back home.",
+    "retry": "Try again",
+    "home": "Go home"
+  },
+  "OfflineIndicator": {
+    "message": "You're offline — reconnect to save your work and use cloud tools."
+  },
+  "BrowserWarning": {
+    "message": "Your browser is outdated — some tools may not work. Please update for the best experience.",
+    "dismiss": "Dismiss"
+  },
   "Nav": {
     "tools": "Tools",
     "about": "About",

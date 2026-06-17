@@ -72,8 +72,10 @@ export default async function PrivacyPage({ params }: { params: Promise<{ locale
 
       <LegalSection heading={t("h.cookies")}>
         <p>
-          One cookie: the authentication session cookie, set only when you sign in. No analytics or
-          advertising cookies.
+          One cookie: the authentication session cookie, set only when you sign in. No advertising
+          cookies. Our privacy-friendly analytics are cookieless — they store an anonymous
+          identifier in your browser&apos;s local storage, never in a cookie, and you can opt out at
+          any time from the notice shown on your first visit.
         </p>
       </LegalSection>
 

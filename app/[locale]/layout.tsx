@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Plus_Jakarta_Sans, Inter, JetBrains_Mono } from "next/font/google";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { setRequestLocale } from "next-intl/server";
@@ -9,6 +9,9 @@ import { PostHogProvider } from "@/components/analytics/PostHogProvider";
 import { Navbar } from "@/components/shared/Navbar";
 import { Footer } from "@/components/shared/Footer";
 import { Toaster } from "@/components/shared/Toaster";
+import { PrivacyNotice } from "@/components/shared/PrivacyNotice";
+import { OfflineIndicator } from "@/components/shared/OfflineIndicator";
+import { BrowserWarning } from "@/components/shared/BrowserWarning";
 import { routing } from "@/i18n/routing";
 import { SITE_URL } from "@/lib/seo";
 import { organizationSchema } from "@/lib/structured-data";
@@ -38,6 +41,12 @@ export const metadata: Metadata = {
   title: "PlinyPDF — Edit PDFs without uploading them",
   description:
     "Privacy-first online PDF toolkit. Files are processed in your browser whenever possible.",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: { capable: true, title: "PlinyPDF", statusBarStyle: "black-translucent" },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#6B5CE7",
 };
 
 export function generateStaticParams() {
@@ -76,10 +85,13 @@ export default async function LocaleLayout({
           <PostHogProvider>
             <NextIntlClientProvider>
               <TooltipProvider>
+                <BrowserWarning />
+                <OfflineIndicator />
                 <Navbar />
                 <main className="flex-1">{children}</main>
                 <Footer />
                 <Toaster />
+                <PrivacyNotice />
               </TooltipProvider>
             </NextIntlClientProvider>
           </PostHogProvider>
