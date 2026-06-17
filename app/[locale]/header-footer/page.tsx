@@ -17,7 +17,7 @@ export default async function HeaderFooterPage({
   const t = await getTranslations("ToolPages.headerFooter");
   return (
     <>
-      <JsonLd data={toolSchemas("header-footer")} />
+      <JsonLd data={toolSchemas("header-footer", locale)} />
       <ToolShell toolId="header-footer" subtitle={t("subtitle")} related={["add-page-numbers", "watermark", "edit"]} fullWidth>
         <ToolMount component="HeaderFooter" />
       </ToolShell>

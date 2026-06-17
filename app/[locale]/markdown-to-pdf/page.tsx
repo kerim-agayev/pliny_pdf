@@ -17,7 +17,7 @@ export default async function MarkdownToPdfPage({
   const t = await getTranslations("ToolPages.markdownToPdf");
   return (
     <>
-      <JsonLd data={toolSchemas("markdown-to-pdf")} />
+      <JsonLd data={toolSchemas("markdown-to-pdf", locale)} />
       <ToolShell toolId="markdown-to-pdf" subtitle={t("subtitle")} related={["text-to-pdf", "word-to-pdf", "jpg-to-pdf"]} fullWidth>
         <ToolMount component="MarkdownToPdf" />
       </ToolShell>

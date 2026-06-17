@@ -81,3 +81,38 @@ The Phase-9 mocks tuck secondary style options (font/size/color) into a BottomSh
 the scrollable area (preview on top, sticky Apply at bottom). Fewer moving parts, faster to verify,
 nothing new to wire — `useMediaQuery`, `NumberField`, `ScaledPreview`, and the safe-area pattern
 are reused, but `BottomSheet` is not used in this wave.
+
+---
+
+# Wave 9H decisions
+
+## D9-H1 — 12 EN landing pages (template), not 36 × 3 locales
+CLAUDE_9.md says "36 landing pages, full list in design handoff" — but no list exists anywhere
+(the design handoff holds only the 10-tool mobile component designs). User chose the
+template-+-fewer-pages path: **one** dynamic route `app/[locale]/landing/[slug]/page.tsx` driven by
+`lib/landing.ts`, with **12** keyword-targeted topics (each mapped to a high-value tool for internal
+linking), **English only**. EN-only avoids thin machine-translated content and is the primary global
+SEO market; non-en locales `notFound()` and are excluded from the sitemap. 36 hand-written pages and
+TR/RU translations can come in Phase 10 if the 12 prove out. GATE 9H's "36 landing pages live" line is
+superseded by this decision.
+
+## D9-H2 — Keep the existing 5 blog posts; do not write the 5 spec topics
+5 posts already ship (`best-free-pdf-editor-2026`, `gdpr-and-pdf-tools`,
+`how-plinypdf-protects-your-privacy`, `how-to-compress-pdf-without-losing-quality`,
+`why-you-should-never-upload-pdfs`) — different titles than CLAUDE_9.md's 5 ("How PDF compression
+works", "PlinyPDF vs Sejda vs iLovePDF", …) but the same count and overlapping themes. User chose to
+treat the existing 5 as satisfying the gate (verify-only). This wave just confirmed they render in
+en/tr/ru and added BreadcrumbList. No new posts written.
+
+## D9-H3 — No dedicated category hub routes
+The spec floats "Convert PDF to ___" / "Edit ___" hub pages. User chose to skip them — the existing
+`/tools?category=X` filtered catalog already groups tools by category, and the new landing pages each
+carry a related-tools grid. Avoids new routes for marginal SEO clustering gain.
+
+## D9-H4 — Most of Wave 9H was already done; only gaps built
+The mandated scope check found unique 33-tool meta, SoftwareApplication/FAQPage/HowTo schemas,
+related-tools linking, sitemap, and robots already shipped. Only genuinely missing: BreadcrumbList
+(added via `breadcrumbSchema`, wired into tool/blog/landing pages) and a standalone Organization schema
+(added via `organizationSchema`, rendered once in the locale layout; logo points at the dynamic
+`/api/og` PNG since no standalone logo asset exists). `summarize` (available:false) keeps its dormant
+SEO/FAQ data — harmless, left as-is.

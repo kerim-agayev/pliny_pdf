@@ -13,7 +13,7 @@ export default async function WatermarkPage({ params }: { params: Promise<{ loca
   const t = await getTranslations("ToolPages.watermark");
   return (
     <>
-      <JsonLd data={toolSchemas("add-watermark")} />
+      <JsonLd data={toolSchemas("add-watermark", locale)} />
       <ToolShell toolId="watermark" subtitle={t("subtitle")} fullWidth>
         <ToolMount component="WatermarkTool" />
       </ToolShell>

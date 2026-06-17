@@ -13,7 +13,7 @@ export default async function NupLayoutPage({ params }: { params: Promise<{ loca
   const t = await getTranslations("ToolPages.nupLayout");
   return (
     <>
-      <JsonLd data={toolSchemas("n-up-layout")} />
+      <JsonLd data={toolSchemas("n-up-layout", locale)} />
       <ToolShell toolId="nupLayout" subtitle={t("subtitle")} related={["organize-pages", "split", "rotate"]}>
         <ToolMount component="NupLayoutTool" />
       </ToolShell>

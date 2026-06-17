@@ -17,7 +17,7 @@ export default async function OrganizePagesPage({
   const t = await getTranslations("ToolPages.organizePages");
   return (
     <>
-      <JsonLd data={toolSchemas("organize-pages")} />
+      <JsonLd data={toolSchemas("organize-pages", locale)} />
       <ToolShell toolId="organize-pages" subtitle={t("subtitle")} related={["merge", "delete-pages", "rotate"]} fullWidth>
         <ToolMount component="OrganizePages" />
       </ToolShell>

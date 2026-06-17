@@ -17,7 +17,7 @@ export default async function MergePage({
   const t = await getTranslations("ToolPages.merge");
   return (
     <>
-      <JsonLd data={toolSchemas("merge-pdf")} />
+      <JsonLd data={toolSchemas("merge-pdf", locale)} />
       <ToolShell toolId="merge" subtitle={t("subtitle")} related={["split", "compress", "rotate"]}>
         <ToolMount component="MergeTool" />
       </ToolShell>

@@ -17,7 +17,7 @@ export default async function EditMetadataPage({
   const t = await getTranslations("ToolPages.editMetadata");
   return (
     <>
-      <JsonLd data={toolSchemas("edit-metadata")} />
+      <JsonLd data={toolSchemas("edit-metadata", locale)} />
       <ToolShell toolId="edit-metadata" subtitle={t("subtitle")} related={["remove-metadata", "edit", "flatten-pdf"]}>
         <ToolMount component="EditMetadata" />
       </ToolShell>

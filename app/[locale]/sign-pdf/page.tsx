@@ -17,7 +17,7 @@ export default async function SignPdfPage({
   const t = await getTranslations("ToolPages.signPdf");
   return (
     <>
-      <JsonLd data={toolSchemas("sign-pdf")} />
+      <JsonLd data={toolSchemas("sign-pdf", locale)} />
       <ToolShell toolId="sign-pdf" subtitle={t("subtitle")} related={["edit", "header-footer", "protect"]} fullWidth>
         <ToolMount component="SignPdf" />
       </ToolShell>

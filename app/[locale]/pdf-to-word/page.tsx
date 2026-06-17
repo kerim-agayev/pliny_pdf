@@ -17,7 +17,7 @@ export default async function PdfToWordPage({
   const t = await getTranslations("ToolPages.pdfToWord");
   return (
     <>
-      <JsonLd data={toolSchemas("pdf-to-word")} />
+      <JsonLd data={toolSchemas("pdf-to-word", locale)} />
       <ToolShell toolId="pdf-to-word" subtitle={t("subtitle")} related={["word-to-pdf", "merge", "compress"]}>
         <ToolMount
           component="CloudConvertTool"

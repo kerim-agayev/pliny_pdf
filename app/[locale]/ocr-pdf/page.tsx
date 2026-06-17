@@ -17,7 +17,7 @@ export default async function OcrPdfPage({
   const t = await getTranslations("ToolPages.ocrPdf");
   return (
     <>
-      <JsonLd data={toolSchemas("ocr-pdf")} />
+      <JsonLd data={toolSchemas("ocr-pdf", locale)} />
       <ToolShell toolId="ocr-pdf" subtitle={t("subtitle")} related={["pdf-to-word", "summarize", "compress"]}>
         <ToolMount component="OcrPdf" />
       </ToolShell>

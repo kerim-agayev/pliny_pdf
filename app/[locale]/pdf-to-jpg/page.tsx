@@ -17,7 +17,7 @@ export default async function PdfToJpgPage({
   const t = await getTranslations("ToolPages.pdfToJpg");
   return (
     <>
-      <JsonLd data={toolSchemas("pdf-to-jpg")} />
+      <JsonLd data={toolSchemas("pdf-to-jpg", locale)} />
       <ToolShell toolId="pdf-to-jpg" subtitle={t("subtitle")} related={["jpg-to-pdf", "compress", "merge"]}>
         <ToolMount component="PdfToJpgTool" />
       </ToolShell>

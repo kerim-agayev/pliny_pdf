@@ -8,14 +8,14 @@ import { IconCloudUp, IconFile } from "@/components/shared/icons";
 export const generateMetadata = toolMetadata("edit-pdf");
 
 /**
- * Edit PDF — the cloud editor (Phase 4). Unlike every other tool it does NOT use
+ * Edit PDF â€” the cloud editor (Phase 4). Unlike every other tool it does NOT use
  * ToolShell: the editor is a full-screen takeover (its own header/toolbars/sidebar),
  * so the page just emits SEO/JSON-LD and mounts the client editor full-bleed.
  *
  * Wave 9G LCP fix: the editor is `dynamic(ssr:false)`, so nothing painted
  * server-side and LCP waited ~7.6s for the JS chunk. The static, aria-hidden
  * placeholder below mirrors the editor's empty state and renders in the initial
- * HTML — it becomes the LCP element, then is fully covered by the editor's opaque
+ * HTML â€” it becomes the LCP element, then is fully covered by the editor's opaque
  * `position:fixed; inset:0; z-index:50` shell once it hydrates. No focusable
  * elements (styled span, not a button) so it adds nothing to the a11y tree.
  */
@@ -29,7 +29,7 @@ export default async function EditPdfPage({
   const t = await getTranslations("ToolPages.editPdf");
   return (
     <>
-      <JsonLd data={toolSchemas("edit-pdf")} />
+      <JsonLd data={toolSchemas("edit-pdf", locale)} />
       <div
         aria-hidden
         style={{

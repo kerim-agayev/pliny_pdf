@@ -17,7 +17,7 @@ export default async function GrayscalePdfPage({
   const t = await getTranslations("ToolPages.grayscalePdf");
   return (
     <>
-      <JsonLd data={toolSchemas("grayscale-pdf")} />
+      <JsonLd data={toolSchemas("grayscale-pdf", locale)} />
       <ToolShell toolId="grayscale-pdf" subtitle={t("subtitle")} related={["compress", "crop-pdf", "edit"]}>
         <ToolMount component="GrayscalePdf" />
       </ToolShell>

@@ -17,7 +17,7 @@ export default async function FlattenPdfPage({
   const t = await getTranslations("ToolPages.flattenPdf");
   return (
     <>
-      <JsonLd data={toolSchemas("flatten-pdf")} />
+      <JsonLd data={toolSchemas("flatten-pdf", locale)} />
       <ToolShell toolId="flatten-pdf" subtitle={t("subtitle")} related={["edit", "remove-metadata", "compress"]}>
         <ToolMount component="FlattenPdf" />
       </ToolShell>

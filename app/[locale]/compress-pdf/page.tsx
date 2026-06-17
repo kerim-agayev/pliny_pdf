@@ -17,7 +17,7 @@ export default async function CompressPage({
   const t = await getTranslations("ToolPages.compress");
   return (
     <>
-      <JsonLd data={toolSchemas("compress-pdf")} />
+      <JsonLd data={toolSchemas("compress-pdf", locale)} />
       <ToolShell toolId="compress" subtitle={t("subtitle")} related={["merge", "split", "rotate"]}>
         <ToolMount component="CompressTool" />
       </ToolShell>

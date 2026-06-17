@@ -17,7 +17,7 @@ export default async function AnnotateEditorPage({
   const t = await getTranslations("ToolPages.editor");
   return (
     <>
-      <JsonLd data={toolSchemas("pdf-editor")} />
+      <JsonLd data={toolSchemas("pdf-editor", locale)} />
       <ToolShell toolId="edit" subtitle={t("subtitle")} fullWidth>
         <ToolMount component="EditorTool" />
       </ToolShell>

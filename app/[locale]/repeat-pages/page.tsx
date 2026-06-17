@@ -13,7 +13,7 @@ export default async function RepeatPagesPage({ params }: { params: Promise<{ lo
   const t = await getTranslations("ToolPages.repeatPages");
   return (
     <>
-      <JsonLd data={toolSchemas("repeat-pages")} />
+      <JsonLd data={toolSchemas("repeat-pages", locale)} />
       <ToolShell
         toolId="repeatPages"
         subtitle={t("subtitle")}

@@ -17,7 +17,7 @@ export default async function DeletePagesPage({
   const t = await getTranslations("ToolPages.deletePages");
   return (
     <>
-      <JsonLd data={toolSchemas("delete-pages")} />
+      <JsonLd data={toolSchemas("delete-pages", locale)} />
       <ToolShell toolId="delete-pages" subtitle={t("subtitle")} related={["extract-pages", "split", "rotate"]}>
         <ToolMount component="DeletePages" />
       </ToolShell>

@@ -17,7 +17,7 @@ export default async function RotatePage({
   const t = await getTranslations("ToolPages.rotate");
   return (
     <>
-      <JsonLd data={toolSchemas("rotate-pdf")} />
+      <JsonLd data={toolSchemas("rotate-pdf", locale)} />
       <ToolShell toolId="rotate" subtitle={t("subtitle")} related={["merge", "split", "compress"]}>
         <ToolMount component="RotateTool" />
       </ToolShell>

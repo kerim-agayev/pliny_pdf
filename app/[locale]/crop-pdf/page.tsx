@@ -17,7 +17,7 @@ export default async function CropPdfPage({
   const t = await getTranslations("ToolPages.cropPdf");
   return (
     <>
-      <JsonLd data={toolSchemas("crop-pdf")} />
+      <JsonLd data={toolSchemas("crop-pdf", locale)} />
       <ToolShell toolId="crop-pdf" subtitle={t("subtitle")} related={["rotate", "compress", "organize-pages"]} fullWidth>
         <ToolMount component="CropPdf" />
       </ToolShell>

@@ -5,6 +5,7 @@ import Markdown from "markdown-to-jsx";
 import { Link } from "@/i18n/navigation";
 import { getAllSlugs, getPost } from "@/lib/blog";
 import { pageMetadata, ogImageUrl, SITE_URL } from "@/lib/seo";
+import { breadcrumbSchema } from "@/lib/structured-data";
 import { JsonLd } from "@/components/seo/JsonLd";
 
 export function generateStaticParams() {
@@ -94,9 +95,15 @@ export default async function BlogPostPage({
     publisher: { "@type": "Organization", name: "PlinyPDF" },
   };
 
+  const breadcrumbs = breadcrumbSchema(locale, [
+    { name: "Home", path: "/" },
+    { name: t("title"), path: "/blog" },
+    { name: post.title, path: `/blog/${slug}` },
+  ]);
+
   return (
     <article className="mx-auto max-w-[720px] px-5 pt-16 pb-24 sm:px-8">
-      <JsonLd data={articleSchema} />
+      <JsonLd data={[articleSchema, breadcrumbs]} />
       <Link href="/blog" className="text-[14px]" style={{ color: "var(--text-3)" }}>
         {t("backToBlog")}
       </Link>

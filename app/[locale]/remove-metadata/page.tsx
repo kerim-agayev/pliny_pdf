@@ -17,7 +17,7 @@ export default async function RemoveMetadataPage({
   const t = await getTranslations("ToolPages.removeMetadata");
   return (
     <>
-      <JsonLd data={toolSchemas("remove-metadata")} />
+      <JsonLd data={toolSchemas("remove-metadata", locale)} />
       <ToolShell toolId="remove-metadata" subtitle={t("subtitle")} related={["edit-metadata", "protect", "flatten-pdf"]}>
         <ToolMount component="RemoveMetadata" />
       </ToolShell>

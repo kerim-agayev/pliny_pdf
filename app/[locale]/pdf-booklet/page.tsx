@@ -13,7 +13,7 @@ export default async function PdfBookletPage({ params }: { params: Promise<{ loc
   const t = await getTranslations("ToolPages.pdfBooklet");
   return (
     <>
-      <JsonLd data={toolSchemas("pdf-booklet")} />
+      <JsonLd data={toolSchemas("pdf-booklet", locale)} />
       <ToolShell
         toolId="pdfBooklet"
         subtitle={t("subtitle")}

@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { routing } from "@/i18n/routing";
 import { TOOLS } from "@/lib/tools";
 import { getAllSlugs } from "@/lib/blog";
+import { landingSlugs } from "@/lib/landing";
 import { SITE_URL } from "@/lib/seo";
 
 /**
@@ -31,5 +32,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
       });
     }
   }
+
+  // Landing pages are EN-only SEO content — emit only the /en URL (x-default = en),
+  // never /tr or /ru variants (those routes 404 by design).
+  for (const slug of landingSlugs) {
+    const url = `${SITE_URL}/${routing.defaultLocale}/landing/${slug}`;
+    entries.push({
+      url,
+      changeFrequency: "monthly",
+      priority: 0.7,
+      alternates: { languages: { "x-default": url } },
+    });
+  }
+
   return entries;
 }

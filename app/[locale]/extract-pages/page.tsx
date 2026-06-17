@@ -17,7 +17,7 @@ export default async function ExtractPagesPage({
   const t = await getTranslations("ToolPages.extractPages");
   return (
     <>
-      <JsonLd data={toolSchemas("extract-pages")} />
+      <JsonLd data={toolSchemas("extract-pages", locale)} />
       <ToolShell toolId="extract-pages" subtitle={t("subtitle")} related={["delete-pages", "split", "merge"]}>
         <ToolMount component="ExtractPages" />
       </ToolShell>

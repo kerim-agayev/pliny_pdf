@@ -13,7 +13,7 @@ export default async function PdfToTextPage({ params }: { params: Promise<{ loca
   const t = await getTranslations("ToolPages.pdfToText");
   return (
     <>
-      <JsonLd data={toolSchemas("pdf-to-text")} />
+      <JsonLd data={toolSchemas("pdf-to-text", locale)} />
       <ToolShell toolId="pdfToText" subtitle={t("subtitle")} fullWidth>
         <ToolMount component="PdfToTextTool" />
       </ToolShell>

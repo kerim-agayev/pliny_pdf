@@ -4,8 +4,8 @@
 
 ## Current Status
 - Phase: 9 (pre-launch polish)
-- Last completed: **Wave 9G — Performance + Memory + Bundle audit — ✅ GATE 9G PASSED (2026-06-17)**. Lighthouse all targets met (homepage P91/A96/BP100/SEO100, /tools P97/A100/BP100/SEO100, /edit-pdf P94/A100/BP100/SEO100, desktop P100/A96/BP100/SEO100). Audit found system already strong; fixes: 1 mem leak (JpgToPdf object URL) + security headers, preconnect, PostHog trim, edit-pdf SSR LCP placeholder, a11y heading/contrast, footer CLS, canonical→www. Frontend only.
-- Next step: **Wave 9H (SEO + landing pages + blog)** — do NOT start until the user gives the go-ahead.
+- Last completed: **Wave 9H — SEO + landing pages + blog — ✅ GATE 9H PASSED (2026-06-17)**. Scope check found most of 9H already shipped; built only gaps: BreadcrumbList schema (tool/blog/landing) + standalone Organization schema (global layout) + 12 EN-only landing pages (one template, `lib/landing.ts`) + EN-only sitemap entries. Existing 5 blog posts kept. Frontend only. (D9-H1..H4.)
+- Next step: **Wave 9I (critical pre-launch items)** — do NOT start until the user gives the go-ahead.
 
 ## Waves
 - 9A: Limit UI on all tools — LimitBadge + per-tool getToolLimits + live daily quota — **✅ GATE 9A PASSED (2026-06-15)**
@@ -16,7 +16,7 @@
   - NOTE: Wave 9D–9E design screens use `screen-p9-*.jsx` naming (e.g. `screen-p9-organize.jsx`), not `screen-*-mobile.jsx`. All present in `.design-handoff/phase-9/`.
 - 9F: 23 simple tools responsive audit — **✅ GATE 9F PASSED (2026-06-16)**. 21/23 already responsive (mobile-first codebase); fixes: N-up Layout preview `longSide` 380→300 on mobile (`useMediaQuery`), Reverse Pages strips stack `flex-col sm:flex-row` + token-row `overflow-x-auto py-3`/`sm:` reset. CSS-only, desktop pixel-identical. Commit `bcca2b8`.
 - 9G: perf/memory/bundle audit — **✅ GATE 9G PASSED (2026-06-17)**. Audit-first (system already strong: tools code-split, fonts swap+subset, rate limits enforced). 1 mem leak fixed (JpgToPdf object URL). Lighthouse round-2 fixes: security headers (BP 77→100), preconnect + PostHog trim + `.browserslistrc` + edit-pdf SSR LCP placeholder (Perf), a11y heading-order + `--text-3`→`--text-2` contrast, footer `contain:layout` (CLS), canonical→www. www→apex `redirects()` tried & reverted (loop). Frontend only.
-- 9H: SEO + landing + blog — not started
+- 9H: SEO + landing + blog — **✅ GATE 9H PASSED (2026-06-17)**. Scope check: ~85% already done (33-tool meta, SoftwareApplication/FAQPage/HowTo, related-tools, sitemap, robots, 5 blog posts). Built gaps only: `breadcrumbSchema` (Home→Tools→tool on 33 pages; Home→Blog→post; Home→landing) + `organizationSchema` (global in layout, logo=`/api/og`) + 12 EN-only landing pages (template `app/[locale]/landing/[slug]` + `lib/landing.ts`, `notFound()` for tr/ru) + EN-only sitemap entries. Existing 5 blog posts kept (D9-H2), no category hubs (D9-H3). 36→12 EN landing (D9-H1).
 - 9I: critical pre-launch items — not started
 - 9J: final QA + docs — not started
 
@@ -70,6 +70,15 @@
 - `.browserslistrc` — drops legacy JS polyfills
 - `components/tools/JpgToPdfTool.tsx` — object-URL leak fix (revoke on files change/unmount)
 - a11y/CLS: `ToolCard.tsx` (h3→p), `ToolsCatalog.tsx` (h3→h2), `Footer.tsx` (contrast + `contain:layout`), `RecentFiles.tsx` (contrast)
+
+## Key Files (Wave 9H)
+- `lib/structured-data.ts` — `breadcrumbSchema(locale, items)`, `organizationSchema()`, `toolSchemas(slug, locale?)` (appends BreadcrumbList when locale passed)
+- `lib/landing.ts` — NEW; `LANDING` (12 EN topics, each → primary tool + related + FAQ), `landingSlugs`, `getLanding`
+- `app/[locale]/landing/[slug]/page.tsx` — NEW; EN-only template (hero + CTA + FAQ + related grid + FAQPage/BreadcrumbList JSON-LD; `notFound()` for tr/ru)
+- `app/[locale]/layout.tsx` — global `<JsonLd data={organizationSchema()} />`
+- `app/[locale]/blog/[slug]/page.tsx` — BlogPosting now paired with BreadcrumbList
+- `app/sitemap.ts` — EN-only `/en/landing/<slug>` entries (priority 0.7, x-default=en)
+- 33 tool `app/[locale]/<slug>/page.tsx` — `toolSchemas(slug, locale)` (one-line each)
 
 ## Design Handoff
 - Saved to `.design-handoff/phase-9/`. LimitBadge + updated FileDropzone (`Dropzone9`) in `project/phase9-kit.jsx`; tokens in `project/brand.css`; behavior notes in `project/PlinyPDF Design.html`; intent in `chats/chat4.md`.

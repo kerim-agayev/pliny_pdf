@@ -17,7 +17,7 @@ export default async function UnlockPage({
   const t = await getTranslations("ToolPages.unlock");
   return (
     <>
-      <JsonLd data={toolSchemas("remove-password")} />
+      <JsonLd data={toolSchemas("remove-password", locale)} />
       <ToolShell toolId="unlock" subtitle={t("subtitle")} related={["protect", "merge", "compress"]}>
         <ToolMount component="UnlockTool" />
       </ToolShell>

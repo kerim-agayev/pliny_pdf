@@ -1,4 +1,4 @@
-import { SITE_URL, TOOL_SEO } from "@/lib/seo";
+import { SITE_URL, TOOL_SEO, ogImageUrl } from "@/lib/seo";
 import { toolBySlug } from "@/lib/tools";
 
 /**
@@ -232,14 +232,51 @@ export function softwareApplicationSchema() {
   };
 }
 
-/** FAQPage + HowTo schemas for a tool route. Returns [] if the slug is unknown. */
-export function toolSchemas(slug: string): object[] {
+/** Organization (brand) schema — rendered once site-wide in the locale layout. */
+export function organizationSchema() {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    name: "PlinyPDF",
+    url: SITE_URL,
+    // No standalone logo asset yet — the dynamic OG renderer gives a real PNG.
+    logo: ogImageUrl("PlinyPDF"),
+    description:
+      "Privacy-first online PDF toolkit. Most tools run in your browser — files never leave your device.",
+  };
+}
+
+/**
+ * BreadcrumbList schema. `items` are locale-agnostic; URLs are built per locale.
+ * `path` is the route WITHOUT the locale prefix (e.g. "/tools", "/merge-pdf", "/").
+ */
+export function breadcrumbSchema(
+  locale: string,
+  items: { name: string; path: string }[],
+) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: items.map((it, i) => ({
+      "@type": "ListItem",
+      position: i + 1,
+      name: it.name,
+      item: `${SITE_URL}/${locale}${it.path === "/" ? "" : it.path}`,
+    })),
+  };
+}
+
+/**
+ * FAQPage + HowTo (+ BreadcrumbList when `locale` is given) schemas for a tool route.
+ * Returns [] if the slug is unknown.
+ */
+export function toolSchemas(slug: string, locale?: string): object[] {
   const tool = toolBySlug(slug);
   const faq = TOOL_FAQ[slug];
   const seo = TOOL_SEO[slug];
   if (!tool || !faq || !seo) return [];
   const how = tool.mode === "cloud" ? CLOUD_HOW : LOCAL_HOW;
-  return [
+  const schemas: object[] = [
     {
       "@context": "https://schema.org",
       "@type": "FAQPage",
@@ -262,4 +299,14 @@ export function toolSchemas(slug: string): object[] {
       })),
     },
   ];
+  if (locale) {
+    schemas.push(
+      breadcrumbSchema(locale, [
+        { name: "Home", path: "/" },
+        { name: "Tools", path: "/tools" },
+        { name: tool.name, path: `/${slug}` },
+      ]),
+    );
+  }
+  return schemas;
 }

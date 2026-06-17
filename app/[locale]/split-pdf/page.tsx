@@ -17,7 +17,7 @@ export default async function SplitPage({
   const t = await getTranslations("ToolPages.split");
   return (
     <>
-      <JsonLd data={toolSchemas("split-pdf")} />
+      <JsonLd data={toolSchemas("split-pdf", locale)} />
       <ToolShell toolId="split" subtitle={t("subtitle")} related={["merge", "rotate", "compress"]}>
         <ToolMount component="SplitTool" />
       </ToolShell>

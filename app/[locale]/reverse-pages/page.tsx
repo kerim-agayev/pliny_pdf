@@ -13,7 +13,7 @@ export default async function ReversePagesPage({ params }: { params: Promise<{ l
   const t = await getTranslations("ToolPages.reversePages");
   return (
     <>
-      <JsonLd data={toolSchemas("reverse-pages")} />
+      <JsonLd data={toolSchemas("reverse-pages", locale)} />
       <ToolShell toolId="reversePages" subtitle={t("subtitle")} related={["organize-pages", "rotate", "split"]}>
         <ToolMount component="ReversePagesTool" />
       </ToolShell>

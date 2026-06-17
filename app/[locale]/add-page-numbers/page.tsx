@@ -17,7 +17,7 @@ export default async function AddPageNumbersPage({
   const t = await getTranslations("ToolPages.addPageNumbers");
   return (
     <>
-      <JsonLd data={toolSchemas("add-page-numbers")} />
+      <JsonLd data={toolSchemas("add-page-numbers", locale)} />
       <ToolShell toolId="add-page-numbers" subtitle={t("subtitle")} related={["header-footer", "edit", "rotate"]} fullWidth>
         <ToolMount component="AddPageNumbers" />
       </ToolShell>

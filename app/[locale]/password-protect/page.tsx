@@ -17,7 +17,7 @@ export default async function ProtectPage({
   const t = await getTranslations("ToolPages.protect");
   return (
     <>
-      <JsonLd data={toolSchemas("password-protect")} />
+      <JsonLd data={toolSchemas("password-protect", locale)} />
       <ToolShell toolId="protect" subtitle={t("subtitle")} related={["unlock", "merge", "compress"]}>
         <ToolMount component="ProtectTool" />
       </ToolShell>

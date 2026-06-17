@@ -11,6 +11,8 @@ import { Footer } from "@/components/shared/Footer";
 import { Toaster } from "@/components/shared/Toaster";
 import { routing } from "@/i18n/routing";
 import { SITE_URL } from "@/lib/seo";
+import { organizationSchema } from "@/lib/structured-data";
+import { JsonLd } from "@/components/seo/JsonLd";
 import "../globals.css";
 
 const sans = Plus_Jakarta_Sans({
@@ -65,6 +67,7 @@ export default async function LocaleLayout({
         suppressHydrationWarning
         className="min-h-full flex flex-col bg-background text-foreground"
       >
+        <JsonLd data={organizationSchema()} />
         {/* Wave 9G: warm up analytics/error connections early to cut LCP delay. */}
         <link rel="preconnect" href="https://eu.i.posthog.com" />
         <link rel="preconnect" href="https://eu-assets.i.posthog.com" />

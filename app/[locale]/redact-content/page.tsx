@@ -17,7 +17,7 @@ export default async function RedactContentPage({
   const t = await getTranslations("ToolPages.redactContent");
   return (
     <>
-      <JsonLd data={toolSchemas("redact-content")} />
+      <JsonLd data={toolSchemas("redact-content", locale)} />
       <ToolShell toolId="redact-content" subtitle={t("subtitle")} related={["edit", "sign-pdf", "protect"]} fullWidth>
         <ToolMount component="RedactContent" />
       </ToolShell>
