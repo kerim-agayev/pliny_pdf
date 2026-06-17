@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { FileDropzone } from "./FileDropzone";
 import { SuccessPanel, ErrorBanner } from "./ResultPanels";
@@ -27,6 +27,14 @@ export function JpgToPdfTool() {
   const [status, setStatus] = useState<Status>("idle");
   const [result, setResult] = useState<{ blob: Blob; filename: string; meta: string } | null>(null);
   const [errorMsg, setErrorMsg] = useState<string>();
+
+  // Preview blob URLs: created per files change, revoked on change + unmount (no leak).
+  const [previews, setPreviews] = useState<string[]>([]);
+  useEffect(() => {
+    const urls = files.map((f) => URL.createObjectURL(f));
+    setPreviews(urls);
+    return () => urls.forEach((u) => URL.revokeObjectURL(u));
+  }, [files]);
 
   function addFiles(incoming: File[]) {
     const imgs = incoming.filter(isImage);
@@ -111,7 +119,7 @@ export function JpgToPdfTool() {
             {files.map((f, i) => (
               <div key={i} className="group relative aspect-[3/4] overflow-hidden rounded-lg" style={{ border: "1px solid var(--line)", background: "var(--bg-2)" }}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={URL.createObjectURL(f)} alt={f.name} className="size-full object-cover" />
+                <img src={previews[i]} alt={f.name} className="size-full object-cover" />
                 <button
                   type="button"
                   onClick={() => setFiles((prev) => prev.filter((_, idx) => idx !== i))}
