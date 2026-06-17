@@ -1,14 +1,11 @@
 import type { Metadata } from "next";
 import { routing } from "@/i18n/routing";
 
-/**
- * Canonical site origin. Defaults to the production domain; override per-env.
- * Strips a leading `www.` so canonical/hreflang always point at the apex domain
- * (plinypdf.com) even if the env var is set to the www host (Wave 9G SEO fix).
- */
-export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://plinypdf.com")
-  .replace(/\/$/, "")
-  .replace(/^(https?:\/\/)www\./, "$1");
+/** Canonical site origin. Defaults to the production domain; override per-env. */
+export const SITE_URL = (process.env.NEXT_PUBLIC_SITE_URL ?? "https://www.plinypdf.com").replace(
+  /\/$/,
+  "",
+);
 
 /** URL of the dynamic OG image for a given title/description. */
 export function ogImageUrl(title: string, description?: string): string {
