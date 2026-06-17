@@ -111,7 +111,7 @@ export function Footer() {
         <hr className="pp-hr my-0" />
         <div
           className="flex flex-col items-start justify-between gap-2 pt-6 text-[12.5px] sm:flex-row sm:items-center"
-          style={{ color: "var(--text-3)" }}
+          style={{ color: "var(--text-2)" }}
         >
           <span>{t("rights", { year })}</span>
           <span className="inline-flex items-center gap-1.5">

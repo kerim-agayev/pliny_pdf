@@ -5,6 +5,18 @@ import { withSentryConfig } from "@sentry/nextjs";
 const withNextIntl = createNextIntlPlugin("./i18n/request.ts");
 
 const nextConfig: NextConfig = {
+  // Wave 9G: 301 www → apex so the canonical host (plinypdf.com) is the only one
+  // served. Pair with NEXT_PUBLIC_SITE_URL=https://plinypdf.com in Vercel env.
+  async redirects() {
+    return [
+      {
+        source: "/:path*",
+        has: [{ type: "host", value: "www.plinypdf.com" }],
+        destination: "https://plinypdf.com/:path*",
+        permanent: true,
+      },
+    ];
+  },
   // Wave 9G: global security headers (Lighthouse Best Practices). No CSP yet —
   // a wrong CSP breaks the editor/analytics; revisit separately.
   async headers() {

@@ -50,7 +50,7 @@ export function RecentFiles({ compact = false }: { compact?: boolean }) {
           type="button"
           onClick={clearRecentFiles}
           className="inline-flex items-center gap-1 text-[11.5px] transition-colors hover:text-[var(--text)]"
-          style={{ color: "var(--text-3)" }}
+          style={{ color: "var(--text-2)" }}
         >
           <IconTrash size={12} sw={1.7} /> {t("clear")}
         </button>
@@ -62,7 +62,7 @@ export function RecentFiles({ compact = false }: { compact?: boolean }) {
         ))}
       </ul>
 
-      <p className="mt-2.5 text-[11px]" style={{ color: "var(--text-3)" }}>
+      <p className="mt-2.5 text-[11px]" style={{ color: "var(--text-2)" }}>
         {t("privacy")}
       </p>
     </div>
@@ -90,7 +90,7 @@ function RecentRow({ file, compact, last }: { file: RecentFile; compact: boolean
         <div className="truncate text-[13px] font-medium" style={{ color: "var(--text)" }}>
           {file.filename}
         </div>
-        <div className="flex items-center gap-1.5 text-[11px]" style={{ color: "var(--text-3)" }}>
+        <div className="flex items-center gap-1.5 text-[11px]" style={{ color: "var(--text-2)" }}>
           <span className="truncate">{toolName}</span>
           <span>·</span>
           <span className="pp-mono whitespace-nowrap">{format.relativeTime(new Date(file.timestamp), now)}</span>
