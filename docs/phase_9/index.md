@@ -4,8 +4,8 @@
 
 ## Current Status
 - Phase: 9 (pre-launch polish)
-- Last completed: **Wave 9F — 23 simple tools responsive audit — ✅ GATE 9F PASSED (2026-06-16)**. Codebase mobile-first; 21/23 already responsive, 2 genuine fixes (N-up Layout preview shrink, Reverse Pages strip stack). CSS-only. Committed `bcca2b8`.
-- Next step: **Wave 9G (Performance + Memory + Bundle audit)** — may need Hetzner deploy if backend perf issues found. Do NOT start until the user gives the go-ahead.
+- Last completed: **Wave 9G — Performance + Memory + Bundle audit — ✅ GATE 9G PASSED (2026-06-17)**. Lighthouse all targets met (homepage P91/A96/BP100/SEO100, /tools P97/A100/BP100/SEO100, /edit-pdf P94/A100/BP100/SEO100, desktop P100/A96/BP100/SEO100). Audit found system already strong; fixes: 1 mem leak (JpgToPdf object URL) + security headers, preconnect, PostHog trim, edit-pdf SSR LCP placeholder, a11y heading/contrast, footer CLS, canonical→www. Frontend only.
+- Next step: **Wave 9H (SEO + landing pages + blog)** — do NOT start until the user gives the go-ahead.
 
 ## Waves
 - 9A: Limit UI on all tools — LimitBadge + per-tool getToolLimits + live daily quota — **✅ GATE 9A PASSED (2026-06-15)**
@@ -15,7 +15,7 @@
 - 9E: form-heavy tools mobile (Edit Metadata, Add Watermark, Header & Footer, Add Page Numbers) — **✅ GATE 9E PASSED (2026-06-16)**. 4 tools (not 5: Sign PDF Form Fields skipped, D9-E1 — no such tool). Full-screen mobile branch per tool; all controls inline (D9-E2). Commit `d4946de`.
   - NOTE: Wave 9D–9E design screens use `screen-p9-*.jsx` naming (e.g. `screen-p9-organize.jsx`), not `screen-*-mobile.jsx`. All present in `.design-handoff/phase-9/`.
 - 9F: 23 simple tools responsive audit — **✅ GATE 9F PASSED (2026-06-16)**. 21/23 already responsive (mobile-first codebase); fixes: N-up Layout preview `longSide` 380→300 on mobile (`useMediaQuery`), Reverse Pages strips stack `flex-col sm:flex-row` + token-row `overflow-x-auto py-3`/`sm:` reset. CSS-only, desktop pixel-identical. Commit `bcca2b8`.
-- 9G: perf/memory/bundle audit — not started
+- 9G: perf/memory/bundle audit — **✅ GATE 9G PASSED (2026-06-17)**. Audit-first (system already strong: tools code-split, fonts swap+subset, rate limits enforced). 1 mem leak fixed (JpgToPdf object URL). Lighthouse round-2 fixes: security headers (BP 77→100), preconnect + PostHog trim + `.browserslistrc` + edit-pdf SSR LCP placeholder (Perf), a11y heading-order + `--text-3`→`--text-2` contrast, footer `contain:layout` (CLS), canonical→www. www→apex `redirects()` tried & reverted (loop). Frontend only.
 - 9H: SEO + landing + blog — not started
 - 9I: critical pre-launch items — not started
 - 9J: final QA + docs — not started
@@ -60,6 +60,16 @@
 - Shared reuse (as-is): `lib/hooks/useMediaQuery.ts`, `components/tools/NumberField.tsx`, `components/tools/ScaledPreview.tsx`, safe-area inline pattern
 - i18n: `ToolUI.removeFile` + per-tool `mobileTitle` (en/tr/ru, parity verified)
 - Design screens: `.design-handoff/phase-9/.../project/screen-p9-metadata.jsx`, `screen-p9-watermark.jsx`, `screen-p9-header-footer.jsx`, `screen-p9-page-numbers.jsx`
+
+## Key Files (Wave 9G)
+- `next.config.ts` — `headers()` global security headers (HSTS etc.). NO `redirects()` (host canonicalization is Vercel domain-level; in-code redirect caused a loop).
+- `app/[locale]/layout.tsx` — 3 `<link rel="preconnect">` (PostHog/Sentry)
+- `components/analytics/PostHogProvider.tsx` — `disable_surveys` + `capture_dead_clicks:false`
+- `app/[locale]/edit-pdf/page.tsx` — static `aria-hidden` SSR LCP placeholder (covered by editor's `fixed inset:0 z-50` shell)
+- `lib/seo.ts` — `SITE_URL` default `https://www.plinypdf.com` (www = primary domain)
+- `.browserslistrc` — drops legacy JS polyfills
+- `components/tools/JpgToPdfTool.tsx` — object-URL leak fix (revoke on files change/unmount)
+- a11y/CLS: `ToolCard.tsx` (h3→p), `ToolsCatalog.tsx` (h3→h2), `Footer.tsx` (contrast + `contain:layout`), `RecentFiles.tsx` (contrast)
 
 ## Design Handoff
 - Saved to `.design-handoff/phase-9/`. LimitBadge + updated FileDropzone (`Dropzone9`) in `project/phase9-kit.jsx`; tokens in `project/brand.css`; behavior notes in `project/PlinyPDF Design.html`; intent in `chats/chat4.md`.
