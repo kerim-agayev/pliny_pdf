@@ -4,8 +4,8 @@
 
 ## Current Status
 - Phase: 9 (pre-launch polish)
-- Last completed: **Wave 9H — SEO + landing pages + blog — ✅ COMPLETE / GATE 9H PASSED (2026-06-17, user-confirmed on Vercel)**. Scope check found most of 9H already shipped; built only gaps: BreadcrumbList schema (tool/blog/landing) + standalone Organization schema (global layout) + 12 EN-only landing pages (one template, `lib/landing.ts`) + EN-only sitemap entries. Existing 5 blog posts kept. Frontend only. (D9-H1..H4.) Commit `7f01556`.
-- Current: **Wave 9I — critical pre-launch items** (404 page, OG image, cookie consent, favicon, loading skeletons, offline indicator, browser warning, Sentry monitoring). NOT started — do NOT start until the user gives the go-ahead.
+- Last completed: **Wave 9I — critical pre-launch items — ✅ COMPLETE / GATE 9I PASSED (2026-06-17, user-confirmed on Vercel)**. Scope check found most of 9I already shipped (OG images, favicon, Sentry, keyboard shortcuts, tool-page skeletons). Built gaps only: cookieless PostHog + first-visit `PrivacyNotice`, branded 404 (localized + catch-all + root fallback), PWA manifest + `next/og` icons, branded `error.tsx`/`global-error.tsx`, OfflineIndicator, BrowserWarning (IE/Safari<14), dashboard/tools loading skeletons. Email verification left disabled (intentional). Frontend only. (D9-I1..I3.) Commit `fb7f32c`.
+- Current: **Wave 9J — final QA + Phase 9 docs** (full QA pass, real-device testing, perf regression check, complete docs/phase_9/, final commit). NOT started — do NOT start until the user gives the go-ahead.
 
 ## Waves
 - 9A: Limit UI on all tools — LimitBadge + per-tool getToolLimits + live daily quota — **✅ GATE 9A PASSED (2026-06-15)**
@@ -17,7 +17,7 @@
 - 9F: 23 simple tools responsive audit — **✅ GATE 9F PASSED (2026-06-16)**. 21/23 already responsive (mobile-first codebase); fixes: N-up Layout preview `longSide` 380→300 on mobile (`useMediaQuery`), Reverse Pages strips stack `flex-col sm:flex-row` + token-row `overflow-x-auto py-3`/`sm:` reset. CSS-only, desktop pixel-identical. Commit `bcca2b8`.
 - 9G: perf/memory/bundle audit — **✅ GATE 9G PASSED (2026-06-17)**. Audit-first (system already strong: tools code-split, fonts swap+subset, rate limits enforced). 1 mem leak fixed (JpgToPdf object URL). Lighthouse round-2 fixes: security headers (BP 77→100), preconnect + PostHog trim + `.browserslistrc` + edit-pdf SSR LCP placeholder (Perf), a11y heading-order + `--text-3`→`--text-2` contrast, footer `contain:layout` (CLS), canonical→www. www→apex `redirects()` tried & reverted (loop). Frontend only.
 - 9H: SEO + landing + blog — **✅ GATE 9H PASSED (2026-06-17)**. Scope check: ~85% already done (33-tool meta, SoftwareApplication/FAQPage/HowTo, related-tools, sitemap, robots, 5 blog posts). Built gaps only: `breadcrumbSchema` (Home→Tools→tool on 33 pages; Home→Blog→post; Home→landing) + `organizationSchema` (global in layout, logo=`/api/og`) + 12 EN-only landing pages (template `app/[locale]/landing/[slug]` + `lib/landing.ts`, `notFound()` for tr/ru) + EN-only sitemap entries. Existing 5 blog posts kept (D9-H2), no category hubs (D9-H3). 36→12 EN landing (D9-H1).
-- 9I: critical pre-launch items — not started
+- 9I: critical pre-launch items — **✅ GATE 9I PASSED (2026-06-17)**. Scope check: most already shipped (OG/favicon/Sentry/shortcuts/tool skeletons). Built gaps: cookieless PostHog (`persistence:"localStorage"`) + `PrivacyNotice` (D9-I1); branded 404 (`not-found.tsx` localized + `[...rest]` catch-all + root `not-found.tsx`); PWA `manifest.ts` + `icon.tsx`/`apple-icon.tsx` via `next/og` (D9-I2); `error.tsx`/`global-error.tsx` (Sentry capture); `OfflineIndicator`; `BrowserWarning` (IE/Safari<14); dashboard/tools `loading.tsx`. Email verify left off (D9-I3). Commit `fb7f32c`.
 - 9J: final QA + docs — not started
 
 ## Key Files (Wave 9A)
@@ -79,6 +79,18 @@
 - `app/[locale]/blog/[slug]/page.tsx` — BlogPosting now paired with BreadcrumbList
 - `app/sitemap.ts` — EN-only `/en/landing/<slug>` entries (priority 0.7, x-default=en)
 - 33 tool `app/[locale]/<slug>/page.tsx` — `toolSchemas(slug, locale)` (one-line each)
+
+## Key Files (Wave 9I)
+- `components/analytics/PostHogProvider.tsx` — `persistence:"localStorage"` (cookieless), opt-out re-applied from `ANALYTICS_CONSENT_KEY`
+- `components/shared/PrivacyNotice.tsx` — NEW first-visit dismissible notice (Got it / Opt out → `posthog.opt_out_capturing()`)
+- `components/shared/OfflineIndicator.tsx` — NEW online/offline banner; `components/shared/BrowserWarning.tsx` — NEW IE/Safari<14-only banner
+- `app/[locale]/not-found.tsx` — NEW localized branded 404 (popular `ToolCard`s); `app/[locale]/[...rest]/page.tsx` — NEW catch-all; `app/not-found.tsx` — NEW root fallback (own `<html>`)
+- `app/[locale]/error.tsx` + `app/global-error.tsx` — NEW branded error boundaries (Sentry capture)
+- `app/manifest.ts` + `app/icon.tsx` (512) + `app/apple-icon.tsx` (180) — NEW PWA manifest + `next/og` icons
+- `app/[locale]/dashboard/loading.tsx` + `app/[locale]/tools/loading.tsx` — NEW route skeletons (`pp-skeleton`)
+- `app/[locale]/layout.tsx` — mounts the three client components; `metadata` gains `manifest`/`appleWebApp`; new `viewport.themeColor`
+- `app/[locale]/privacy/page.tsx` — cookies section reworded (cookieless analytics, opt-out)
+- i18n: `PrivacyNotice`/`NotFound`/`ErrorPage`/`OfflineIndicator`/`BrowserWarning` namespaces in en/tr/ru
 
 ## Design Handoff
 - Saved to `.design-handoff/phase-9/`. LimitBadge + updated FileDropzone (`Dropzone9`) in `project/phase9-kit.jsx`; tokens in `project/brand.css`; behavior notes in `project/PlinyPDF Design.html`; intent in `chats/chat4.md`.
