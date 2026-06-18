@@ -32,7 +32,19 @@ apt install -y git
 curl -fsSL https://bun.sh/install | bash
 export PATH="$HOME/.bun/bin:$PATH"
 bun --version   # confirm
+# Python + PyMuPDF (the cloud tools — Compress/Grayscale/PDF→JPG/merge/count —
+# shell out to server/services/pdf-tools.py via python3)
+apt install -y python3
+python3 -m pip install --break-system-packages pymupdf
 ```
+
+> **Fonts (PDF→JPG rendering) — for reference.** Ubuntu 24.04 already ships
+> DejaVu + Noto fonts and `fontconfig` (`fc-list | wc -l` ≈ 130). You do **not**
+> need to install font packages for PDF→JPG: PyMuPDF/MuPDF renders text with its
+> **own bundled fonts** and does not consult system fontconfig. PDFs that render
+> as block glyphs (████) have non-embedded / CID-Identity fonts MuPDF can't
+> resolve — a font install won't fix them (investigated in Phase 10 Wave 10C;
+> see `docs/phase_10/bugs.md`).
 
 ### 2. Clone the repo
 ```bash

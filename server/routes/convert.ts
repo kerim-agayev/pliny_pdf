@@ -1,6 +1,6 @@
 import { Elysia, t } from "elysia";
 import { wordToPdf } from "../services/gotenberg";
-import { pdfToWord } from "../services/libreoffice";
+import { pdfToWord, ConversionUnsupportedError } from "../services/libreoffice";
 import { storeTemp, r2Configured } from "../services/r2";
 import { getRequester, type Requester } from "../services/session";
 import { checkServerTool } from "@/lib/ratelimit";
@@ -83,8 +83,15 @@ export const convert = new Elysia({ prefix: "/api/convert" })
       try {
         out = await pdfToWord(input);
       } catch (e) {
+        // Log so conversion failures are visible in journald (the catch
+        // previously swallowed them — failures were invisible on the server).
+        console.error("pdf-to-word conversion failed:", e);
         set.status = 502;
-        return { error: "conversionFailed", message: "Conversion failed. Please try another file." , detail: String(e).slice(0, 200) };
+        const message =
+          e instanceof ConversionUnsupportedError
+            ? "This PDF couldn't be converted to Word. It may be a slide deck, scanned image, or protected file."
+            : "Conversion failed. Please try another file.";
+        return { error: "conversionFailed", message, detail: String(e).slice(0, 200) };
       }
       const outName = `${baseName(file.name)}.docx`;
       await maybeStore(`conversions/${crypto.randomUUID()}-${outName}`, out, DOCX_TYPE);
