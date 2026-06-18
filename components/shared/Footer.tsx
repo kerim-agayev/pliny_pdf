@@ -27,7 +27,7 @@ export function Footer() {
       title: t("tools"),
       links: [
         { label: "Merge PDF", href: "/merge-pdf" },
-        { label: "Compress PDF", href: "/compress-pdf" },
+        { label: "Sign PDF", href: "/sign-pdf" },
         { label: "Add Watermark", href: "/add-watermark" },
         { label: "Annotate PDF", href: "/pdf-editor" },
       ],
