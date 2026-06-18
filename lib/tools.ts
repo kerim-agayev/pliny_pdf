@@ -61,7 +61,7 @@ export type FilterCategory = (typeof CATEGORIES)[number];
 export const TOOLS: Tool[] = [
   { id: "merge", slug: "merge-pdf", name: "Merge PDF", desc: "Combine PDFs in any order, in one click.", cat: "Organize", mode: "cloud", icon: IconMerge, accent: "#A78BFA", available: true },
   { id: "split", slug: "split-pdf", name: "Split PDF", desc: "Extract pages or split a PDF into parts.", cat: "Organize", mode: "local", icon: IconSplit, accent: "#A78BFA", available: true },
-  { id: "compress", slug: "compress-pdf", name: "Compress PDF", desc: "Reduce file size while keeping quality.", cat: "Edit", mode: "cloud", icon: IconCompress, accent: "#F472B6", available: true },
+  { id: "compress", slug: "compress-pdf", name: "Compress PDF", desc: "Reduce file size while keeping quality.", cat: "Edit", mode: "cloud", icon: IconCompress, accent: "#F472B6", available: false },
   { id: "rotate", slug: "rotate-pdf", name: "Rotate PDF", desc: "Rotate pages — single or all at once.", cat: "Organize", mode: "local", icon: IconRotate, accent: "#A78BFA", available: true },
   { id: "delete-pages", slug: "delete-pages", name: "Delete Pages", desc: "Remove unwanted pages from your PDF.", cat: "Organize", mode: "local", icon: IconTrash, accent: "#A78BFA", available: true },
   { id: "extract-pages", slug: "extract-pages", name: "Extract Pages", desc: "Pull selected pages into a new PDF.", cat: "Organize", mode: "local", icon: IconExtract, accent: "#A78BFA", available: true },

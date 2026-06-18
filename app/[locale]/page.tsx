@@ -14,7 +14,7 @@ import {
   IconX,
   IconGrip,
   IconShield,
-  IconSparkle,
+  IconType,
   IconGlobe,
 } from "@/components/shared/icons";
 
@@ -45,11 +45,11 @@ export default async function HomePage({
 
 function HomeContent() {
   const t = useTranslations("Home");
-  const popular = ["merge", "compress", "pdf-to-word", "watermark", "split", "protect"];
+  const popular = ["merge", "pdf-to-jpg", "pdf-to-word", "watermark", "split", "protect"];
 
   const why = [
     { Icon: IconShield, accent: "#34D399", title: t("whyPrivacyTitle"), body: t("whyPrivacyBody"), sub: t("whyPrivacySub") },
-    { Icon: IconSparkle, accent: "#BFB5FF", title: t("whyAiTitle"), body: t("whyAiBody"), sub: t("whyAiSub") },
+    { Icon: IconType, accent: "#BFB5FF", title: t("whyEditTitle"), body: t("whyEditBody"), sub: t("whyEditSub") },
     { Icon: IconGlobe, accent: "#60A5FA", title: t("whyLangTitle"), body: t("whyLangBody"), sub: t("whyLangSub") },
   ];
 
@@ -75,7 +75,8 @@ function HomeContent() {
             <span className="pp-badge local" style={{ padding: "2px 8px", fontSize: 10.5 }}>
               <span className="pp-dot" /> v2.4
             </span>
-            {t("heroBadge")} · <span style={{ color: "#8B7CF0" }}>{t("heroBadgeLink")}</span>
+            {t("heroBadge")}
+            <span className="hidden sm:inline"> · <span style={{ color: "#8B7CF0" }}>{t("heroBadgeLink")}</span></span>
           </div>
           <h1 className="mb-6 text-[clamp(44px,7vw,76px)] font-bold leading-[1.02] tracking-[-0.035em]" style={{ textWrap: "balance" }}>
             {t("headlineStart")}
@@ -235,7 +236,7 @@ function HeroPreview() {
             <div className="pp-mono text-[11px]" style={{ color: "var(--text-3)" }}>plinypdf.com/merge</div>
           </div>
         </div>
-        <PrivacyBadge type="local" />
+        <PrivacyBadge type="cloud" />
       </div>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1.4fr_1fr]">
         <div className="flex flex-col gap-2 rounded-xl p-3.5" style={{ background: "var(--bg)", border: "1px solid var(--line)" }}>
@@ -279,7 +280,7 @@ function HeroPreview() {
             </button>
           </div>
           <div className="pp-mono flex items-center gap-1.5 text-[10.5px]" style={{ color: "var(--text-3)" }}>
-            <span className="pp-dot" style={{ color: "#34D399" }} /> {t("previewProcessed")}
+            <span className="pp-dot" style={{ color: "#60A5FA" }} /> {t("previewProcessed")}
           </div>
         </div>
       </div>

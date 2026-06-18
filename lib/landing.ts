@@ -38,30 +38,11 @@ export const LANDING: Record<string, LandingPage> = {
     ],
     toolSlug: "edit-pdf",
     cta: "Open the PDF editor",
-    related: ["pdf-editor", "add-watermark", "sign-pdf", "compress-pdf"],
+    related: ["pdf-editor", "add-watermark", "sign-pdf", "grayscale-pdf"],
     faq: [
       { q: "Is the PDF editor really free?", a: "Yes — editing and downloading are free, with no watermark and no credit card." },
       { q: "Do I need to create an account?", a: "No. You can start editing immediately. An optional free account raises the limits on cloud tools." },
       { q: "Can I edit the actual text in my PDF?", a: "Yes. The Edit PDF tool lets you click any text block and change it in place, change the font size and colour, or white out content." },
-    ],
-  },
-  "compress-pdf-online-free": {
-    slug: "compress-pdf-online-free",
-    title: "Compress PDF Online Free — PlinyPDF",
-    description:
-      "Shrink PDF file size online for free. Choose your compression level and keep the quality you need. No upload surprises, no watermark.",
-    h1: "Compress PDF online, free",
-    intro: [
-      "Large PDFs are slow to email and upload. PlinyPDF compresses your PDF with a compression level you control — from smallest file to highest quality — and never returns a file larger than the original.",
-      "Free to use, with no watermark on the result.",
-    ],
-    toolSlug: "compress-pdf",
-    cta: "Compress a PDF",
-    related: ["merge-pdf", "grayscale-pdf", "pdf-to-jpg", "split-pdf"],
-    faq: [
-      { q: "Will compression reduce the quality?", a: "You choose the level. Balanced is recommended; Maximum keeps quality high. We never inflate a file that is already optimized." },
-      { q: "Is there a file-size limit?", a: "Each tool shows its limit before you upload. A free account raises the limit." },
-      { q: "Is it free?", a: "Yes — compressing and downloading are free, with no watermark." },
     ],
   },
   "convert-pdf-to-word-free": {
@@ -95,7 +76,7 @@ export const LANDING: Record<string, LandingPage> = {
     ],
     toolSlug: "merge-pdf",
     cta: "Merge PDFs",
-    related: ["split-pdf", "organize-pages", "compress-pdf", "rotate-pdf"],
+    related: ["split-pdf", "organize-pages", "grayscale-pdf", "rotate-pdf"],
     faq: [
       { q: "Can I reorder the files before merging?", a: "Yes — drag the files into any order before you merge." },
       { q: "Is there a limit on how many PDFs?", a: "No. Merging is unlimited and free, with no account required." },
@@ -152,7 +133,7 @@ export const LANDING: Record<string, LandingPage> = {
     ],
     toolSlug: "pdf-to-jpg",
     cta: "Convert PDF to JPG",
-    related: ["jpg-to-pdf", "compress-pdf", "grayscale-pdf", "pdf-to-text"],
+    related: ["jpg-to-pdf", "pdf-to-word", "grayscale-pdf", "pdf-to-text"],
     faq: [
       { q: "What resolution are the images?", a: "Pages are rendered at high resolution, and you can pick the JPG quality." },
       { q: "How are multiple pages delivered?", a: "All page images are bundled into a single .zip download." },
@@ -228,7 +209,7 @@ export const LANDING: Record<string, LandingPage> = {
     ],
     toolSlug: "ocr-pdf",
     cta: "OCR a PDF",
-    related: ["pdf-to-text", "pdf-to-word", "edit-pdf", "compress-pdf"],
+    related: ["pdf-to-text", "pdf-to-word", "edit-pdf", "grayscale-pdf"],
     faq: [
       { q: "Which languages can it recognize?", a: "English, Turkish, and Russian. Pick the language that matches your document for the best accuracy." },
       { q: "What if my PDF already has text?", a: "Pages that already contain selectable text are passed through unchanged — OCR is only applied to scanned pages." },
