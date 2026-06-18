@@ -16,11 +16,15 @@
 ## Resolved
 - **Issue 1 — Compress PDF broken.** Removed from UI (Wave 10A, hidden via `available:false`
   + route redirect). Not re-enabled — needs a full rewrite (out of scope).
-- **Issue 2 — PDF→Word "500" on slide-deck PDFs.** Investigated on Hetzner (Wave 10C):
-  could not reproduce a 500 — the route already returns a friendly **502**
-  ("Conversion failed…") for failures (the user's 500 came from the stale Phase 8 deploy).
-  Hardened anyway: `server/services/libreoffice.ts` now sets `maxBuffer` on the soffice
-  exec and throws `ConversionUnsupportedError` when no/empty `.docx` is produced;
-  `server/routes/convert.ts` logs failures (`console.error`, so they appear in journald)
-  and maps the typed error to a clearer message ("…may be a slide deck, scanned image, or
-  protected file."). Status stays 502.
+- **Issue 2 — PDF→Word 500 on slide-deck PDFs.** REAL root cause (Wave 10C, `746f976`):
+  **non-ASCII filename in `Content-Disposition`.** The deck `Hiçlik_Felsefesi…` converts fine,
+  but `fileResponse` in `convert.ts` set a raw `filename="Hiçlik…docx"` — HTTP headers must be
+  ASCII, so `new Response()` threw a `TypeError` AFTER conversion, outside the try/catch →
+  uncaught 500. Fixed by using the shared `attachmentDisposition()` helper (RFC 5987) in
+  `convert.ts` + `ocr.ts` (tools/editor routes already used it). Verified Turkish-named PDF
+  → 200. NB: this only bit logged-in users (anon is capped at 15 MB and 413s before
+  `fileResponse`), which initially masked it.
+  - Also hardened this wave: `libreoffice.ts` `maxBuffer` + typed `ConversionUnsupportedError`
+    on empty output; `convert.ts` `console.error` logging + clearer 502 message; `server/index.ts`
+    `.onError` now logs uncaught errors + returns a friendly JSON 500/400 body (this is what
+    surfaced the root cause).

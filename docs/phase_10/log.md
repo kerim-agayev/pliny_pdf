@@ -40,6 +40,13 @@ Chronological, append-only.
 - Decision: keep anon `OFFICE_MAX_MB`=15 (user choice) → oversized decks get a friendly 413.
 - Commits `85022c8` + `587d4b8`, pushed + deployed to Hetzner (HEAD `587d4b8`, health OK; verified validation→400, oversized→413, normal→200).
 
+## [2026-06-18] Wave 10C follow-up — REAL root cause of PDF→Word 500 found + fixed
+- User still hit 500 after deploy. The `.onError` logging (587d4b8) surfaced it: `TypeError: Header '17' has invalid value: 'attachment; filename="Hiçlik_Felsefesi…docx"' at fileResponse (convert.ts:48)`.
+- **Root cause:** non-ASCII filename (Turkish `ç`) in `Content-Disposition`. HTTP headers must be ASCII → `new Response()` throws AFTER a successful conversion, outside the try/catch → raw 500. User is logged-in (free, 50 MB) so passes size check; my earlier anon tests hit the 15 MB 413 and never reached `fileResponse`, masking the bug.
+- **Fix (`746f976`):** `convert.ts` + `ocr.ts` now use the shared `attachmentDisposition()` helper (RFC 5987, already used by tools/editor routes) instead of a raw inline filename.
+- Verified on Hetzner: Turkish-named PDF → **HTTP 200**, header `filename="Hiclik…"; filename*=UTF-8''Hi%C3%A7lik…`, no errors in journald. Deployed (HEAD `746f976`, health OK).
+- Lesson: the onError hardening earned its keep immediately — it's what made the silent 500 debuggable.
+
 ## [2026-06-18] GATE 10C PASSED ✅
-- PDF→Word converts or returns a clean friendly error (413/502), never 500; PDF→JPG documented as known limitation; `bun run build` green; Hetzner deployed.
+- PDF→Word non-ASCII filename 500 fixed + verified (200); PDF→JPG documented as known limitation; `bun run build` green; Hetzner deployed (`746f976`).
 - Next: Wave 10D (Lighthouse + final QA — Issue 9), the last Phase 10 wave.
