@@ -8,6 +8,7 @@ import { countPdfPages } from "../services/pdf-tools";
 import { db } from "@/lib/db";
 import { fileHistory } from "@/lib/db/schema";
 import { baseName } from "@/lib/format";
+import { attachmentDisposition } from "./http";
 
 const PDF_TYPE = "application/pdf";
 
@@ -40,7 +41,8 @@ function fileResponse(bytes: Uint8Array, name: string): Response {
   return new Response(bytes as BlobPart, {
     headers: {
       "content-type": PDF_TYPE,
-      "content-disposition": `attachment; filename="${name}"`,
+      // RFC 5987 encoding — a raw non-ASCII filename throws a 500 (see http.ts).
+      "content-disposition": attachmentDisposition(name),
     },
   });
 }

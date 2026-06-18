@@ -9,6 +9,7 @@ import { countPdfPages } from "../services/pdf-tools";
 import { db } from "@/lib/db";
 import { fileHistory } from "@/lib/db/schema";
 import { baseName } from "@/lib/format";
+import { attachmentDisposition } from "./http";
 
 const DOCX_TYPE =
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
@@ -48,7 +49,10 @@ function fileResponse(bytes: Uint8Array, name: string, type: string): Response {
   return new Response(bytes as BlobPart, {
     headers: {
       "content-type": type,
-      "content-disposition": `attachment; filename="${name}"`,
+      // attachmentDisposition: filenames may contain non-ASCII chars (e.g. the
+      // Turkish ç in "Hiçlik…") — a raw value makes the header invalid and the
+      // Response constructor throws a 500. RFC 5987 encoding keeps it safe.
+      "content-disposition": attachmentDisposition(name),
     },
   });
 }
