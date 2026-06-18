@@ -5,11 +5,12 @@
 
 ## Current Status
 - Phase: 10 (launch polish, no new tools)
-- Active wave: **10A — Compress PDF Removal + Homepage Fixes** (awaiting GATE 10A confirmation)
+- Active wave: **10B — UI fixes** (/tools tabs mobile + compress blog replacement). Not started.
+- Last completed: Wave 10A (GATE passed 2026-06-18, commit `9cd34b4`).
 - After Phase 10: 32 tools, all reported bugs fixed, launch-ready.
 
 ## Waves
-- **10A** — Compress PDF removal (33→32) + homepage fixes (Issues 1, 4, 6, 7). _In review._
+- **10A** — Compress PDF removal (33→32) + homepage fixes (Issues 1, 4, 6, 7). **COMPLETE ✅ (2026-06-18).**
 - 10B — UI fixes: /tools category tabs mobile (Issue 3) + replace compress blog post (Issue 8).
 - 10C — Backend: PDF→Word slide-deck 500 (Issue 2) + PDF→JPG font blocks (Issue 5). Hetzner deploy.
 - 10D — Lighthouse + final QA (Issue 9).
