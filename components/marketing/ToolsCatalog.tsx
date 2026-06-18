@@ -28,7 +28,7 @@ export function ToolsCatalog({ initialCategory }: { initialCategory?: string }) 
 
         <div className="mb-8 flex flex-wrap items-center justify-between gap-4">
           <div
-            className="flex flex-wrap gap-1 rounded-full p-1"
+            className="pp-noscroll flex max-w-full flex-nowrap gap-1 overflow-x-auto rounded-full p-1"
             style={{ background: "var(--card)", border: "1px solid var(--line)" }}
           >
             {CATEGORIES.map((c) => {
@@ -38,7 +38,7 @@ export function ToolsCatalog({ initialCategory }: { initialCategory?: string }) 
                   key={c}
                   type="button"
                   onClick={() => setFilter(c)}
-                  className="rounded-full px-3.5 py-[7px] text-[13px] font-medium transition-colors"
+                  className="shrink-0 whitespace-nowrap rounded-full px-3.5 py-[7px] text-[13px] font-medium transition-colors"
                   style={{
                     background: active ? "rgba(127,127,127,0.12)" : "transparent",
                     color: active ? "var(--text)" : "var(--text-2)",

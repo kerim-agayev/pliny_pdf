@@ -250,6 +250,10 @@ h1, h2, h3, h4, h5 {
 .dark .pp-badge.pro { background: var(--indigo-dim); border-color: var(--indigo-line); color: #bfb5ff; }
 .pp-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; box-shadow: 0 0 8px currentColor; }
 
+/* horizontally scrollable row with hidden scrollbar */
+.pp-noscroll { scrollbar-width: none; }
+.pp-noscroll::-webkit-scrollbar { display: none; }
+
 /* divider */
 .pp-hr { height: 1px; background: var(--line); border: 0; margin: 0; }
 
