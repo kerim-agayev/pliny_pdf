@@ -53,3 +53,4 @@ skills-lock.json
 # Python bytecode (Phase 4 PyMuPDF engine)
 __pycache__/
 *.pyc
+.design-handoff/
