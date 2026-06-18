@@ -51,3 +51,15 @@ Chronological, append-only.
 - PDF→Word non-ASCII filename 500 fixed + verified (200); PDF→JPG documented as known limitation; `bun run build` green; Hetzner deployed (`746f976`).
 - User confirmed the fix works on the live site (PDF→Word now downloads the .docx).
 - Next: Wave 10D (Lighthouse + final QA — Issue 9), the last Phase 10 wave. NOT started yet.
+
+## [2026-06-18] Wave 10D — Lighthouse + final QA (no new code)
+- Automated checks all green: `bun run build` exit 0 (clean route tree, no TS errors); i18n key parity en/tr/ru = 986 keys each, zero diffs; no `whyAi*` left in code (Wave 10A renamed → `whyEdit*`).
+- Lighthouse (incognito Chrome, mobile): Homepage P96 A96 BP100 SEO100 (Perf ↑ 91→96); /tools P97 A96 BP100 SEO100 (held); /edit-pdf P84 A96 BP100 SEO100 (Perf ↓ 94→84).
+- **/edit-pdf Perf 84** is below the 90 target — accepted by user as a non-blocking known regression (heaviest page: pdfjs-dist+canvas+fabric). Logged in `bugs.md` as a Phase 11 candidate.
+- Final QA pass (user, desktop+mobile): all checklist items confirmed (32 tools, no Compress; Edit PDF "Why" card; Merge Cloud badge; tabs no overflow EN/TR/RU; Sign PDF blog live + compress 404; landing pages; privacy notice; branded 404; Turkish PDF→Word .docx).
+- Docs: backfilled Wave 10B/10C decisions into `decisions.md` (D10-7 … D10-12); recorded results in `wave_10d.md`; noted edit-pdf perf in `bugs.md`.
+
+## [2026-06-18] GATE 10D PASSED ✅ — user-confirmed → PHASE 10 COMPLETE 🎉
+- Lighthouse: A11y/BP/SEO ≥ targets on all 3 pages; Perf ≥ 90 on Homepage + /tools (≥ baseline); /edit-pdf P84 accepted as non-blocker. All Phase 10 issues fixed (Issue 5 = documented known limitation).
+- Site is launch-ready: 32 tools, all reported bugs fixed/documented. Phase 10 docs complete.
+- Final commit: `feat: Phase 10 complete — launch ready`, pushed to `main`.

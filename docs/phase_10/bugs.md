@@ -2,6 +2,13 @@
 
 > Read before touching related code. The same issue may have been solved before.
 
+## Known limitations / accepted regressions
+- **/edit-pdf Lighthouse Performance 84 (Wave 10D).** Down from Phase 9 baseline 94; below the
+  ≥90 target. The editor route is the heaviest page (pdfjs-dist + canvas + fabric). Accepted by
+  the user at GATE 10D as a non-blocking known regression — **not** a launch blocker. Other pages
+  improved/held (Homepage 91→96, /tools 97). Revisit as a Phase 11 candidate (lazy-load fabric,
+  defer pdfjs worker, code-split the editor). A11y 96 / BP 100 / SEO 100 on the page are fine.
+
 ## Known limitations (won't fix without a reproducer)
 - **Issue 5 — PDF→JPG block glyphs.** Some PDFs whose fonts are **not embedded** or use
   **CID/Identity encoding** may render as block glyphs (████) in PDF→JPG. Investigated on
