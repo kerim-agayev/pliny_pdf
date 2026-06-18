@@ -31,3 +31,15 @@ Chronological, append-only.
 ## [2026-06-18] GATE 10B PASSED ✅
 - Tabs scroll cleanly on mobile (user-confirmed on real device, EN/TR/RU); new blog post live; footer no longer shows Compress PDF.
 - Next: Wave 10C (backend bug fixes — PDF→Word slide-deck 500, PDF→JPG font blocks; Hetzner deploy).
+
+## [2026-06-18] Wave 10C — backend bug fixes (Hetzner)
+- Investigated live on Hetzner. **Discovery: prod was stale at Phase 8 (`b3d8b8a`)** — backend never redeployed since Phase 8. Deploy fast-forwarded through all Phase 9+10 backend changes (page caps, `officeMax*`).
+- **PDF→Word (Issue 2): no bug.** Reproduced the reported slide deck (`Hiçlik_Felsefesi…`, 14 pp, 18.7 MiB) — it **converts fine** (~25 s, 20 MB docx). The "500" was the pre-deploy Phase 8 code. Current code: anon → clean 413 fileTooLarge (15 MB limit); free → converts. Never 500.
+- **PDF→JPG (Issue 5): documented as known limitation.** Host already has DejaVu+Noto+fontconfig; PyMuPDF uses its own bundled fonts (ignores system fontconfig) so a font install is a no-op. Public SlicedInvoices sample renders fine — failing file not available. See `bugs.md`.
+- Shipped: `libreoffice.ts` (maxBuffer + `test -s` output check + typed `ConversionUnsupportedError`); `convert.ts` (console.error logging + clearer message, status 502); `server/index.ts` (hardened `.onError` — log uncaught + friendly JSON 500/400 body); `deploy/README.md` (Python/PyMuPDF + font note).
+- Decision: keep anon `OFFICE_MAX_MB`=15 (user choice) → oversized decks get a friendly 413.
+- Commits `85022c8` + `587d4b8`, pushed + deployed to Hetzner (HEAD `587d4b8`, health OK; verified validation→400, oversized→413, normal→200).
+
+## [2026-06-18] GATE 10C PASSED ✅
+- PDF→Word converts or returns a clean friendly error (413/502), never 500; PDF→JPG documented as known limitation; `bun run build` green; Hetzner deployed.
+- Next: Wave 10D (Lighthouse + final QA — Issue 9), the last Phase 10 wave.

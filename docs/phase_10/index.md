@@ -5,14 +5,14 @@
 
 ## Current Status
 - Phase: 10 (launch polish, no new tools)
-- Active wave: **10C — Backend bug fixes** (PDF→Word slide-deck 500 + PDF→JPG font blocks). Not started.
-- Last completed: Wave 10B (GATE passed 2026-06-18, commits `b2cd85e` + footer fix).
+- Active wave: **10D — Lighthouse + final QA** (Issue 9). Not started.
+- Last completed: Wave 10C (GATE passed 2026-06-18, commits `85022c8` + `587d4b8`, deployed to Hetzner).
 - After Phase 10: 32 tools, all reported bugs fixed, launch-ready.
 
 ## Waves
 - **10A** — Compress PDF removal (33→32) + homepage fixes (Issues 1, 4, 6, 7). **COMPLETE ✅ (2026-06-18).**
 - **10B** — UI fixes: /tools tabs mobile scroll (Issue 3) + compress blog → Sign PDF post (Issue 8) + footer Compress→Sign. **COMPLETE ✅ (2026-06-18).**
-- 10C — Backend: PDF→Word slide-deck 500 (Issue 2) + PDF→JPG font blocks (Issue 5). Hetzner deploy.
+- **10C** — Backend: PDF→Word (Issue 2 — no bug; converts or clean 413/502, orig 500 was pre-deploy) + PDF→JPG blocks (Issue 5 — known limitation). Hardening + Hetzner deploy. **COMPLETE ✅ (2026-06-18).**
 - 10D — Lighthouse + final QA (Issue 9).
 
 ## Key Files (Phase 10 touched)
