@@ -47,6 +47,7 @@ Chronological, append-only.
 - Verified on Hetzner: Turkish-named PDF → **HTTP 200**, header `filename="Hiclik…"; filename*=UTF-8''Hi%C3%A7lik…`, no errors in journald. Deployed (HEAD `746f976`, health OK).
 - Lesson: the onError hardening earned its keep immediately — it's what made the silent 500 debuggable.
 
-## [2026-06-18] GATE 10C PASSED ✅
+## [2026-06-18] GATE 10C PASSED ✅ — user-confirmed
 - PDF→Word non-ASCII filename 500 fixed + verified (200); PDF→JPG documented as known limitation; `bun run build` green; Hetzner deployed (`746f976`).
-- Next: Wave 10D (Lighthouse + final QA — Issue 9), the last Phase 10 wave.
+- User confirmed the fix works on the live site (PDF→Word now downloads the .docx).
+- Next: Wave 10D (Lighthouse + final QA — Issue 9), the last Phase 10 wave. NOT started yet.

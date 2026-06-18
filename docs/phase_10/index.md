@@ -6,7 +6,7 @@
 ## Current Status
 - Phase: 10 (launch polish, no new tools)
 - Active wave: **10D — Lighthouse + final QA** (Issue 9). Not started.
-- Last completed: Wave 10C (GATE passed 2026-06-18, commits `85022c8` + `587d4b8`, deployed to Hetzner).
+- Last completed: Wave 10C (GATE passed + user-confirmed 2026-06-18; commits `85022c8` + `587d4b8` + `746f976`, deployed to Hetzner).
 - After Phase 10: 32 tools, all reported bugs fixed, launch-ready.
 
 ## Waves
