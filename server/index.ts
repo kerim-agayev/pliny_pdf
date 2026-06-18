@@ -32,10 +32,21 @@ const app = new Elysia()
   // exposeHeaders: let the cross-origin frontend read Content-Disposition so it
   // can use the server-chosen download name (e.g. PDF→JPG returning a .zip).
   .use(cors({ origin: FRONTEND_ORIGINS, credentials: true, exposeHeaders: ["Content-Disposition"] }))
-  .onError(({ error, code }) => {
-    // Don't report routine 404s / validation noise — only real failures.
+  .onError(({ error, code, set }) => {
+    // Log + report real failures (not routine 404s / validation noise) so an
+    // uncaught route error is visible in journald instead of a silent raw 500,
+    // and return a friendly JSON body instead of Elysia's bare error response.
     if (code !== "NOT_FOUND" && code !== "VALIDATION") {
+      console.error(`[onError] ${code}:`, error);
       Sentry.captureException(error);
+    }
+    if (code === "VALIDATION") {
+      set.status = 400;
+      return { error: "badRequest", message: "Invalid request." };
+    }
+    if (code !== "NOT_FOUND") {
+      set.status = 500;
+      return { error: "serverError", message: "Something went wrong. Please try again." };
     }
   })
   .use(health)
