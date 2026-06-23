@@ -19,6 +19,10 @@ export type TextBlock = {
   color: string;
   bold: boolean;
   italic: boolean;
+  // Wave 11A: sampled page background behind this block ("#rrggbb"), or null/absent
+  // when the area isn't a flat color (or for locally-added text) → mask falls back
+  // to white.
+  bgColor?: string | null;
 };
 export type PageData = {
   pageNum: number;

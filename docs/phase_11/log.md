@@ -14,3 +14,13 @@
   0.92 gray (not white), 26 white blocks stay white, 0 false fallbacks, page
   unrotated. End-to-end edit of "Valyuta" gray row → rendered patch 0.918 gray.
   PASS. Pending: Hetzner deploy + visual confirm in editor UI.
+
+## [2026-06-23] Wave 11A frontend live-preview mask
+- Backend gate passed but the LIVE EDITOR still showed white masks (frontend
+  `TextBlock.tsx` `#fff` mask div) — backend-only wasn't enough; users judge by
+  the editor. Pulled the frontend tint forward from 11B.
+- `_page_blocks` now attaches `bgColor` per block (same `_sample_bg_color`);
+  `TextBlock.tsx` mask uses `block.bgColor ?? "#fff"`. No new API calls — reads
+  existing parse JSON. `bgColor` optional (locally-added text → white).
+- Verified: parse on REKVIZIT emits `#eaeaea` for 15 zebra rows; `bun run build`
+  green. Pending user confirm of the live editor before GATE 11A pass.

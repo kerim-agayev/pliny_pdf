@@ -145,7 +145,10 @@ export function TextBlock({
   }, [editing, modified, text, fontName, fontSizeRaw, bold, italic, scale, pageWidth]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const border = editing || selected ? "2px solid #6B5CE7" : "1px solid transparent";
-  const bg = masked ? "#FFFFFF" : selected || editing ? "rgba(107,92,231,0.06)" : "transparent";
+  // Wave 11A: tint the mask with the sampled page background so the live editor
+  // matches the saved PDF; null (non-flat bg) → white, as before.
+  const maskColor = block.bgColor ?? "#fff";
+  const bg = masked ? maskColor : selected || editing ? "rgba(107,92,231,0.06)" : "transparent";
 
   // Effective size: content-derived override (Wave 8C) if the block has been edited,
   // else the original bbox from the loaded PDF.
@@ -273,7 +276,7 @@ export function TextBlock({
             height: origH,
             transform: undefined,
             zIndex: -1,
-            background: "#fff",
+            background: maskColor,
             pointerEvents: "none",
             border: "1px solid transparent",
           }}

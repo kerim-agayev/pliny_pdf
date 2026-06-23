@@ -144,7 +144,19 @@ def _block_json(block_id, span):
 
 
 def _page_blocks(page, page_num):
-    return [_block_json(bid, span) for bid, span in _spans(page, page_num)]
+    blocks = []
+    for bid, span in _spans(page, page_num):
+        blk = _block_json(bid, span)
+        # Wave 11A: sampled page background behind this block, so the live editor
+        # mask matches the saved-PDF redaction fill (same _sample_bg_color). None
+        # → frontend keeps a white mask (unchanged behavior).
+        rgb = _sample_bg_color(page, pymupdf.Rect(span["bbox"]))
+        blk["bgColor"] = (
+            "#{:02x}{:02x}{:02x}".format(round(rgb[0] * 255), round(rgb[1] * 255), round(rgb[2] * 255))
+            if rgb else None
+        )
+        blocks.append(blk)
+    return blocks
 
 
 def _render_page(page, session_dir, page_num):
