@@ -324,9 +324,16 @@ export function EditorCanvas() {
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (e.key !== "Delete" && e.key !== "Backspace") return;
-      if (!selectedAnnotId) return;
       const el = document.activeElement as HTMLElement | null;
       if (el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable)) return;
+      // Selected text block (not while editing its text) → delete it. Backspace
+      // while editing is a normal char delete (guarded by isContentEditable above).
+      if (s.selectedBlock && !s.editingBlock) {
+        e.preventDefault();
+        s.deleteBlock(s.selectedBlock); // also clears selectedBlock
+        return;
+      }
+      if (!selectedAnnotId) return;
       const a = s.annotations.find((x) => x.id === selectedAnnotId);
       if (a?.type === "image" || a?.type === "stamp" || a?.type === "whiteout" || a?.type === "link"
           || a?.type === "highlight" || a?.type === "comment" || a?.type === "mark") {

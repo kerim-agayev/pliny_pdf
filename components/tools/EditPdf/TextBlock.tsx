@@ -259,6 +259,30 @@ export function TextBlock({
     window.addEventListener("pointerup", handleUp);
   }
 
+  // A deleted block renders ONLY the covering mask at its original spot — no
+  // interactive root, so there's no empty selectable placeholder left behind
+  // (Sejda-style: text gone, the row's background stays intact). The mask still
+  // hides the stale PNG text (not re-rendered until save). bgColor → gray on a
+  // colored row, white otherwise.
+  if (deleted) {
+    return (
+      <div
+        style={{
+          ...boxStyle,
+          left: origLeft,
+          top: origTop,
+          width: origW,
+          height: origH,
+          transform: undefined,
+          zIndex: -1,
+          background: maskColor,
+          pointerEvents: "none",
+          border: "1px solid transparent",
+        }}
+      />
+    );
+  }
+
   return (
     <>
       {/* White mask pinned at the ORIGINAL bbox (position AND size) hides the stale PNG
