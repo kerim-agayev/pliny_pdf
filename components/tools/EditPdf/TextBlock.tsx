@@ -151,9 +151,6 @@ export function TextBlock({
     // shortening text shrinks the color (Wave 11B round-5). The ≥50pt click target is
     // applied separately at boxW, not here.
     const w = Math.min(maxW, measureRef.current.scrollWidth / scale + 4);
-    // TEMP debug (Wave 11B round-6) — confirms the bg/frame width = real text width, no
-    // 50pt floor. Remove after the user confirms shorten works.
-    console.log("[pp-bg]", JSON.stringify(text).slice(0, 24), "w(pt)=", w.toFixed(1));
     const lineCount = (text.match(/\n/g)?.length ?? 0) + 1;
     // 1.15 is tight (just above the editable's 1.12 line-height, so glyphs/descenders
     // aren't clipped) but small enough that a single-line box stays within the PDF line
@@ -188,7 +185,8 @@ export function TextBlock({
   // else the original bbox from the loaded PDF.
   // bgFillW = real text width → the manual-bg highlight hugs it. boxW = the interaction
   // box, floored to a ≥50pt click target so the floor never widens the visible color.
-  const bgFillW = (size?.w ?? block.w) * scale;
+  // +2pt right breathing room so the frame border never touches the page edge.
+  const bgFillW = (size?.w ?? block.w) * scale + 2 * scale;
   const boxW = Math.max(50, size?.w ?? block.w) * scale;
   const boxH = (size?.h ?? block.h) * scale;
 
