@@ -147,7 +147,10 @@ export function TextBlock({
     // Font-metric height stays tight: a long single line grows the box to the RIGHT, not
     // DOWN; height only changes with the font size or explicit newlines.
     const maxW = pageWidth - 36;
-    const w = Math.min(maxW, Math.max(50, measureRef.current.scrollWidth / scale + 4));
+    // Real measured text width (no min floor) — the manual-bg highlight hugs this so
+    // shortening text shrinks the color (Wave 11B round-5). The ≥50pt click target is
+    // applied separately at boxW, not here.
+    const w = Math.min(maxW, measureRef.current.scrollWidth / scale + 4);
     const lineCount = (text.match(/\n/g)?.length ?? 0) + 1;
     // 1.15 is tight (just above the editable's 1.12 line-height, so glyphs/descenders
     // aren't clipped) but small enough that a single-line box stays within the PDF line
@@ -170,15 +173,16 @@ export function TextBlock({
   // (matches Sejda). The backend already redacts only the original bbox. Edit-in-
   // place keeps maskColor so widened text still blends into a colored row.
   const moved = moveOffset !== null || pos != null;
-  const bg = moved
-    ? "transparent"
-    : masked
-      ? maskColor
-      : selected || editing ? "rgba(107,92,231,0.06)" : "transparent";
+  // Root div no longer paints the manual bg (the dedicated highlight div below does,
+  // hugging the real text). Root only shows the subtle selection tint (Wave 11B round-5).
+  const bg = moved || !(selected || editing) ? "transparent" : "rgba(107,92,231,0.06)";
 
   // Effective size: content-derived override (Wave 8C) if the block has been edited,
   // else the original bbox from the loaded PDF.
-  const boxW = (size?.w ?? block.w) * scale;
+  // bgFillW = real text width → the manual-bg highlight hugs it. boxW = the interaction
+  // box, floored to a ≥50pt click target so the floor never widens the visible color.
+  const bgFillW = (size?.w ?? block.w) * scale;
+  const boxW = Math.max(50, size?.w ?? block.w) * scale;
   const boxH = (size?.h ?? block.h) * scale;
 
   // Use position override if present (drag-to-move), else original block coords.
@@ -326,9 +330,29 @@ export function TextBlock({
             height: origH,
             transform: undefined,
             zIndex: -1,
-            background: maskColor,
+            background: ghostFill,
             pointerEvents: "none",
             border: "1px solid transparent",
+          }}
+        />
+      )}
+
+      {/* Wave 11B round-5: the VISIBLE manual bg — a highlight that hugs the CURRENT
+          text. Sized to the real (un-floored) text box, NOT the ≥50pt interaction box,
+          so shortening text shrinks the color too. Sits above the sampled ghost (also
+          zIndex -1, rendered before this) and below the text. Skipped while moving. */}
+      {masked && !moved && (
+        <div
+          style={{
+            position: "absolute",
+            left: blockLeft,
+            top: blockTop,
+            width: bgFillW,
+            height: boxH,
+            borderRadius: 3,
+            zIndex: -1,
+            background: maskColor,
+            pointerEvents: "none",
           }}
         />
       )}
