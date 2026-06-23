@@ -89,7 +89,9 @@ export function TextBlock({
       change.color ||
       change.fontSize !== undefined ||
       change.bold !== undefined ||
-      change.italic !== undefined);
+      change.italic !== undefined ||
+      // bgColor-only change must show the mask on select too (Wave 11B GATE fix).
+      change.bgColor !== undefined);
   // Show overlay whenever the block has visible state beyond what the PNG carries:
   // edited content, a style override (underline), or a position override (moved —
   // the PNG still has the original text at the old spot, so the overlay must paint

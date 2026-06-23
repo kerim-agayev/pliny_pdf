@@ -43,6 +43,9 @@ export const metadata: Metadata = {
     "Privacy-first online PDF toolkit. Files are processed in your browser whenever possible.",
   manifest: "/manifest.webmanifest",
   appleWebApp: { capable: true, title: "PlinyPDF", statusBarStyle: "black-translucent" },
+  // Explicit absolute icon URLs (root app/icon.tsx + app/apple-icon.tsx). Without
+  // these the apple-touch-icon href resolves relative to /[locale] → /en/apple-icon 404.
+  icons: { icon: "/icon", apple: "/apple-icon" },
 };
 
 export const viewport: Viewport = {

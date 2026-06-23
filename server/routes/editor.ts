@@ -131,6 +131,7 @@ export const editor = new Elysia({ prefix: "/api/editor" })
         bold: c.bold,
         italic: c.italic,
         underline: c.underline,
+        bgColor: c.bgColor,
         x: c.x,
         y: c.y,
       }));
@@ -158,6 +159,7 @@ export const editor = new Elysia({ prefix: "/api/editor" })
             bold: t.Optional(t.Boolean()),
             italic: t.Optional(t.Boolean()),
             underline: t.Optional(t.Boolean()),
+            bgColor: t.Optional(t.Union([t.String(), t.Null()])),
             x: t.Optional(t.Number()),
             y: t.Optional(t.Number()),
           }),
