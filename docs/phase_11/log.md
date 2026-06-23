@@ -43,3 +43,12 @@
   annotation delete handler in `EditorCanvas` (`s.selectedBlock && !s.editingBlock
   → s.deleteBlock`), reusing the input/contentEditable typing guard. Mirrors the
   Annotate-PDF pattern. `bun run build` green; frontend-only (Vercel auto-deploy).
+
+## [2026-06-23] GATE 11A PASSED ✅ — Wave 11A COMPLETE
+- User confirmed all tests green: colored-bg mask, white-bg unchanged, gradient
+  fallback, move (gray stays put), delete (no empty placeholder) + keyboard
+  Delete/Backspace.
+- Commits: `a66bc80` (backend sampling), `338dca3` (live-mask tint), `59a014d`
+  (move fix), `4334ec2` (delete fix + keyboard delete).
+- Next: Wave 11B — manual color picker/eyedropper + font matching + AZ/TR/RU
+  character support. Not started.
