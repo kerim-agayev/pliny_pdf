@@ -267,6 +267,10 @@ export const IconEye = (p: IconProps) => (
   <I {...p}><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" /><circle cx="12" cy="12" r="3" /></I>
 );
 
+export const IconPipette = (p: IconProps) => (
+  <I {...p}><path d="m2 22 1-1h3l9-9" /><path d="M3 21v-3l9-9" /><path d="m15 6 3.4-3.4a2.1 2.1 0 0 1 3 3L18 9l.4.4a2.1 2.1 0 0 1 0 3 2.1 2.1 0 0 1-3 0l-3.8-3.8a2.1 2.1 0 0 1 0-3 2.1 2.1 0 0 1 3 0z" /></I>
+);
+
 // === PDF Editor icons ===
 export const IconCursor = (p: IconProps) => (
   <I {...p}><path d="M5 3l5 16 2.5-6.5L19 10z" /></I>

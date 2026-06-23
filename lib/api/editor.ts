@@ -51,6 +51,9 @@ export type BlockChange = {
   x?: number;
   /** moved position — top-left y in PDF points (Wave 6A) */
   y?: number;
+  /** manual mask/background fill override ("#rrggbb"); when set, the server uses it
+   *  as the redaction fill instead of auto-sampling (Wave 11B). */
+  bgColor?: string | null;
 };
 
 /** A client overlay annotation serialized for the server to burn into the PDF (Wave 4C+6B). */

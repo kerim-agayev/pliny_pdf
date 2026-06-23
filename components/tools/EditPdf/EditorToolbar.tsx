@@ -10,7 +10,7 @@ import {
   IconMessage, IconBold, IconItalic, IconUnderlineText, IconAlignLeft, IconAlignCenter,
   IconAlignRight, IconTrash, IconUndo, IconRedo, IconChevron, IconX, IconPlus,
   IconCopy, IconRect, IconCircleShape, IconArrowDraw, IconLineShape,
-  IconImage, IconBolt, IconLink, IconCheck, type IconProps,
+  IconImage, IconBolt, IconLink, IconCheck, IconPipette, type IconProps,
 } from "@/components/shared/icons";
 import { LinkDialog } from "./LinkDialog";
 import type { ComponentType } from "react";
@@ -103,6 +103,7 @@ export function EditorToolbar() {
     return null;
   })();
   const colorRef = useRef<HTMLInputElement>(null);
+  const bgColorRef = useRef<HTMLInputElement>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const whiteoutColorRef = useRef<HTMLInputElement>(null);
   // Wave 8E: single-active dropdown — one value instead of three independent booleans,
@@ -440,6 +441,18 @@ export function EditorToolbar() {
           <IconChevron size={11} style={{ transform: "rotate(90deg)", opacity: 0.6, color: "var(--text-2)" }} />
           <input ref={colorRef} type="color" value={s.fontColor} onChange={(e) => s.setFormat({ fontColor: e.target.value })} style={{ position: "absolute", width: 0, height: 0, opacity: 0, pointerEvents: "none" }} />
         </button>
+        {/* Wave 11B — manual background/mask fill for the selected block (overrides the
+            11A auto-sampled color when it bailed to white on a gradient/image). */}
+        <button
+          type="button" disabled={!enabled} className="pp-edtool" title={t("fieldBgColor")}
+          onClick={() => bgColorRef.current?.click()}
+          style={{ height: 30, padding: "0 6px", borderRadius: 7, background: "var(--bg-2)", border: "1px solid var(--line)", display: "inline-flex", alignItems: "center", gap: 6, cursor: enabled ? "pointer" : "not-allowed", opacity: enabled ? 1 : 0.5 }}
+        >
+          <span style={{ width: 16, height: 16, borderRadius: 4, background: s.bgColor, border: "1px solid var(--line-2)" }} />
+          <IconChevron size={11} style={{ transform: "rotate(90deg)", opacity: 0.6, color: "var(--text-2)" }} />
+          <input ref={bgColorRef} type="color" value={s.bgColor} onChange={(e) => s.setFormat({ bgColor: e.target.value })} style={{ position: "absolute", width: 0, height: 0, opacity: 0, pointerEvents: "none" }} />
+        </button>
+        <TBtn icon={IconPipette} label={t("eyedropper")} active={s.eyedropper} disabled={!enabled} onClick={() => s.setEyedropper(!s.eyedropper)} />
         <TBDiv />
         <div style={{ display: "flex", gap: 1, padding: 2, background: "var(--bg-2)", border: "1px solid var(--line)", borderRadius: 8, opacity: enabled ? 1 : 0.5 }}>
           {([["left", IconAlignLeft], ["center", IconAlignCenter], ["right", IconAlignRight]] as const).map(([k, Ic]) => (

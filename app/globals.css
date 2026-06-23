@@ -440,3 +440,15 @@ input[type="range"].pp-range::-moz-range-thumb {
   .pp-ed-resize { width: 18px !important; height: 18px !important; right: -8px !important; bottom: -8px !important; }
   .pp-ed-pin, .pp-ed-pin-btn { width: 32px !important; height: 32px !important; }
 }
+
+/* Wave 11B — Noto faces for the Edit PDF text overlay, so the on-screen preview
+   of AZ/TR/RU glyphs (ə ç ğ ı İ ö ş ü + Cyrillic) matches what the backend bakes
+   with the same fonts. font-display: swap + lazy-by-nature (@font-face only
+   fetches when something actually renders in the family — i.e. inside the
+   editor). No italic TTF on disk → the browser synthesizes oblique, matching the
+   backend's shear. Files already bundled under /public/fonts. */
+@font-face { font-family: "Noto Sans"; font-weight: 400; font-display: swap; src: url("/fonts/NotoSans-Regular.ttf") format("truetype"); }
+@font-face { font-family: "Noto Sans"; font-weight: 700; font-display: swap; src: url("/fonts/NotoSans-Bold.ttf") format("truetype"); }
+@font-face { font-family: "Noto Serif"; font-weight: 400; font-display: swap; src: url("/fonts/NotoSerif-Regular.ttf") format("truetype"); }
+@font-face { font-family: "Noto Serif"; font-weight: 700; font-display: swap; src: url("/fonts/NotoSerif-Bold.ttf") format("truetype"); }
+@font-face { font-family: "Noto Sans Mono"; font-weight: 400; font-display: swap; src: url("/fonts/NotoSansMono-Regular.ttf") format("truetype"); }

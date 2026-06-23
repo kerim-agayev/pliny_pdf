@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { useEditorStore, computeMatches, type Annotation } from "@/lib/stores/editorStore";
 import { pagePngUrl, addText as apiAddText, imagePreviewUrl } from "@/lib/api/editor";
 import { usePinchZoom } from "@/lib/touch";
+import { samplePagePixel } from "@/lib/editor/eyedropper";
 import { analytics } from "@/lib/analytics";
 import { TextBlock, cssFont } from "./TextBlock";
 import { WhiteoutPreview } from "./WhiteoutTool";
@@ -596,6 +597,18 @@ export function EditorCanvas() {
     if (e.button !== 0) return;
     if (pinchingRef.current) return; // ignore taps while pinch-zooming (Wave 8D)
     setCtx(null);
+    // Wave 11B eyedropper: sample the clicked page pixel as the mask bg color.
+    if (s.eyedropper) {
+      const r = pageRef.current!.getBoundingClientRect();
+      const fx = (e.clientX - r.left) / r.width;
+      const fy = (e.clientY - r.top) / r.height;
+      const url = `${pagePngUrl(s.sessionId!, page.pageNum)}?v=${s.renderVersion}`;
+      samplePagePixel(url, fx, fy)
+        .then((hex) => s.setFormat({ bgColor: hex }))
+        .catch(() => toast.error(t("eyedropperFailed")))
+        .finally(() => s.setEyedropper(false));
+      return;
+    }
     const tool = s.tool;
     if (tool === "select") {
       s.selectBlock(null);
@@ -745,7 +758,8 @@ export function EditorCanvas() {
   }
 
   const cursor =
-    s.tool === "text" ? "text"
+    s.eyedropper ? "crosshair"
+    : s.tool === "text" ? "text"
     : s.tool === "whiteout" || s.tool === "shapes" || s.tool === "draw" || s.tool === "highlight" || s.tool === "strike" || s.tool === "mark" ? "crosshair"
     : s.tool === "comment" ? "copy"
     : "default";
@@ -783,6 +797,15 @@ export function EditorCanvas() {
           // block's mask can never cover another block's text (Wave 8E ghost-stacking fix).
           style={{ display: "block", position: "relative", zIndex: -2, userSelect: "none", pointerEvents: "none" }}
         />
+
+        {/* Wave 11B eyedropper: full-page capture layer so a click anywhere
+            (incl. over a text block) samples the pixel instead of selecting. */}
+        {s.eyedropper && (
+          <div
+            onPointerDown={onPointerDown}
+            style={{ position: "absolute", inset: 0, zIndex: 50, cursor: "crosshair" }}
+          />
+        )}
 
         {/* snap / alignment guides (Wave 8B) — above the PNG, below dragged elements */}
         <SnapGuideOverlay guides={snapGuides} scale={scale} pageW={page.width} pageH={page.height} />

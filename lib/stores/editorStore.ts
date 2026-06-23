@@ -2,6 +2,7 @@ import { create } from "zustand";
 import type { OpenResult, PageData, BlockChange, TextBlock } from "@/lib/api/editor";
 import { editorSessionTtlMs } from "@/lib/limits";
 import type { Plan } from "@/lib/ratelimit";
+import { matchFont } from "@/lib/editor/textMeasure";
 
 export type Tool =
   | "select"
@@ -106,6 +107,10 @@ interface EditorState {
   italic: boolean;
   underline: boolean;
   textAlign: TextAlign;
+  /** manual mask/background fill for the selected block (Wave 11B); default white */
+  bgColor: string;
+  /** true while click-to-sample (eyedropper) is armed — EditorCanvas samples a page pixel */
+  eyedropper: boolean;
 
   // annotation tool settings
   strokeColor: string;
@@ -170,7 +175,8 @@ interface EditorState {
   /** record a content-derived size override (Wave 8C auto-resize); does NOT push undo */
   setBlockSize: (blockId: string, w: number, h: number) => void;
 
-  setFormat: (patch: Partial<Pick<EditorState, "fontFamily" | "fontSize" | "fontColor" | "bold" | "italic" | "underline" | "textAlign">>) => void;
+  setFormat: (patch: Partial<Pick<EditorState, "fontFamily" | "fontSize" | "fontColor" | "bold" | "italic" | "underline" | "textAlign" | "bgColor">>) => void;
+  setEyedropper: (on: boolean) => void;
   setStroke: (patch: Partial<Pick<EditorState, "strokeColor" | "strokeWidth">>) => void;
   setWhiteout: (patch: Partial<Pick<EditorState, "whiteoutColor">>) => void;
   setHighlightColor: (c: string) => void;
@@ -221,6 +227,8 @@ const INITIAL = {
   italic: false,
   underline: false,
   textAlign: "left" as TextAlign,
+  bgColor: "#ffffff",
+  eyedropper: false,
   strokeColor: "#F43F5E",
   strokeWidth: 3,
   whiteoutColor: "#FFFFFF",
@@ -285,13 +293,16 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     if (block) {
       set({
         selectedBlock: id,
-        fontFamily: change?.fontName ?? block.fontName ?? "Helvetica",
+        // matchFont maps the raw PDF font name (e.g. "ABCDEE+Arial") to one of the
+        // 6 picker families so the dropdown shows a real match, not a blank (Wave 11B).
+        fontFamily: change?.fontName ?? matchFont(block.fontName) ?? "Helvetica",
         fontSize: Math.round(change?.fontSize ?? block.fontSize ?? 12),
         fontColor: change?.color ?? block.color ?? "#1f1f1f",
         bold: change?.bold ?? block.bold ?? false,
         italic: change?.italic ?? block.italic ?? false,
         underline: style?.underline ?? false,
         textAlign: style?.textAlign ?? "left",
+        bgColor: change?.bgColor ?? block.bgColor ?? "#ffffff",
       });
     } else {
       set({ selectedBlock: id, editingBlock: id ? get().editingBlock : null });
@@ -382,6 +393,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       if (patch.fontColor !== undefined) map.color = patch.fontColor;
       if (patch.bold !== undefined) map.bold = patch.bold;
       if (patch.italic !== undefined) map.italic = patch.italic;
+      if (patch.bgColor !== undefined) map.bgColor = patch.bgColor;
       const hadMapChange = Object.keys(map).length > 0;
       if (hadMapChange) get().editBlock(id, map);
       // underline + alignment live in a client-side per-block style map. Underline is
@@ -404,6 +416,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       }
     }
   },
+  setEyedropper: (on) => set({ eyedropper: on }),
   setStroke: (patch) => set(patch),
   setWhiteout: (patch) => set(patch),
   setHighlightColor: (highlightColor) => set({ highlightColor }),

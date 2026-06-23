@@ -344,11 +344,14 @@ def _apply_edit(doc, geo, change, affected, sample_doc=None):
     page = doc[g["page"]]
     affected.add(g["page"])
     bbox = pymupdf.Rect(g["bbox"])
-    # Wave 11A: sample the real page background behind the old text (from the
-    # pristine copy, so earlier redactions in this save can't tint it) and use
-    # it as the redaction fill. None → flat white, exactly as before.
+    # Wave 11B: a manual bgColor override wins (gradient/image cases where 11A
+    # auto-sampling bailed to white). Otherwise Wave 11A: sample the real page
+    # background behind the old text (from the pristine copy, so earlier
+    # redactions in this save can't tint it). None → flat white, as before.
     fill = (1, 1, 1)
-    if sample_doc is not None:
+    if change.get("bgColor"):
+        fill = _hex_to_rgb01(change["bgColor"])
+    elif sample_doc is not None:
         fill = _sample_bg_color(sample_doc[g["page"]], bbox) or (1, 1, 1)
     _redact_rect(page, bbox, fill)
     if change.get("deleted"):
@@ -748,11 +751,36 @@ def cmd_apply(session_dir):
     print(json.dumps(out))
 
 
+def cmd_selftest():
+    """Wave 11B never-tofu guard: render AZ/TR/RU glyphs via _insert_text and assert
+    they land as real glyphs (not the .notdef tofu box). Locks in the Noto route so a
+    future refactor can't silently regress special-character support.
+    Run: `python pdf-editor.py selftest`."""
+    sample = "Əə Çç Ğğ Şş İıÖö Üü Привет"
+    doc = pymupdf.open()
+    page = doc.new_page()
+    # font_name="Helvetica" deliberately — base-14 can't encode these, so this also
+    # verifies _needs_unicode promotes the insert to Noto.
+    _insert_text(page, pymupdf.Point(40, 80), sample, 14, "Helvetica", "#000000", False, False)
+    # Each visible char must round-trip out of the page text. A glyph that fell back
+    # to .notdef (tofu) is NOT recoverable as its codepoint here, so a clean round-trip
+    # is the authoritative "no tofu" check.
+    extracted = page.get_text()
+    missing = [c for c in sample if not c.isspace() and c not in extracted]
+    doc.close()
+    assert not missing, f"special chars dropped (tofu/missing): {missing!r}"
+    sys.stderr.write("[pdf-editor] selftest OK — AZ/TR/RU glyphs render\n")
+    print(json.dumps({"ok": True}))
+
+
 def main(argv):
     if len(argv) < 2:
-        sys.stderr.write("usage: pdf-editor.py <parse|apply> ...\n")
+        sys.stderr.write("usage: pdf-editor.py <parse|apply|selftest> ...\n")
         return 2
     cmd = argv[1]
+    if cmd == "selftest":
+        cmd_selftest()
+        return 0
     if cmd == "parse":
         if len(argv) != 4:
             sys.stderr.write("usage: pdf-editor.py parse <input.pdf> <session-dir>\n")

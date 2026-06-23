@@ -10,7 +10,7 @@ import {
   IconCursor, IconTextPlus, IconHighlight, IconStrike, IconPen, IconShapes, IconMessage,
   IconImage, IconBolt, IconCheck, IconLink, IconWhiteout, IconBold, IconItalic, IconUnderlineText,
   IconAlignLeft, IconAlignCenter, IconAlignRight, IconRect, IconCircleShape, IconLineShape,
-  IconArrowDraw, IconCircleShape as IconCircle, type IconProps,
+  IconArrowDraw, IconCircleShape as IconCircle, IconPipette, type IconProps,
 } from "@/components/shared/icons";
 import type { ComponentType } from "react";
 import { BottomSheet } from "./BottomSheet";
@@ -179,7 +179,7 @@ export function MobileToolbar() {
       {/* sheets */}
       {sheet === "text" && (
         <BottomSheet title={t("sheetText")} subtitle={t("sheetTextSub")} onClose={() => setSheet(null)}>
-          <SheetText t={t} s={s} onAlign={alignBlock} onStepSize={stepSize} />
+          <SheetText t={t} s={s} onAlign={alignBlock} onStepSize={stepSize} onClose={() => setSheet(null)} />
         </BottomSheet>
       )}
       {sheet === "highlight" && (
@@ -310,9 +310,10 @@ function StrokeRow({ value, onPick }: { value: number; onPick: (w: number) => vo
 
 type Store = ReturnType<typeof useEditorStore.getState>;
 
-function SheetText({ t, s, onAlign, onStepSize }: {
+function SheetText({ t, s, onAlign, onStepSize, onClose }: {
   t: ReturnType<typeof useTranslations>; s: Store;
   onAlign: (a: "left" | "center" | "right") => void; onStepSize: (d: 1 | -1) => void;
+  onClose: () => void;
 }) {
   const enabled = s.selectedBlock !== null;
   return (
@@ -360,6 +361,18 @@ function SheetText({ t, s, onAlign, onStepSize }: {
       <Field label={t("fieldColor")}>
         <SwatchGrid palette={TEXT_COLORS} value={s.fontColor} onPick={(c) => s.setFormat({ fontColor: c })} />
       </Field>
+      {/* Wave 11B — background/mask fill: swatches + tap-to-sample eyedropper (closes
+          the sheet so the user can tap the page). Only meaningful for an existing block. */}
+      {enabled && (
+        <Field label={t("fieldBgColor")}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+            <SwatchGrid palette={WHITEOUT_COLORS} value={s.bgColor} onPick={(c) => s.setFormat({ bgColor: c })} />
+            <button type="button" onClick={() => { s.setEyedropper(true); onClose(); }}
+              style={{ ...tile(s.eyedropper), width: 44, display: "inline-flex", alignItems: "center", justifyContent: "center" }}
+              title={t("eyedropper")}><IconPipette size={18} /></button>
+          </div>
+        </Field>
+      )}
     </div>
   );
 }

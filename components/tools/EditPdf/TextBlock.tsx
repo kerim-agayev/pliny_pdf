@@ -147,7 +147,7 @@ export function TextBlock({
   const border = editing || selected ? "2px solid #6B5CE7" : "1px solid transparent";
   // Wave 11A: tint the mask with the sampled page background so the live editor
   // matches the saved PDF; null (non-flat bg) → white, as before.
-  const maskColor = block.bgColor ?? "#fff";
+  const maskColor = change?.bgColor ?? block.bgColor ?? "#fff";
   // On MOVE only the text travels — the ghost mask (at the ORIGINAL bbox) keeps the
   // gray, and the moved root must be transparent so the gray doesn't ride along
   // (matches Sejda). The backend already redacts only the original bbox. Edit-in-
