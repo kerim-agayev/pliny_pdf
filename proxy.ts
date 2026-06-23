@@ -8,5 +8,7 @@ export default function proxy(request: Parameters<typeof handler>[0]) {
 }
 
 export const config = {
-  matcher: "/((?!api|trpc|_next|_vercel|.*\\..*).*)",
+  // Exclude the dynamic metadata icon routes (apple-icon, icon) too — they have no
+  // dot, so without this the i18n middleware locale-prefixes them → /en/apple-icon 404.
+  matcher: "/((?!api|trpc|_next|_vercel|apple-icon|icon|.*\\..*).*)",
 };

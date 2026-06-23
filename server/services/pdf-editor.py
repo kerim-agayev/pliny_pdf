@@ -114,15 +114,37 @@ def _int_color_to_hex(c):
         return "#000000"
 
 
-def _spans(page, page_num):
-    """Yield (block_id, span_dict) for every text span on a page, in order."""
+def _lines(page, page_num):
+    """Yield (block_id, unit) per text LINE — all spans on a line merged into one editable
+    unit. PyMuPDF splits a line into font-RUN spans, not words (e.g. 'Hesabın rekvizitləri'
+    → 'Hesab' + 'ın rekvizitləri'), so a per-span block let a delete leave a baked fragment
+    (Wave 11B GATE). The merged unit exposes the same keys _block_json / _build_geometry_map
+    read off a span; size/font/color/flags/origin come from the first span. Whitespace-only
+    lines are skipped (drops stray ' ' mini-blocks)."""
     data = page.get_text("dict")
     for bi, block in enumerate(data.get("blocks", [])):
         if block.get("type", 0) != 0:  # 0 = text, 1 = image
             continue
         for li, line in enumerate(block.get("lines", [])):
-            for si, span in enumerate(line.get("spans", [])):
-                yield f"{page_num}-{bi}-{li}-{si}", span
+            spans = line.get("spans", [])
+            text = "".join(s.get("text", "") for s in spans)
+            if not text.strip():
+                continue  # whitespace-only line — nothing editable
+            first = spans[0]
+            yield f"{page_num}-{bi}-{li}", {
+                "bbox": (
+                    min(s["bbox"][0] for s in spans),
+                    min(s["bbox"][1] for s in spans),
+                    max(s["bbox"][2] for s in spans),
+                    max(s["bbox"][3] for s in spans),
+                ),
+                "size": first.get("size", 11),
+                "font": first.get("font", ""),
+                "color": first.get("color", 0),
+                "flags": first.get("flags", 0),
+                "text": text,
+                "origin": first.get("origin", (first["bbox"][0], first["bbox"][1])),
+            }
 
 
 def _block_json(block_id, span):
@@ -145,7 +167,7 @@ def _block_json(block_id, span):
 
 def _page_blocks(page, page_num):
     blocks = []
-    for bid, span in _spans(page, page_num):
+    for bid, span in _lines(page, page_num):
         blk = _block_json(bid, span)
         # Wave 11A: sampled page background behind this block, so the live editor
         # mask matches the saved-PDF redaction fill (same _sample_bg_color). None
@@ -319,7 +341,7 @@ def _build_geometry_map(original_pdf):
     doc = pymupdf.open(original_pdf)
     try:
         for page_num, page in enumerate(doc):
-            for block_id, span in _spans(page, page_num):
+            for block_id, span in _lines(page, page_num):
                 origin = list(span.get("origin", span["bbox"][:2]))
                 geo[block_id] = {
                     "page": page_num,

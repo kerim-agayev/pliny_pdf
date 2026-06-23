@@ -97,6 +97,16 @@ export function TextBlock({
   // the PNG still has the original text at the old spot, so the overlay must paint
   // the text at the new spot, and a ghost mask covers the old spot below).
   const masked = editing || modified || moveOffset !== null || !!blockStyle?.underline || !!pos;
+  // Only text/layout-affecting changes drive the auto-resize re-measure (Wave 11B GATE
+  // fix). bgColor / text color / selection must NOT trigger it — otherwise a bgColor-only
+  // change inflated the box to the 50pt min-width floor, making the fill far wider/taller
+  // than the glyphs. The fill (masked) still shows; the box just keeps its tight bbox.
+  const contentChanged =
+    change !== undefined &&
+    (change.newText !== undefined ||
+      change.fontSize !== undefined ||
+      change.bold !== undefined ||
+      change.italic !== undefined);
 
   const fontSizeRaw = change?.fontSize ?? block.fontSize;
   const fontSize = fontSizeRaw * scale;
@@ -129,7 +139,7 @@ export function TextBlock({
   // loaded blocks (no change entry) never re-measure, keeping their original bbox.
   // Runs in a layout effect (before paint) so there's no wrap/flash.
   useLayoutEffect(() => {
-    if (!(editing || modified) || !measureRef.current) return;
+    if (!(editing || contentChanged) || !measureRef.current) return;
     // WIDTH comes from the mirror (exact rendered text width, clamped to the page).
     // HEIGHT is derived from the font size × line count (same TEXT_LINE_RATIO the snap
     // engine uses) — NOT from the DOM. A DOM/line-box height is a couple of px taller
@@ -325,7 +335,7 @@ export function TextBlock({
           so it adds no DOM for pristine blocks. white-space:pre (no soft-wrap) so height
           tracks ONLY explicit \n — the width is clamped to the page in JS instead, and
           the editable below uses the same `pre` so display and measurement agree. */}
-      {(editing || modified) && (
+      {(editing || contentChanged) && (
         <div
           ref={measureRef}
           aria-hidden
