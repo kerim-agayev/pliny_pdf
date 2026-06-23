@@ -52,3 +52,22 @@
   (move fix), `4334ec2` (delete fix + keyboard delete).
 - Next: Wave 11B — manual color picker/eyedropper + font matching + AZ/TR/RU
   character support. Not started.
+
+## [2026-06-24] GATE 11B PASSED ✅ — Wave 11B COMPLETE
+- Shipped Part A (manual bg color + full-canvas eyedropper), Part B (font
+  matching → 6 families), Part C (Noto @font-face preview parity + never-tofu
+  selftest). Then 8 bug-fix rounds on the manual-bg highlight geometry:
+  - r2 schema/`modified` flag + apple-icon 404; r3 50pt-floor width, line-grouping
+    delete fix, proxy.ts matcher; r4 highlight semantics (ghost=sampled, manual
+    highlight sized to current text via `_text_width`); r5 finished r4 frontend +
+    dropped floor; r6 descenders/true-shrink/move-with-text; r7 z-index tiers
+    (PNG -3 / ghost -2 / frame -1) so a colored block survives over another
+    block's ghost in the UI; r8 backend two-phase apply (`_redact_edit` all →
+    `apply_redactions` per page → `_draw_edit` all) so a colored block moved onto
+    another moved block's original spot isn't erased in the saved PDF.
+- `pdf-editor.py selftest` now also guards the redact/draw ordering (renders a
+  moved red block, asserts the red pixel survives). Both selftests green.
+- Final commits: `cadf462` (r6), `3b6c931` (frame padding + debug-log removal),
+  `2e6adee` (r7 z-index), `d08c70f` (r8 ordering). Hetzner redeployed (health OK).
+- User confirmed: saved PDF matches the editor, no 11A regression.
+- Next: Wave 11C — color & alignment fidelity. Not started.

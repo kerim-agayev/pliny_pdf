@@ -1,6 +1,6 @@
 # Wave 11B — Manual Color Fallback + Font/Character Support
 
-Code complete; awaiting manual GATE (AZ test PDF) + Hetzner deploy.
+**DONE ✅ — GATE 11B passed 2026-06-24.** (8 bug-fix rounds after first ship; see below.)
 
 ## What shipped
 
@@ -36,8 +36,37 @@ Code complete; awaiting manual GATE (AZ test PDF) + Hetzner deploy.
 - `bun test lib/editor/eyedropper.test.ts` → 1 pass.
 - `bun run build` → compiled successfully, 192/192 pages.
 
-## Remaining for GATE 11B (not done — needs user)
-- Hetzner deploy (`pdf-editor.py` changed).
-- Manual desktop+mobile test on the Azerbaijani PDF: ə/ğ/ş render (overlay +
-  download), font pre-fill matches, manual bg + eyedropper blend on gradient/image,
-  white bg still works, bold/italic preserved, 11A solid-row auto-match unregressed.
+## GATE 11B bug-fix rounds (manual-bg geometry + ordering)
+
+The manual-bg highlight took 8 rounds to get right; each root cause verified by
+reading the code, not guessing:
+- **r2** — bgColor not shown on select / stripped before backend (Elysia schema
+  + `modified` flag); apple-icon 404.
+- **r3** — fill too wide + overhang (auto-resize 50pt floor fired on bgColor-only);
+  delete left a fragment → backend `_lines` line-grouping (spans are font-runs);
+  apple-icon 404 = proxy.ts matcher locale-prefixing `/icon`,`/apple-icon`.
+- **r4** — bg must track edited text → highlight semantics: ghost = sampled page
+  bg at original bbox; manual highlight sized to current text (`_text_width`).
+- **r5** — r4 frontend half hadn't applied (replace_all matched wrong copy);
+  dropped the 50pt floor for the fill width.
+- **r6** — descenders clipped (height → `origH`), true shrink (frame vs ≥50pt hit
+  area), move-with-text (highlight travels for a manual bg).
+- **r7** — moved block's red bg turned white over another block's ghost (UI):
+  z-index retiering PNG `-3` / ghosts `-2` / frames `-1` so stacking is by
+  z-index not DOM order (EditorCanvas + TextBlock).
+- **r8** — saved PDF dropped a colored block moved onto another moved block's
+  original spot: `apply_redactions()` ran per-block after the draw → erased it.
+  Fix: two-phase edit apply in `cmd_apply` — `_redact_edit` all bboxes (one
+  `apply_redactions` per page) BEFORE `_draw_edit` all edits. Self-check added
+  (renders a moved red block, asserts the red pixel survives). Dropped
+  `_redact_rect`; added `_redact_fill`.
+
+## GATE 11B result
+- User confirmed pass 2026-06-24: manual bg + eyedropper, font pre-fill, AZ/TR/RU
+  characters, descender coverage, shrink/lengthen, move-with-bg, z-index, saved
+  PDF matches editor. No 11A regression.
+- Final commits: `cadf462` (r6), `3b6c931` (frame padding + debug-log removal),
+  `2e6adee` (r7 z-index), `d08c70f` (r8 ordering, Hetzner deployed).
+- Known ceilings (ponytail): a whiteout overlapping an edited block can still
+  erase its draw (its own `apply_redactions`); old-only area after shorten on a
+  non-flat bg reverts to sampled page bg, not the manual color.
