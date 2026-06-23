@@ -148,7 +148,16 @@ export function TextBlock({
   // Wave 11A: tint the mask with the sampled page background so the live editor
   // matches the saved PDF; null (non-flat bg) → white, as before.
   const maskColor = block.bgColor ?? "#fff";
-  const bg = masked ? maskColor : selected || editing ? "rgba(107,92,231,0.06)" : "transparent";
+  // On MOVE only the text travels — the ghost mask (at the ORIGINAL bbox) keeps the
+  // gray, and the moved root must be transparent so the gray doesn't ride along
+  // (matches Sejda). The backend already redacts only the original bbox. Edit-in-
+  // place keeps maskColor so widened text still blends into a colored row.
+  const moved = moveOffset !== null || pos != null;
+  const bg = moved
+    ? "transparent"
+    : masked
+      ? maskColor
+      : selected || editing ? "rgba(107,92,231,0.06)" : "transparent";
 
   // Effective size: content-derived override (Wave 8C) if the block has been edited,
   // else the original bbox from the loaded PDF.

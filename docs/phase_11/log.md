@@ -24,3 +24,11 @@
   existing parse JSON. `bgColor` optional (locally-added text → white).
 - Verified: parse on REKVIZIT emits `#eaeaea` for 15 zebra rows; `bun run build`
   green. Pending user confirm of the live editor before GATE 11A pass.
+
+## [2026-06-23] Wave 11A move fix (gray no longer travels)
+- Moving a gray-row block dragged the gray with the text (live editor). Cause:
+  the bgColor tint was applied to the moving root div, not just the ghost mask.
+  Fix (`TextBlock.tsx`): root div bg → transparent when moved; ghost (original
+  bbox) keeps the gray. Backend already correct (redacts original bbox only).
+  Edit-in-place still tints (grow case). `bun run build` green; frontend-only
+  (Vercel auto-deploy). Pending user confirm move matches Sejda.
