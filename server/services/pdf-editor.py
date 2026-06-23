@@ -212,10 +212,74 @@ def _draw_underline(page, point, width, font_size, color):
     )
 
 
-def _redact_rect(page, rect):
-    """White-out a rectangle: redaction removes underlying text/marks cleanly."""
-    page.add_redact_annot(rect, fill=(1, 1, 1))
+def _redact_rect(page, rect, fill=(1, 1, 1)):
+    """Redact a rectangle (true removal of underlying text/marks) and refill it.
+    `fill` defaults to white; Wave 11A passes a sampled background color so the
+    patch blends into colored rows instead of cutting a white rectangle."""
+    page.add_redact_annot(rect, fill=fill)
     page.apply_redactions()
+
+
+# Wave 11A — background sampling. dpi=72 → 1 pixel = 1 PDF point, so point→pixel
+# mapping is identity (just subtract the clip origin).
+_SAMPLE_PAD = 4.0      # points of background framing the glyph bbox to sample
+_SAMPLE_TOL = 24       # per-channel distance (0-255) counted as "different"
+_SAMPLE_MAX_DIFF = 0.25  # >25% of frame pixels differing → not a flat color
+
+
+def _sample_bg_color(page, rect):
+    """Median background RGB (0-1 floats) framing `rect`, or None when the area
+    isn't a flat color (gradient / image / border / watermark) so the caller can
+    fall back to white. Samples only the band *outside* the glyph bbox so the
+    text itself never skews the color.
+
+    # ponytail: flat-median over a thin frame at 72dpi. Catches the common solid
+    # row/cell case; gradient/per-region fills are a Wave 11B/11C upgrade.
+    """
+    # Rotated pages: the bbox→pixel mapping isn't reliable here (Wave 11D). Bail
+    # to white so we never make a rotated page worse than today.
+    if page.rotation:
+        return None
+    outer = pymupdf.Rect(
+        rect.x0 - _SAMPLE_PAD, rect.y0 - _SAMPLE_PAD,
+        rect.x1 + _SAMPLE_PAD, rect.y1 + _SAMPLE_PAD,
+    )
+    outer &= page.rect
+    if outer.is_empty or outer.width < 1 or outer.height < 1:
+        return None
+    pix = page.get_pixmap(clip=outer, dpi=72)
+    if pix.n < 3:
+        return None
+    # Inner glyph rect in pixmap-local pixel coords (dpi=72 → scale 1).
+    ix0, iy0 = rect.x0 - outer.x0, rect.y0 - outer.y0
+    ix1, iy1 = rect.x1 - outer.x0, rect.y1 - outer.y0
+    samples, n, w = pix.samples, pix.n, pix.width
+    rs, gs, bs = [], [], []
+    for py in range(pix.height):
+        inside_y = iy0 <= py <= iy1
+        for px in range(w):
+            if inside_y and ix0 <= px <= ix1:
+                continue  # glyph area — skip
+            off = (py * w + px) * n
+            rs.append(samples[off])
+            gs.append(samples[off + 1])
+            bs.append(samples[off + 2])
+    count = len(rs)
+    if count < 8:  # too few background pixels to trust
+        return None
+    # Median per channel (sort copies — rs/gs/bs stay pixel-aligned for the diff).
+    mid = count // 2
+    mr, mg, mb = sorted(rs)[mid], sorted(gs)[mid], sorted(bs)[mid]
+    # Variance check: fraction of frame pixels far from the median. A few
+    # antialiased glyph edges leak in as a small minority (median absorbs them);
+    # a real gradient/image makes most pixels differ → fall back to white.
+    diff = sum(
+        1 for i in range(count)
+        if max(abs(rs[i] - mr), abs(gs[i] - mg), abs(bs[i] - mb)) > _SAMPLE_TOL
+    )
+    if diff / count > _SAMPLE_MAX_DIFF:
+        return None
+    return (mr / 255.0, mg / 255.0, mb / 255.0)
 
 
 # ── parse ──────────────────────────────────────────────────────────────────
@@ -261,13 +325,20 @@ def _build_geometry_map(original_pdf):
     return geo
 
 
-def _apply_edit(doc, geo, change, affected):
+def _apply_edit(doc, geo, change, affected, sample_doc=None):
     g = geo.get(change.get("blockId"))
     if not g:
         return
     page = doc[g["page"]]
     affected.add(g["page"])
-    _redact_rect(page, pymupdf.Rect(g["bbox"]))
+    bbox = pymupdf.Rect(g["bbox"])
+    # Wave 11A: sample the real page background behind the old text (from the
+    # pristine copy, so earlier redactions in this save can't tint it) and use
+    # it as the redaction fill. None → flat white, exactly as before.
+    fill = (1, 1, 1)
+    if sample_doc is not None:
+        fill = _sample_bg_color(sample_doc[g["page"]], bbox) or (1, 1, 1)
+    _redact_rect(page, bbox, fill)
     if change.get("deleted"):
         return
     bold = change.get("bold", bool(g["flags"] & FLAG_BOLD))
@@ -611,6 +682,9 @@ def cmd_apply(session_dir):
 
     geo = _build_geometry_map(original)
     doc = pymupdf.open(original)
+    # Pristine copy used only to sample original backgrounds (Wave 11A), kept
+    # untouched while `doc` accumulates redactions.
+    sample_doc = pymupdf.open(original)
     affected = set()
     last_replacements = 0
     # NB: stdout carries the JSON result — all diagnostics MUST go to stderr.
@@ -621,7 +695,7 @@ def cmd_apply(session_dir):
         for change in changes:
             ctype = change.get("type")
             if ctype == "edit":
-                _apply_edit(doc, geo, change, affected)
+                _apply_edit(doc, geo, change, affected, sample_doc)
             elif ctype == "add-text":
                 _apply_add_text(doc, change, affected)
             elif ctype == "whiteout":
@@ -657,6 +731,7 @@ def cmd_apply(session_dir):
         out = _doc_json(doc, session_dir, render=False)
     finally:
         doc.close()
+        sample_doc.close()
     out["replacements"] = last_replacements
     print(json.dumps(out))
 
