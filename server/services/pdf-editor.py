@@ -266,12 +266,12 @@ def _draw_underline(page, point, width, font_size, color):
     )
 
 
-def _redact_rect(page, rect, fill=(1, 1, 1)):
-    """Redact a rectangle (true removal of underlying text/marks) and refill it.
-    `fill` defaults to white; Wave 11A passes a sampled background color so the
-    patch blends into colored rows instead of cutting a white rectangle."""
-    page.add_redact_annot(rect, fill=fill)
-    page.apply_redactions()
+def _redact_fill(page, sample_doc, page_no, bbox):
+    """The fill that should replace removed text in `bbox`: the sampled page bg
+    (Wave 11A) so the patch blends into colored rows, white if sampling bails."""
+    if sample_doc is not None:
+        return _sample_bg_color(sample_doc[page_no], bbox) or (1, 1, 1)
+    return (1, 1, 1)
 
 
 # Wave 11A — background sampling. dpi=72 → 1 pixel = 1 PDF point, so point→pixel
@@ -379,22 +379,37 @@ def _build_geometry_map(original_pdf):
     return geo
 
 
-def _apply_edit(doc, geo, change, affected, sample_doc=None):
+# Wave 11B round-8: edits are applied in TWO passes (see cmd_apply) so that ALL
+# redactions land before ANY draw. PyMuPDF's apply_redactions() clears every mark
+# inside a redaction rect, so a block moved onto another (moved) block's ORIGINAL
+# bbox used to be erased by that block's redaction running after the draw. Split:
+# _redact_edit only queues the redaction; _draw_edit paints bg + text afterward.
+def _redact_edit(doc, geo, change, affected, sample_doc=None):
+    """Pass 1: queue the redaction of the block's ORIGINAL bbox (removes the old
+    baked text). Does NOT call apply_redactions — cmd_apply applies them in one
+    batch per page, before any draw."""
     g = geo.get(change.get("blockId"))
     if not g:
         return
-    page = doc[g["page"]]
     affected.add(g["page"])
     bbox = pymupdf.Rect(g["bbox"])
     # Wave 11B round-4: removing the old text always restores the *sampled* page
     # background (11A) — never the manual bgColor — so shortening text leaves the
     # emptied area as the page bg, not a smear of the manual color. None → white.
-    fill = (1, 1, 1)
-    if sample_doc is not None:
-        fill = _sample_bg_color(sample_doc[g["page"]], bbox) or (1, 1, 1)
-    _redact_rect(page, bbox, fill)
+    fill = _redact_fill(doc[g["page"]], sample_doc, g["page"], bbox)
+    doc[g["page"]].add_redact_annot(bbox, fill=fill)
+
+
+def _draw_edit(doc, geo, change, affected):
+    """Pass 2: draw the manual bg + insert the new text at the new position. Runs
+    after all edit redactions are applied, so it can never be erased."""
+    g = geo.get(change.get("blockId"))
+    if not g:
+        return
     if change.get("deleted"):
         return
+    page = doc[g["page"]]
+    bbox = pymupdf.Rect(g["bbox"])
     bold = change.get("bold", bool(g["flags"] & FLAG_BOLD))
     italic = change.get("italic", bool(g["flags"] & FLAG_ITALIC))
     # Position override for move: BlockChange.y is top-left y; convert to baseline.
@@ -758,10 +773,26 @@ def cmd_apply(session_dir):
         "[pdf-editor] apply: %d change(s): %r\n" % (len(changes), [c.get("type") for c in changes])
     )
     try:
+        # Wave 11B round-8: edits in two passes — redact ALL original bboxes (one
+        # apply_redactions per page) BEFORE drawing ANY edit, so a block moved onto
+        # another block's original spot isn't erased by that block's redaction.
+        edits = [c for c in changes if c.get("type") == "edit"]
+        if edits:
+            redact_pages = set()
+            for c in edits:
+                g = geo.get(c.get("blockId"))
+                if g:
+                    redact_pages.add(g["page"])
+            for c in edits:
+                _redact_edit(doc, geo, c, affected, sample_doc)
+            for pno in redact_pages:
+                doc[pno].apply_redactions()
+            for c in edits:
+                _draw_edit(doc, geo, c, affected)
         for change in changes:
             ctype = change.get("type")
             if ctype == "edit":
-                _apply_edit(doc, geo, change, affected, sample_doc)
+                pass  # handled in the two-pass block above
             elif ctype == "add-text":
                 _apply_add_text(doc, change, affected)
             elif ctype == "whiteout":
@@ -821,6 +852,37 @@ def cmd_selftest():
     doc.close()
     assert not missing, f"special chars dropped (tofu/missing): {missing!r}"
     sys.stderr.write("[pdf-editor] selftest OK — AZ/TR/RU glyphs render\n")
+
+    # Wave 11B round-8: ordering guard. Block A (red bg) is moved onto block B's
+    # ORIGINAL bbox. The two-pass apply (redact A+B, apply_redactions, draw A+B)
+    # must leave A's red bg intact — i.e. B's redaction can't erase A's draw. Fails
+    # if anyone reverts to per-block apply-after-draw.
+    doc = pymupdf.open()
+    page = doc.new_page(width=300, height=200)
+    page.insert_text(pymupdf.Point(20, 55), "BBBB", fontsize=14)  # B's old baked text
+    geo = {
+        "A": {"page": 0, "bbox": (20, 150, 80, 170), "origin": (20, 165),
+              "size": 14, "font": "Helvetica", "flags": 0, "text": "AAAA", "baseline_offset": 12},
+        "B": {"page": 0, "bbox": (20, 40, 90, 60), "origin": (20, 55),
+              "size": 14, "font": "Helvetica", "flags": 0, "text": "BBBB", "baseline_offset": 12},
+    }
+    # A moved up onto B's original row (y≈40) with a red bg; B moved far right.
+    chA = {"type": "edit", "blockId": "A", "x": 20, "y": 40, "bgColor": "#ff0000", "text": "AAAA"}
+    chB = {"type": "edit", "blockId": "B", "x": 200, "y": 40, "text": "BBBB"}
+    aff = set()
+    _redact_edit(doc, geo, chA, aff, None)
+    _redact_edit(doc, geo, chB, aff, None)
+    page.apply_redactions()
+    _draw_edit(doc, geo, chA, aff)
+    _draw_edit(doc, geo, chB, aff)
+    pm = page.get_pixmap(clip=pymupdf.Rect(22, 42, 60, 58))
+    red = any(
+        pm.pixel(x, y)[0] > 200 and pm.pixel(x, y)[1] < 80 and pm.pixel(x, y)[2] < 80
+        for x in range(0, pm.width, 4) for y in range(0, pm.height, 4)
+    )
+    doc.close()
+    assert red, "moved red-bg block was erased by another block's redaction (ordering regressed)"
+    sys.stderr.write("[pdf-editor] selftest OK — edit redaction/draw ordering\n")
     print(json.dumps({"ok": True}))
 
 
