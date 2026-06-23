@@ -233,6 +233,26 @@ def _insert_text(page, point, text, font_size, font_name, color, bold, italic):
         )
 
 
+def _text_width(text, font_size, font_name, bold, italic):
+    """Rendered width of `text` in the font _insert_text would pick (so the manual
+    bg highlight matches the drawn text, incl. AZ/Cyrillic via the Noto TTFs).
+    Returns points, or None if measuring fails (caller falls back to the bbox)."""
+    n = (font_name or "").lower()
+    try:
+        if _is_explicit_noto(font_name) or _needs_unicode(text):
+            if "mono" in n:
+                f = pymupdf.Font(fontfile=NOTO_MONO_REGULAR)
+            elif "serif" in n:
+                f = pymupdf.Font(fontfile=NOTO_SERIF_BOLD if bold else NOTO_SERIF_REGULAR)
+            else:
+                f = pymupdf.Font(fontfile=NOTO_BOLD if bold else NOTO_REGULAR)
+        else:
+            f = pymupdf.Font(_base14_code(font_name, bold, italic))
+        return f.text_length(text, fontsize=font_size or 11)
+    except Exception:
+        return None
+
+
 def _draw_underline(page, point, width, font_size, color):
     """Draw an underline just below the baseline at `point`, spanning `width` points."""
     rgb = _hex_to_rgb01(color) if isinstance(color, str) else (color or (0.0, 0.0, 0.0))
@@ -366,14 +386,11 @@ def _apply_edit(doc, geo, change, affected, sample_doc=None):
     page = doc[g["page"]]
     affected.add(g["page"])
     bbox = pymupdf.Rect(g["bbox"])
-    # Wave 11B: a manual bgColor override wins (gradient/image cases where 11A
-    # auto-sampling bailed to white). Otherwise Wave 11A: sample the real page
-    # background behind the old text (from the pristine copy, so earlier
-    # redactions in this save can't tint it). None → flat white, as before.
+    # Wave 11B round-4: removing the old text always restores the *sampled* page
+    # background (11A) — never the manual bgColor — so shortening text leaves the
+    # emptied area as the page bg, not a smear of the manual color. None → white.
     fill = (1, 1, 1)
-    if change.get("bgColor"):
-        fill = _hex_to_rgb01(change["bgColor"])
-    elif sample_doc is not None:
+    if sample_doc is not None:
         fill = _sample_bg_color(sample_doc[g["page"]], bbox) or (1, 1, 1)
     _redact_rect(page, bbox, fill)
     if change.get("deleted"):
@@ -391,12 +408,24 @@ def _apply_edit(doc, geo, change, affected, sample_doc=None):
     # Use original text as fallback so bold/italic-only changes don't erase text.
     text = change.get("text") or g.get("text", "")
     size = change.get("fontSize", g["size"])
+    font_name = change.get("fontName", g["font"])
+    # Wave 11B round-4: a manual bgColor is a highlight behind the CURRENT text,
+    # sized to it (NOT the old bbox) — so it tracks shorten/lengthen edits. Drawn
+    # after the redaction (page bg) and before the text.
+    if change.get("bgColor"):
+        m = _hex_to_rgb01(change["bgColor"])
+        tw = _text_width(text, size, font_name, bold, italic)
+        if tw is None:
+            tw = bbox.width
+        top = y_override if (x_override is not None and y_override is not None) else g["bbox"][1]
+        hrect = pymupdf.Rect(insert_point.x, top, insert_point.x + tw, top + bbox.height)
+        page.draw_rect(hrect, color=m, fill=m, width=0)
     _insert_text(
         page,
         insert_point,
         text,
         size,
-        change.get("fontName", g["font"]),
+        font_name,
         change.get("color", "#000000"),
         bold,
         italic,

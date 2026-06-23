@@ -157,8 +157,13 @@ export function TextBlock({
   }, [editing, modified, text, fontName, fontSizeRaw, bold, italic, scale, pageWidth]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const border = editing || selected ? "2px solid #6B5CE7" : "1px solid transparent";
-  // Wave 11A: tint the mask with the sampled page background so the live editor
-  // matches the saved PDF; null (non-flat bg) → white, as before.
+  // Wave 11B round-4: two distinct fills.
+  // - ghostFill hides the OLD baked PNG text at the ORIGINAL bbox → always the
+  //   sampled page bg (11A), NEVER the manual override. So shortening text leaves
+  //   the emptied area as the page bg, not a smear of the manual color.
+  // - maskColor is the visible bg behind the CURRENT text (manual override wins),
+  //   painted by the root div at the current box (auto-resized when edited).
+  const ghostFill = block.bgColor ?? "#fff";
   const maskColor = change?.bgColor ?? block.bgColor ?? "#fff";
   // On MOVE only the text travels — the ghost mask (at the ORIGINAL bbox) keeps the
   // gray, and the moved root must be transparent so the gray doesn't ride along
@@ -287,7 +292,7 @@ export function TextBlock({
           height: origH,
           transform: undefined,
           zIndex: -1,
-          background: maskColor,
+          background: ghostFill,
           pointerEvents: "none",
           border: "1px solid transparent",
         }}
