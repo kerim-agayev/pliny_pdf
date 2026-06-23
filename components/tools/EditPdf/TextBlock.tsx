@@ -300,7 +300,7 @@ export function TextBlock({
           width: origW,
           height: origH,
           transform: undefined,
-          zIndex: -1,
+          zIndex: -2,
           background: ghostFill,
           pointerEvents: "none",
           border: "1px solid transparent",
@@ -317,14 +317,14 @@ export function TextBlock({
           box) so that shrinking the text never lets the baked PNG text leak out past
           the mask (Wave 8C fix). On grow, the content box extends past this mask over
           empty page area, so its own white background covers the rest.
-          z-index is -1 (Wave 8E): inside the page's isolated stacking context this puts
-          the mask just ABOVE the page PNG (which is at -2, so the stale text is masked)
-          but BELOW every block content AND every annotation overlay (all `auto`/positive).
-          Previously this was `auto` and rendered inline per block, so a MOVED block's
-          ghost (at its old spot) painted OVER another block's text that had been moved
-          there — ghosts accumulated/stacked. Negative z fixes that: every ghost is below
-          every block's content, so no ghost can cover text. Annotations stay on top of
-          ghosts (D6-11); the dragged block keeps zIndex 100 (D6-12). */}
+          z-index is -2 (Wave 8E + 11B r7): inside the page's isolated stacking context this
+          puts the mask ABOVE the page PNG (at -3, so the stale text is masked) but BELOW
+          the bg-color frame tier (-1) and every block content/annotation (all `auto`/
+          positive). The ghost is on its OWN tier strictly below all frames, so stacking is
+          by z-index not DOM order: a MOVED block's ghost (at its old spot) can never paint
+          over another block's text NOR its colored frame, even when the colored block is
+          earlier in the array (11B r7). Annotations stay on top of ghosts (D6-11); the
+          dragged block keeps zIndex 100 (D6-12). */}
       {masked && (
         <div
           style={{
@@ -334,7 +334,7 @@ export function TextBlock({
             width: origW,
             height: origH,
             transform: undefined,
-            zIndex: -1,
+            zIndex: -2,
             background: ghostFill,
             pointerEvents: "none",
             border: "1px solid transparent",

@@ -782,8 +782,10 @@ export function EditorCanvas() {
         onPointerDown={onPointerDown}
         onContextMenu={onCanvasContextMenu}
         // `isolation: isolate` makes this page its own stacking context so the negative
-        // z-index layers below (PNG at -2, per-block ghost masks at -1) stay contained
-        // here instead of escaping to an ancestor. See ghost-mask layering (Wave 8E).
+        // z-index layers below (PNG at -3, ghost masks at -2, bg-color frames at -1) stay
+        // contained here instead of escaping to an ancestor. See ghost-mask layering (8E)
+        // + Wave 11B r7 (frames tier above ghosts so a colored block survives over another
+        // block's ghost).
         style={{ position: "relative", isolation: "isolate", width: displayW, height: displayH, flexShrink: 0, cursor, touchAction: "none", boxShadow: "0 30px 70px -24px rgba(0,0,0,0.55), 0 0 0 1px rgba(0,0,0,0.18)", background: "#fff" }}
       >
         <img
@@ -792,10 +794,11 @@ export function EditorCanvas() {
           width={displayW}
           height={displayH}
           draggable={false}
-          // zIndex -2: the PNG is the floor. Block ghost masks sit at -1 (just above it,
-          // hiding stale baked text) but below ALL block contents (auto) so a moved
-          // block's mask can never cover another block's text (Wave 8E ghost-stacking fix).
-          style={{ display: "block", position: "relative", zIndex: -2, userSelect: "none", pointerEvents: "none" }}
+          // zIndex -3: the PNG is the floor. Ghost masks sit at -2 (above it, hiding stale
+          // baked text); bg-color frames at -1 (above all ghosts); block contents at auto
+          // (>=0). Distinct tiers so stacking is by z-index, not DOM order — a moved block's
+          // ghost can't cover another block's text OR its colored frame (Wave 8E + 11B r7).
+          style={{ display: "block", position: "relative", zIndex: -3, userSelect: "none", pointerEvents: "none" }}
         />
 
         {/* Wave 11B eyedropper: full-page capture layer so a click anywhere
