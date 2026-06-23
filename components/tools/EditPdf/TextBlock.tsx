@@ -151,6 +151,9 @@ export function TextBlock({
     // shortening text shrinks the color (Wave 11B round-5). The ≥50pt click target is
     // applied separately at boxW, not here.
     const w = Math.min(maxW, measureRef.current.scrollWidth / scale + 4);
+    // TEMP debug (Wave 11B round-6) — confirms the bg/frame width = real text width, no
+    // 50pt floor. Remove after the user confirms shorten works.
+    console.log("[pp-bg]", JSON.stringify(text).slice(0, 24), "w(pt)=", w.toFixed(1));
     const lineCount = (text.match(/\n/g)?.length ?? 0) + 1;
     // 1.15 is tight (just above the editable's 1.12 line-height, so glyphs/descenders
     // aren't clipped) but small enough that a single-line box stays within the PDF line
@@ -173,9 +176,13 @@ export function TextBlock({
   // (matches Sejda). The backend already redacts only the original bbox. Edit-in-
   // place keeps maskColor so widened text still blends into a colored row.
   const moved = moveOffset !== null || pos != null;
-  // Root div no longer paints the manual bg (the dedicated highlight div below does,
-  // hugging the real text). Root only shows the subtle selection tint (Wave 11B round-5).
-  const bg = moved || !(selected || editing) ? "transparent" : "rgba(107,92,231,0.06)";
+  const hasManualBg = !!change?.bgColor;
+  // Wave 11B round-6: the visible block (color + selection border) is the tight FRAME
+  // div below — the root is just an invisible ≥50pt hit/text container. showFill paints
+  // the manual color only when it should be visible: always when not moved, but on MOVE
+  // only for a manual override (a non-manual auto-sampled bg must NOT ride along with
+  // moved text — preserves 11A move-text-only).
+  const showFill = masked && (hasManualBg || !moved);
 
   // Effective size: content-derived override (Wave 8C) if the block has been edited,
   // else the original bbox from the loaded PDF.
@@ -337,21 +344,27 @@ export function TextBlock({
         />
       )}
 
-      {/* Wave 11B round-5: the VISIBLE manual bg — a highlight that hugs the CURRENT
-          text. Sized to the real (un-floored) text box, NOT the ≥50pt interaction box,
-          so shortening text shrinks the color too. Sits above the sampled ghost (also
-          zIndex -1, rendered before this) and below the text. Skipped while moving. */}
-      {masked && !moved && (
+      {/* Wave 11B round-6: the VISIBLE block — one tight frame that hugs the CURRENT
+          text. Width = real text width (no floor → shrinks to short text); height =
+          origH (the original line box → covers descenders g/y/p/ş/ç, matches the backend
+          highlight which uses bbox.height). Carries the manual bg AND the selection
+          border, so the visible block shrinks while the root stays a ≥50pt click area.
+          Travels with the text on move (transform); the sampled ghost stays at the old
+          spot. zIndex -1 (above the ghost, below the text — safe per Wave 8E). */}
+      {(masked || selected || editing) && (
         <div
           style={{
             position: "absolute",
             left: blockLeft,
             top: blockTop,
             width: bgFillW,
-            height: boxH,
+            height: origH,
+            transform: moveOffset ? `translate(${moveOffset.dx}px, ${moveOffset.dy}px)` : undefined,
+            background: showFill ? maskColor : "transparent",
+            border,
             borderRadius: 3,
+            boxSizing: "border-box",
             zIndex: -1,
-            background: maskColor,
             pointerEvents: "none",
           }}
         />
@@ -428,8 +441,10 @@ export function TextBlock({
         className="pp-textblock"
         style={{
           ...boxStyle,
-          border,
-          background: bg,
+          // Wave 11B round-6: root is the invisible ≥50pt hit/text container — the visible
+          // border + bg live on the tight frame div above so the block hugs the text.
+          border: "1px solid transparent",
+          background: "transparent",
           cursor: moveOffset ? "move" : (editing ? "text" : "pointer"),
           transition: moveOffset ? "none" : "border-color 0.12s, background 0.12s",
           transform: moveOffset ? `translate(${moveOffset.dx}px, ${moveOffset.dy}px)` : undefined,
