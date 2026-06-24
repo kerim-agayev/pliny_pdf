@@ -991,6 +991,7 @@
       "fieldBgColor": "Arka plan",
       "eyedropper": "Sayfadan renk al",
       "eyedropperFailed": "O piksel alınamadı. Tekrar deneyin.",
+      "bgNoMatchHint": "Bu metin bir görselin veya degradenin üzerinde — arka plan otomatik eşleştirilemez. Bir dolgu rengi seçin veya damlalığı kullanın.",
       "sessionExpiringTitle": "Oturumunuz 5 dakika içinde sona eriyor",
       "sessionExpiringDesc": "Değişikliklerinizi şimdi kaydedin — sunucu oturumu sona erdiğinde kaydedilmemiş düzenlemeler kaybolur.",
       "saveNow": "Şimdi kaydet",

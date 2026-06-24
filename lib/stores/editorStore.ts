@@ -109,6 +109,10 @@ interface EditorState {
   textAlign: TextAlign;
   /** manual mask/background fill for the selected block (Wave 11B); default white */
   bgColor: string;
+  /** true when the selected existing block's bg auto-sample failed (image/gradient/
+   *  watermark under the text → server sent bgColor:null); prompts the user to pick a
+   *  mask color manually (Wave 11D). Locally-added text omits bgColor → never "failed". */
+  bgSampleFailed: boolean;
   /** true while click-to-sample (eyedropper) is armed — EditorCanvas samples a page pixel */
   eyedropper: boolean;
 
@@ -228,6 +232,7 @@ const INITIAL = {
   underline: false,
   textAlign: "left" as TextAlign,
   bgColor: "#ffffff",
+  bgSampleFailed: false,
   eyedropper: false,
   strokeColor: "#F43F5E",
   strokeWidth: 3,
@@ -303,9 +308,13 @@ export const useEditorStore = create<EditorState>((set, get) => ({
         underline: style?.underline ?? false,
         textAlign: style?.textAlign ?? "left",
         bgColor: change?.bgColor ?? block.bgColor ?? "#ffffff",
+        // Existing text whose auto-sample failed (null) and that hasn't been given a
+        // manual fill yet → surface the manual-color hint. `=== null` excludes locally
+        // -added text (bgColor undefined).
+        bgSampleFailed: block.bgColor === null && change?.bgColor == null,
       });
     } else {
-      set({ selectedBlock: id, editingBlock: id ? get().editingBlock : null });
+      set({ selectedBlock: id, editingBlock: id ? get().editingBlock : null, bgSampleFailed: false });
     }
     set({ multiSelected: [], selectedAnnotId: null });
   },
@@ -385,6 +394,8 @@ export const useEditorStore = create<EditorState>((set, get) => ({
 
   setFormat: (patch) => {
     set(patch);
+    // Picking a mask color resolves the text-over-image case → drop the hint.
+    if (patch.bgColor !== undefined) set({ bgSampleFailed: false });
     const id = get().selectedBlock;
     if (id) {
       const map: Partial<BlockChange> = {};

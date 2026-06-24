@@ -371,6 +371,10 @@ function SheetText({ t, s, onAlign, onStepSize, onClose }: {
               style={{ ...tile(s.eyedropper), width: 44, display: "inline-flex", alignItems: "center", justifyContent: "center" }}
               title={t("eyedropper")}><IconPipette size={18} /></button>
           </div>
+          {/* Wave 11D — auto-match failed (text over image/gradient): prompt a manual pick. */}
+          {s.bgSampleFailed && (
+            <p style={{ margin: "8px 0 0", fontSize: 12, lineHeight: 1.5, color: "#F59E0B" }}>{t("bgNoMatchHint")}</p>
+          )}
         </Field>
       )}
     </div>

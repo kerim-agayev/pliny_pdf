@@ -442,11 +442,14 @@ export function EditorToolbar() {
           <input ref={colorRef} type="color" value={s.fontColor} onChange={(e) => s.setFormat({ fontColor: e.target.value })} style={{ position: "absolute", width: 0, height: 0, opacity: 0, pointerEvents: "none" }} />
         </button>
         {/* Wave 11B — manual background/mask fill for the selected block (overrides the
-            11A auto-sampled color when it bailed to white on a gradient/image). */}
+            11A auto-sampled color when it bailed to white on a gradient/image).
+            Wave 11D — when auto-sampling failed (text over image/gradient) ring the
+            swatch amber + retitle it to prompt a manual pick. */}
         <button
-          type="button" disabled={!enabled} className="pp-edtool" title={t("fieldBgColor")}
+          type="button" disabled={!enabled} className="pp-edtool"
+          title={s.bgSampleFailed ? t("bgNoMatchHint") : t("fieldBgColor")}
           onClick={() => bgColorRef.current?.click()}
-          style={{ height: 30, padding: "0 6px", borderRadius: 7, background: "var(--bg-2)", border: "1px solid var(--line)", display: "inline-flex", alignItems: "center", gap: 6, cursor: enabled ? "pointer" : "not-allowed", opacity: enabled ? 1 : 0.5 }}
+          style={{ height: 30, padding: "0 6px", borderRadius: 7, background: "var(--bg-2)", border: s.bgSampleFailed ? "1px solid #F59E0B" : "1px solid var(--line)", boxShadow: s.bgSampleFailed ? "0 0 0 1px rgba(245,158,11,0.4)" : undefined, display: "inline-flex", alignItems: "center", gap: 6, cursor: enabled ? "pointer" : "not-allowed", opacity: enabled ? 1 : 0.5 }}
         >
           <span style={{ width: 16, height: 16, borderRadius: 4, background: s.bgColor, border: "1px solid var(--line-2)" }} />
           <IconChevron size={11} style={{ transform: "rotate(90deg)", opacity: 0.6, color: "var(--text-2)" }} />

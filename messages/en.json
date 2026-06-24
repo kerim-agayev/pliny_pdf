@@ -991,6 +991,7 @@
       "fieldBgColor": "Background",
       "eyedropper": "Sample color from page",
       "eyedropperFailed": "Couldn't sample that pixel. Try again.",
+      "bgNoMatchHint": "This text sits over an image or gradient — the background can't be matched automatically. Pick a fill color or use the eyedropper.",
       "sessionExpiringTitle": "Your session expires in 5 minutes",
       "sessionExpiringDesc": "Save your changes now — unsaved edits will be lost when the server session ends.",
       "saveNow": "Save now",

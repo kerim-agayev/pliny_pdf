@@ -99,3 +99,54 @@
 - Alignment/baseline/line-height/width needed no code change (already correct
   from 11A/11B origin capture; multi-line leading N/A — per-line blocks).
 - Next: Wave 11D — Uneditable detection + performance + final QA. Not started.
+
+## [2026-06-24] Wave 11D — investigation: most detection already shipped
+- Mobile audit (11A/11B/11C): all clear. Edit PDF shares the desktop code path;
+  only the toolbar swaps (`MobileToolbar` ↔ `EditorToolbar`), both driving the
+  same store. bgColor mask, ghost-mask-on-move, touch delete, bg picker,
+  eyedropper, font prefill, 11C color — no mobile-only bypass. No fix.
+- Scanned detection: already wired (backend `scanned` flag → store
+  `phase:"scanned"` → modal w/ OCR redirect + Continue-anyway + i18n). No fix.
+- Encrypted: already handled (`doc.needs_pass` → `passwordRequired` → in-browser
+  PasswordModal). No fix.
+- Multi-column: edits are per-blockId redact+draw, fully isolated (two-pass). No fix.
+- Performance premise was stale: `/edit-pdf` doesn't load fabric at all; pdfjs is
+  lazy (on upload, not mount); EditPdf is already `dynamic(ssr:false)` + SSR
+  placeholder. Documented levers already done.
+
+## [2026-06-24] Wave 11D — text-over-image hint (the one real gap)
+- When auto-sampling fails (text over image/gradient) the server sends
+  `bgColor:null` and the mask silently fell back to white. Added a hint.
+- `editorStore.selectBlock`: derived `bgSampleFailed = block.bgColor === null &&
+  no manual override` (`=== null` excludes locally-added text, which omits
+  bgColor → undefined). `setFormat` clears it once a color is picked.
+- Desktop `EditorToolbar`: amber ring + retitled tooltip on the bg swatch when
+  failed (dense row → no inline string). Mobile `MobileToolbar`: amber hint line
+  under the bg field. New i18n key `bgNoMatchHint` (EN/TR/RU).
+- Verified on Hetzner with a synthetic text-over-image PDF: "TEXT OVER IMAGE"
+  (gradient) → bgColor=None (hint fires); "TEXT ON WHITE" → #ffffff (no hint).
+  `bun run build` green.
+
+## [2026-06-24] Wave 11D — rotated page VERIFIED, no fix needed
+- Tested user's REKVIZIT-rotated.pdf (rotation 270) on Hetzner via the real
+  engine. First crude test mis-flagged it (compared to bbox*scale assuming
+  display space — wrong space). Rigorous tests corrected it:
+  - Identity re-type of all 25 blocks → only 2.5% of sampled pixels change
+    (font-substitution/anti-aliasing noise) → text re-lands in place.
+  - Single-block edit ("EDITED-LINE-12345") → renders exactly in the right row,
+    correct orientation, old text cleanly removed (visual confirm).
+- Conclusion: PyMuPDF maps redaction AND insert correctly here; edits land
+  correctly on the 270° page. NO backend change → NO Hetzner deploy for rotation.
+
+## [2026-06-24] Wave 11D — performance: measured, accepted (no safe win)
+- Lighthouse (mobile, prod /edit-pdf): Performance 66 this run (vs 84 at GATE
+  10D — large run-to-run/network variance). LCP 4.7s, TBT 370ms, CLS 0.166.
+- LCP element = the CLIENT-rendered empty-state H1, not the SSR placeholder —
+  meaningful paint waits for the `ssr:false` editor chunk. Fixing = SSR-ing the
+  empty state = the risky editor refactor the plan excludes.
+- Top opportunity "unused JS 356 KiB" lives in the editor chunk (same risky
+  refactor). "Legacy JS 33 KiB" would need tightening `.browserslistrc` to
+  modern-only — drops older-browser support for the global/CIS audience, so NOT
+  a safe change for a launched product.
+- Per the pre-authorized decision (accept if no safe win): accepted as a
+  non-blocker (consistent with GATE 10D). LCP refactor deferred as a future item.

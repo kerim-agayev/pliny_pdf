@@ -2,8 +2,10 @@
 
 ## Current Status
 - Phase: 11
-- Active wave: **11D — Uneditable detection + perf + final QA** (not started)
-- Next step: start Wave 11D next session.
+- Active wave: **11D — Uneditable detection + perf + final QA** (code done,
+  GATE 11D pending user confirm)
+- Next step: user verifies the text-over-image hint in the live editor
+  (desktop + mobile); then commit + push (frontend-only; no Hetzner deploy).
 
 ## Waves
 - 11A — Smart background sampling (mask matches page bg, not white). ✅ COMPLETE
@@ -15,7 +17,10 @@
 - 11C — Color & alignment fidelity. ✅ COMPLETE (GATE 11C passed 2026-06-24) —
   backend-only color fix (geo stores color, no black fallback); alignment/
   baseline/leading/width verified already-correct from 11A/11B.
-- 11D — Uneditable detection + perf + final QA. ← current
+- 11D — Uneditable detection + perf + final QA. ◐ CODE DONE (GATE pending) —
+  scanned/encrypted/multi-column already shipped; NEW text-over-image hint
+  (`bgSampleFailed` + `bgNoMatchHint`); rotated verified correct (no fix); perf
+  84 accepted (non-blocker). Frontend-only; no backend change.
 
 ## Key Files
 - `server/services/pdf-editor.py` — PyMuPDF edit engine (mask, text insert).
