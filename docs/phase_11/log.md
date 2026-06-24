@@ -203,3 +203,15 @@
 - `bun run build` green. Commits `e0b987c`, `a9c987d` (code) + this docs commit.
   Frontend-only; no Hetzner deploy. Pending: user runs the full 26-item issue-7
   checklist on prod (desktop + mobile) → GATE 11D.
+
+## [2026-06-24] Wave 11D — undo/redo color-picker flood fix (B11-8)
+- Reported during GATE 11D QA: undo stops at a bg-color change. Root cause: native
+  `<input type=color>` onChange (= input event) fires per drag tick → each pushed an
+  undo snapshot via setFormat→editBlock → one pick flooded the stack; undos never got
+  past it. Latent on the font-color input too. Mobile swatches/eyedropper unaffected.
+- Fix (`editorStore.ts` + `EditorToolbar.tsx`): `previewColor` snapshots once per burst
+  (first tick) and repaints on the rest; `endColorBurst` (toolbar onClick-to-open +
+  onBlur) bounds each pick to one undo step. Swatches/eyedropper keep `setFormat`.
+- Self-check `lib/stores/editorStore.test.ts` (one drag = one undo step; picks stay
+  separate) green; `bun run build` green. Frontend-only. Commit `eeb1718` + docs.
+  Pending user confirm: set bg 5×, undo 5× restores each prior color, then past it.

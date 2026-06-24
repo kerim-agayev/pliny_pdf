@@ -85,6 +85,21 @@ the un-nudged UP shift (delta 0) and the full-correction DOWN shift, so apply HA
 `(baselineOffset*scale − domAscent) * 0.5`. User confirmed zero shift on double-click.
 Tunable single factor if a future font reveals a different sweet spot.
 
+## B11-8 — Undo/redo breaks at a bg-color change (Wave 11D QA) — FIXED
+Reported: undo/redo works until it reaches a background-color change, then stops —
+won't undo that pick or anything before it. Root cause: the desktop manual color
+control is a native `<input type=color>`, whose React `onChange` is bound to the
+`input` event → fires on EVERY drag tick. Each tick called `setFormat` →
+`editBlock`, pushing a fresh undo snapshot, so one pick flooded the stack with dozens
+of near-identical entries; a few undos only peeled intermediate ticks and never
+reached the real prior actions. (Mobile swatches + eyedropper push one clean entry
+each — not affected.) The same latent flood existed on the desktop font-color input.
+Fix (`editorStore.ts` + `EditorToolbar.tsx`): new `previewColor` pushes ONE pre-edit
+snapshot on the first tick of a burst and only repaints on later ticks; `endColorBurst`
+(toolbar fires it when the picker opens/blurs) bounds each pick to one undo step.
+Swatches/eyedropper still use `setFormat`. Self-check `editorStore.test.ts` asserts
+one drag = one undo step and that picks stay separately undoable. User confirms pending.
+
 ## B11-4 — /edit-pdf Lighthouse Performance < 90 (Wave 11D) — ACCEPTED
 Measured 66 (mobile, prod) this run; 84 at GATE 10D — high run-to-run variance.
 Root cause: LCP (4.7s) is the client-rendered empty-state H1, gated by the
