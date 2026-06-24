@@ -23,6 +23,10 @@ export type TextBlock = {
   // when the area isn't a flat color (or for locally-added text) → mask falls back
   // to white.
   bgColor?: string | null;
+  // Wave 11D: true when this text sits over an image (e.g. OCR text over a scan/photo)
+  // → the background can't be reliably auto-matched, so the editor prompts a manual
+  // fill. Absent for locally-added text.
+  overImage?: boolean;
 };
 export type PageData = {
   pageNum: number;

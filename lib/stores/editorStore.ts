@@ -308,10 +308,13 @@ export const useEditorStore = create<EditorState>((set, get) => ({
         underline: style?.underline ?? false,
         textAlign: style?.textAlign ?? "left",
         bgColor: change?.bgColor ?? block.bgColor ?? "#ffffff",
-        // Existing text whose auto-sample failed (null) and that hasn't been given a
-        // manual fill yet → surface the manual-color hint. `=== null` excludes locally
-        // -added text (bgColor undefined).
-        bgSampleFailed: block.bgColor === null && change?.bgColor == null,
+        // Background can't be reliably auto-matched → surface the manual-color hint:
+        // either the flat-color sample failed (null) OR the text sits over an image
+        // (OCR-over-scan samples a solid color, so `=== null` alone misses it — Wave
+        // 11D). Only while no manual fill has been chosen. Both checks exclude
+        // locally-added text (bgColor undefined, overImage undefined).
+        bgSampleFailed:
+          (block.bgColor === null || block.overImage === true) && change?.bgColor == null,
       });
     } else {
       set({ selectedBlock: id, editingBlock: id ? get().editingBlock : null, bgSampleFailed: false });

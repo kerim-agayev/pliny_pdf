@@ -167,16 +167,27 @@ def _block_json(block_id, span):
 
 def _page_blocks(page, page_num):
     blocks = []
+    # Wave 11D: image placements on the page (dict type-1 blocks). Text overlapping
+    # one sits "over an image" — auto bg-sampling can't be trusted there even when a
+    # locally-flat frame yields a color (e.g. OCR text over dark artwork samples a
+    # solid near-black, not None), so the editor hints the user to pick a fill.
+    img_rects = [
+        pymupdf.Rect(b["bbox"])
+        for b in page.get_text("dict").get("blocks", [])
+        if b.get("type", 0) == 1
+    ]
     for bid, span in _lines(page, page_num):
         blk = _block_json(bid, span)
+        rect = pymupdf.Rect(span["bbox"])
         # Wave 11A: sampled page background behind this block, so the live editor
         # mask matches the saved-PDF redaction fill (same _sample_bg_color). None
         # → frontend keeps a white mask (unchanged behavior).
-        rgb = _sample_bg_color(page, pymupdf.Rect(span["bbox"]))
+        rgb = _sample_bg_color(page, rect)
         blk["bgColor"] = (
             "#{:02x}{:02x}{:02x}".format(round(rgb[0] * 255), round(rgb[1] * 255), round(rgb[2] * 255))
             if rgb else None
         )
+        blk["overImage"] = any(r.intersects(rect) for r in img_rects)
         blocks.append(blk)
     return blocks
 

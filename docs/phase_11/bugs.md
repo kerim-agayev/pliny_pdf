@@ -9,12 +9,19 @@ fill; white fallback when not a flat color.
 Repro: user's account-requisites PDF (gray zebra rows).
 RESOLVED in Wave 11A (commit `a66bc80`); manual fallback + hint in 11B/11D.
 
-## B11-2 — Text-over-image mask silently white (Wave 11D) — FIXED
-When the bg auto-sample fails (text over image/gradient/watermark) the server
-sends `bgColor:null` and the mask fell back to white with no signal to the user.
-Fix: `editorStore` derives `bgSampleFailed` on selection; toolbars surface a
-"pick a color / use the eyedropper" hint (`bgNoMatchHint`, EN/TR/RU). Verified
-with a synthetic text-over-image PDF (gradient block → bgColor None → hint).
+## B11-2 — Text-over-image hint never fired on OCR'd PDFs (Wave 11D) — FIXED
+First cut keyed the hint off `bgColor === null`. But `_sample_bg_color` only
+returns null on HIGH variance (>25% of the frame differs). OCR text over a
+scan/photo samples a LOCALLY FLAT frame (e.g. dark comic artwork → solid
+`#1a1a1a`), so it returns a color, not null → the hint never showed (user report).
+Root cause: wrong signal. "Text over image" is structural, not a color-variance
+property — and the engine never checked for images.
+Fix: backend `_page_blocks` collects dict type-1 (image) block rects and sets
+`overImage = text bbox intersects any image rect`. Frontend fires the hint when
+`block.bgColor === null || block.overImage === true` (no manual override yet).
+Verified on Hetzner: OCR-over-comic text → `bgColor #1a1a1a, overImage True →
+hint fires`; gradient (vector) text → `bgColor None → fires`; plain text on
+white → `#ffffff, overImage False → no fire`. Backend change → Hetzner deploy.
 
 ## B11-3 — Rotated page edits — NOT A BUG (Wave 11D verified)
 Suspected misplacement of edits on rotated pages. Verified on REKVIZIT-rotated.pdf

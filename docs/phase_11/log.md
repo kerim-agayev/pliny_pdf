@@ -150,3 +150,20 @@
   a safe change for a launched product.
 - Per the pre-authorized decision (accept if no safe win): accepted as a
   non-blocker (consistent with GATE 10D). LCP refactor deferred as a future item.
+
+## [2026-06-24] Wave 11D — hint fix: text-over-image is structural, not null-bg
+- User: hint not visible on an OCR'd PDF (image bg + text layer). Reproduced on
+  Hetzner with the comic image + an OCR-style text layer → blocks came back
+  `bgColor #1a1a1a` (a flat sample of the dark artwork), NOT null. So the
+  `bgColor === null` condition never fired.
+- Root cause: `bgColor === null` only triggers on HIGH local variance; an image
+  area that's locally uniform samples a solid color. "Over an image" is a
+  structural fact the engine never checked.
+- Fix (backend `pdf-editor.py` `_page_blocks`): collect dict type-1 image-block
+  rects; set `overImage = text bbox intersects any image rect`. Frontend
+  (`editorStore`) fires `bgSampleFailed` on `bgColor === null || overImage`.
+  `TextBlock` type gains `overImage?`. Hint copy unchanged (already mentions
+  "over an image"). No i18n change.
+- Verified on Hetzner with the modified engine: OCR-over-art → overImage True →
+  fires; gradient (vector) → bgColor None → fires; plain white text → no fire.
+  `bun run build` green. Backend changed → Hetzner deploy.
