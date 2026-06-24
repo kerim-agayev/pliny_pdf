@@ -150,6 +150,7 @@ def _lines(page, page_num):
 def _block_json(block_id, span):
     x0, y0, x1, y1 = span["bbox"]
     flags = span.get("flags", 0)
+    origin = span.get("origin", (x0, y0))
     return {
         "blockId": block_id,
         "x": round(x0, 2),
@@ -162,6 +163,10 @@ def _block_json(block_id, span):
         "color": _int_color_to_hex(span.get("color", 0)),
         "bold": bool(flags & FLAG_BOLD),
         "italic": bool(flags & FLAG_ITALIC),
+        # Wave 11D issue 4: text baseline distance from the bbox top (PDF points), so
+        # the editor overlay can sit its DOM baseline exactly where the PNG baked text
+        # is — no vertical jump when entering edit mode.
+        "baselineOffset": round(origin[1] - y0, 2),
     }
 
 
@@ -242,6 +247,62 @@ def _insert_text(page, point, text, font_size, font_name, color, bold, italic):
             point, text, fontsize=size,
             fontname=_base14_code(font_name, bold, italic), color=rgb,
         )
+
+
+def _norm_font(name):
+    """Normalize a font name for matching across the two PyMuPDF spellings: the span
+    name ("NotoSerif-Regular", "ABCDEE+Arial") vs get_fonts basefont ("Noto Serif
+    Regular"). Drops the subset prefix and all non-alphanumerics, lowercased."""
+    name = (name or "")
+    if "+" in name:
+        name = name.split("+", 1)[1]
+    return "".join(ch for ch in name.lower() if ch.isalnum())
+
+
+def _embedded_fontfiles(doc, session_dir):
+    """Wave 11D issue 2: map a span's font name → (fontfile, code) for fonts that are
+    actually EMBEDDED (ttf/otf) in the PDF, so an edit that keeps the original glyphs
+    can be re-drawn in the exact same font/weight instead of substituting Noto (which
+    is heavier → looks darker). Base-14 (Helvetica etc.), CID/Type0 and Type3 fonts
+    have no usable embedded TTF buffer → skipped, and the caller falls back to the
+    normal Noto/base-14 path. Subset prefix ("ABCDEE+Arial") is also keyed bare."""
+    out = {}
+    seen = set()
+    try:
+        for page in doc:
+            for f in page.get_fonts(full=True):
+                xref, ext, basefont = f[0], f[1], (f[3] or "")
+                if xref in seen:
+                    continue
+                seen.add(xref)
+                if ext not in ("ttf", "otf") or not basefont:
+                    continue
+                try:
+                    _bn, fext, _st, buf = doc.extract_font(xref)
+                except Exception:
+                    continue
+                if not buf or len(buf) < 4:
+                    continue
+                path = os.path.join(session_dir, f"embed-{xref}.{fext or ext}")
+                try:
+                    with open(path, "wb") as fh:
+                        fh.write(buf)
+                except OSError:
+                    continue
+                out.setdefault(_norm_font(basefont), (path, f"emb{xref}"))
+    except Exception:
+        pass
+    return out
+
+
+def _insert_text_embedded(page, point, text, font_size, fontfile, fontcode, color):
+    """Insert `text` using a font buffer extracted from the PDF (exact weight match).
+    Raises on failure so _draw_edit can fall back to the Noto/base-14 path."""
+    rgb = _hex_to_rgb01(color) if isinstance(color, str) else (color or (0.0, 0.0, 0.0))
+    page.insert_text(
+        point, text, fontsize=font_size or 11,
+        fontname=fontcode, fontfile=fontfile, color=rgb,
+    )
 
 
 def _text_width(text, font_size, font_name, bold, italic):
@@ -412,7 +473,7 @@ def _redact_edit(doc, geo, change, affected, sample_doc=None):
     doc[g["page"]].add_redact_annot(bbox, fill=fill)
 
 
-def _draw_edit(doc, geo, change, affected):
+def _draw_edit(doc, geo, change, affected, embed_fonts=None):
     """Pass 2: draw the manual bg + insert the new text at the new position. Runs
     after all edit redactions are applied, so it can never be erased."""
     g = geo.get(change.get("blockId"))
@@ -451,16 +512,36 @@ def _draw_edit(doc, geo, change, affected):
         top = y_override if (x_override is not None and y_override is not None) else g["bbox"][1]
         hrect = pymupdf.Rect(insert_point.x, top, insert_point.x + tw, top + bbox.height)
         page.draw_rect(hrect, color=m, fill=m, width=0)
-    _insert_text(
-        page,
-        insert_point,
-        text,
-        size,
-        font_name,
-        color,
-        bold,
-        italic,
-    )
+    # Wave 11D issue 2: a pure reposition/recolor (text + bold/italic unchanged) keeps
+    # the ORIGINAL glyphs, so re-draw them in the PDF's own embedded font for an exact
+    # weight match — Noto substitution renders heavier and looks darker. Any failure or
+    # a non-embedded/base-14 font falls back to the normal _insert_text path.
+    emb = None
+    if (
+        embed_fonts
+        and not change.get("text")
+        and "bold" not in change
+        and "italic" not in change
+    ):
+        emb = embed_fonts.get(_norm_font(font_name))
+    drawn = False
+    if emb:
+        try:
+            _insert_text_embedded(page, insert_point, text, size, emb[0], emb[1], color)
+            drawn = True
+        except Exception:
+            drawn = False
+    if not drawn:
+        _insert_text(
+            page,
+            insert_point,
+            text,
+            size,
+            font_name,
+            color,
+            bold,
+            italic,
+        )
     if change.get("underline"):
         # Use the measured width for re-typed text, else the original bbox width.
         if change.get("text"):
@@ -782,6 +863,9 @@ def cmd_apply(session_dir):
     # Pristine copy used only to sample original backgrounds (Wave 11A), kept
     # untouched while `doc` accumulates redactions.
     sample_doc = pymupdf.open(original)
+    # Wave 11D issue 2: extract the PDF's embedded fonts once (from the pristine copy)
+    # so a moved/recolored block can be re-drawn in its original font/weight.
+    embed_fonts = _embedded_fontfiles(sample_doc, session_dir)
     affected = set()
     last_replacements = 0
     # NB: stdout carries the JSON result — all diagnostics MUST go to stderr.
@@ -804,7 +888,7 @@ def cmd_apply(session_dir):
             for pno in redact_pages:
                 doc[pno].apply_redactions()
             for c in edits:
-                _draw_edit(doc, geo, c, affected)
+                _draw_edit(doc, geo, c, affected, embed_fonts)
         for change in changes:
             ctype = change.get("type")
             if ctype == "edit":

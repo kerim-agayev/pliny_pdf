@@ -27,6 +27,10 @@ export type TextBlock = {
   // → the background can't be reliably auto-matched, so the editor prompts a manual
   // fill. Absent for locally-added text.
   overImage?: boolean;
+  // Wave 11D: text baseline distance from the bbox top (PDF points). The editor
+  // overlay aligns its DOM baseline to this so entering edit mode doesn't shift the
+  // text vertically vs the PNG. Absent for locally-added text.
+  baselineOffset?: number;
 };
 export type PageData = {
   pageNum: number;

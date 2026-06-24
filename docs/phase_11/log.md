@@ -167,3 +167,21 @@
 - Verified on Hetzner with the modified engine: OCR-over-art → overImage True →
   fires; gradient (vector) → bgColor None → fires; plain white text → no fire.
   `bun run build` green. Backend changed → Hetzner deploy.
+
+## [2026-06-24] Wave 11D — regression pass (issues 1-6)
+- Investigated 6 reported Edit PDF issues (git-blame + empirical Hetzner renders).
+- **Issue 2 (move darkens):** NOT a color bug — sampled moved vs original header,
+  both #009ff7. Cause = Noto Bold substitution renders heavier. Fix: reuse the
+  PDF's EMBEDDED font on pure reposition/recolor edits (`_embedded_fontfiles`,
+  `_norm_font`, `_insert_text_embedded`; `_draw_edit` guarded branch). Verified:
+  embedded-TTF move coverage ratio 0.999; base-14/text-change fall back to Noto;
+  selftests green. Residual: base-14+AZ (REKVIZIT header) stays on Noto. (B11-5)
+- **Issue 1 (descenders clipped on move):** root `overflow:hidden` cut glyphs.
+  Fix: font-proportional bottom allowance on the transparent root only. (B11-6)
+- **Issue 3 (rotated):** documented as known limitation (bg-match only; edits land
+  correctly). (B11-3 / KNOWN LIMITATION)
+- **Issue 4 (shift up on edit):** root cause = PNG-vs-DOM baseline on pristine
+  blocks; needs in-browser baseline tuning → deferred, reported to user. (B11-7)
+- **Issue 5 (mobile):** all 11A-11D verified working at 375px incl. the hint. No change.
+- **Issue 6:** 11A/11B/11C gates logged passed; 11D code-done, GATE pending issue-7 QA.
+- Pending: `bun run build`, full issue-7 checklist with user, then commit + Hetzner deploy.

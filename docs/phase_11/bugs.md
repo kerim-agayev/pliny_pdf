@@ -30,6 +30,42 @@ place (identity re-type 2.5% pixel delta; single-block edit visually correct).
 No code change. NB: `_sample_bg_color` still deliberately bails to white on
 rotated pages (`pdf-editor.py:295`) — sampling, not placement, is the limitation.
 
+## KNOWN LIMITATION — rotated-page background match
+On rotated pages, edited-text masks fall back to white instead of sampling the
+page background (`_sample_bg_color` returns None when `page.rotation`). Edits land
+correctly; only the auto bg-match is disabled. Parity with Sejda/pdfFiller, which
+also degrade on rotated scans. Manual bg color + eyedropper still work. Accepted.
+
+## B11-5 — "Text darkens on move" — font substitution, not color (FIXED)
+Reported: moving a block darkens its text. Investigated by sampling the rendered
+REKVIZIT header: original blue (14,164,247) vs moved (15,164,247) — IDENTICAL
+(#009ff7). 11C color preservation is correct. The darkening is heavier glyph
+WEIGHT: re-insertion substituted Noto Bold (bolder than the original font) → more
+inked pixels → looks darker.
+Fix (Wave 11D, `pdf-editor.py`): on a pure reposition/recolor (text + bold/italic
+unchanged), re-draw using the PDF's own EMBEDDED font (`_embedded_fontfiles` +
+`_insert_text_embedded`) so the weight matches exactly. Verified: embedded-TTF
+move → glyph coverage ratio 0.999 (exact match); base-14 + text-change fall back
+to Noto cleanly; all selftests pass.
+RESIDUAL: base-14 fonts (e.g. Helvetica-Bold) aren't embedded, so AZ text in them
+(the REKVIZIT header) still routes to Noto and stays slightly heavier — unavoidable
+without the original font. Documented.
+
+## B11-6 — Descenders clipped on move (Wave 11D) — FIXED
+Moving a block clipped g/y/ğ/ş/ç by ~2-3px: the transparent root div's
+`overflow:hidden` cut the overlay glyphs at the tight box height. Fix
+(`TextBlock.tsx`): add a font-proportional bottom allowance (`descenderPad =
+fontSize*0.18`) to the root height only; the visible frame + ghost stay at origH,
+so no visible box spills into the next row.
+
+## B11-7 — Text shifts up ~1-2mm on double-click edit — OPEN (needs visual verify)
+Entering edit on a PRISTINE block swaps the PNG-baked text for the DOM overlay,
+whose baseline (lineHeight:1.12, top-aligned) doesn't match the PDF baseline →
+small jump. (Already-edited blocks use the same overlay div in display + edit, so
+they don't shift — confirms it's PNG-vs-DOM, not an edit-mode style diff.) Proper
+fix = align the overlay to the PDF baseline using `baselineOffset` from parse;
+needs in-browser tuning. Deferred pending the user's visual confirmation.
+
 ## B11-4 — /edit-pdf Lighthouse Performance < 90 (Wave 11D) — ACCEPTED
 Measured 66 (mobile, prod) this run; 84 at GATE 10D — high run-to-run variance.
 Root cause: LCP (4.7s) is the client-rendered empty-state H1, gated by the

@@ -75,6 +75,9 @@ export function TextBlock({
   const lpStart = useRef<{ x: number; y: number } | null>(null);
   const clearLongPress = () => { if (lpTimer.current != null) { window.clearTimeout(lpTimer.current); lpTimer.current = null; } lpStart.current = null; };
   const [moveOffset, setMoveOffset] = useState<{ dx: number; dy: number } | null>(null);
+  // Wave 11D issue 4: px nudge so the overlay's DOM baseline lands exactly on the PDF
+  // baseline (block.baselineOffset), removing the ~1-2mm jump when entering edit mode.
+  const [baselineAdjust, setBaselineAdjust] = useState(0);
   const dragState = useRef<{ startX: number; startY: number; moved: boolean } | null>(null);
   const cancelMoveRef = useRef<(() => void) | null>(null);
   // Last snapped PDF position during a drag (Wave 8B) — committed on pointer-up.
@@ -159,6 +162,29 @@ export function TextBlock({
     onResize(w, h);
   }, [editing, modified, text, fontName, fontSizeRaw, bold, italic, scale, pageWidth]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Wave 11D issue 4: align the overlay text baseline to the PDF baseline. The PNG
+  // shows the baked text at `block.y + baselineOffset`; the DOM overlay is top-aligned
+  // in the box with half-leading, so its baseline sits a couple px off → entering edit
+  // jumped the text. Measure the overlay's real first-line baseline (via a zero-size
+  // baseline-aligned marker in the hidden mirror — never the live editable, so typing
+  // isn't disturbed) and translate the editable by the delta. Baseline is independent
+  // of the text content, so this runs on font/size/scale changes, not per keystroke.
+  // Falls back to 0 (current behavior) for locally-added text (no baselineOffset).
+  useLayoutEffect(() => {
+    const mirror = measureRef.current;
+    if (block.baselineOffset == null || !mirror) {
+      setBaselineAdjust((v) => (v !== 0 ? 0 : v));
+      return;
+    }
+    const marker = document.createElement("span");
+    marker.style.cssText = "display:inline-block;width:0;height:0;vertical-align:baseline";
+    mirror.insertBefore(marker, mirror.firstChild);
+    const domAscent = marker.getBoundingClientRect().top - mirror.getBoundingClientRect().top;
+    mirror.removeChild(marker);
+    const next = block.baselineOffset * scale - domAscent;
+    setBaselineAdjust((v) => (Math.abs(next - v) < 0.5 ? v : next));
+  }, [editing, contentChanged, fontName, fontSizeRaw, bold, italic, scale, block.baselineOffset]);
+
   const border = editing || selected ? "2px solid #6B5CE7" : "1px solid transparent";
   // Wave 11B round-4: two distinct fills.
   // - ghostFill hides the OLD baked PNG text at the ORIGINAL bbox → always the
@@ -189,6 +215,13 @@ export function TextBlock({
   const bgFillW = (size?.w ?? block.w) * scale + 2 * scale;
   const boxW = Math.max(50, size?.w ?? block.w) * scale;
   const boxH = (size?.h ?? block.h) * scale;
+  // Wave 11D issue 1: the root div clips the overlay text with overflow:hidden. The
+  // PDF bbox height (or the font-metric box) is tight to the em and cuts descenders /
+  // diacritics (g, y, ğ, ş, ç) once the DOM overlay replaces the PNG (e.g. on move).
+  // Give the ROOT a few px of bottom room so glyphs aren't clipped. The root is
+  // transparent (the visible frame + ghost stay at origH), so this never spills a
+  // visible box into the row below.
+  const descenderPad = Math.ceil(fontSize * 0.18);
 
   // Use position override if present (drag-to-move), else original block coords.
   const blockLeft = (pos?.x ?? block.x) * scale;
@@ -439,6 +472,9 @@ export function TextBlock({
         className="pp-textblock"
         style={{
           ...boxStyle,
+          // Wave 11D issue 1: extra bottom room so overflow:hidden doesn't clip
+          // descenders/diacritics (root is transparent → no visible spill).
+          height: boxH + descenderPad,
           // Wave 11B round-6: root is the invisible ≥50pt hit/text container — the visible
           // border + bg live on the tight frame div above so the block hugs the text.
           border: "1px solid transparent",
@@ -486,6 +522,8 @@ export function TextBlock({
               overflow: "hidden",
               width: "100%",
               height: "100%",
+              // Wave 11D issue 4: nudge the DOM text onto the PDF baseline (see effect).
+              transform: baselineAdjust ? `translateY(${baselineAdjust}px)` : undefined,
               // pristine, unselected blocks stay invisible so the PNG text shows through
               visibility: masked || editing ? "visible" : "hidden",
             }}
