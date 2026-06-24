@@ -89,3 +89,13 @@
 - `cmd_selftest` gains a color-preservation guard (gray block, no explicit
   color → drawn glyphs read gray). All selftests green; `bun run build` green.
 - Pending: Hetzner deploy + user visual confirm before GATE 11C pass.
+
+## [2026-06-24] GATE 11C PASSED ✅ — Wave 11C COMPLETE
+- User confirmed all tests green: edited gray label stays gray (no black
+  fallback), black stays black, explicit color picker still wins, short/long
+  replacements anchored at original x — no baseline/alignment drift.
+- Commit `d5df213` (backend color fix + docs). Pushed to main; Hetzner pulled +
+  `plinypdf-backend` restarted, health `{"ok":true}`.
+- Alignment/baseline/line-height/width needed no code change (already correct
+  from 11A/11B origin capture; multi-line leading N/A — per-line blocks).
+- Next: Wave 11D — Uneditable detection + performance + final QA. Not started.

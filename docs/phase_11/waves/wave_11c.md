@@ -1,6 +1,6 @@
 # Wave 11C — Color & Alignment Fidelity
 
-Implemented, GATE pending. See CLAUDE_11 §4 Wave 11C.
+DONE ✅ — GATE 11C passed 2026-06-24. See CLAUDE_11 §4 Wave 11C.
 
 ## Findings (investigation)
 - **Color (Issue 11)** — BROKEN: extracted but dropped on save (black fallback).
