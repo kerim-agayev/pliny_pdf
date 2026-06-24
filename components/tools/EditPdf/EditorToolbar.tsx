@@ -434,12 +434,12 @@ export function EditorToolbar() {
         <TBDiv />
         <button
           type="button" disabled={!fmtEnabled} className="pp-edtool" title={t("color")}
-          onClick={() => colorRef.current?.click()}
+          onClick={() => { s.endColorBurst(); colorRef.current?.click(); }}
           style={{ height: 30, padding: "0 6px", borderRadius: 7, background: "var(--bg-2)", border: "1px solid var(--line)", display: "inline-flex", alignItems: "center", gap: 6, cursor: fmtEnabled ? "pointer" : "not-allowed", opacity: fmtEnabled ? 1 : 0.5 }}
         >
           <span style={{ width: 16, height: 16, borderRadius: 4, background: s.fontColor, border: "1px solid var(--line-2)" }} />
           <IconChevron size={11} style={{ transform: "rotate(90deg)", opacity: 0.6, color: "var(--text-2)" }} />
-          <input ref={colorRef} type="color" value={s.fontColor} onChange={(e) => s.setFormat({ fontColor: e.target.value })} style={{ position: "absolute", width: 0, height: 0, opacity: 0, pointerEvents: "none" }} />
+          <input ref={colorRef} type="color" value={s.fontColor} onChange={(e) => s.previewColor({ fontColor: e.target.value })} onBlur={() => s.endColorBurst()} style={{ position: "absolute", width: 0, height: 0, opacity: 0, pointerEvents: "none" }} />
         </button>
         {/* Wave 11B — manual background/mask fill for the selected block (overrides the
             11A auto-sampled color when it bailed to white on a gradient/image).
@@ -448,12 +448,12 @@ export function EditorToolbar() {
         <button
           type="button" disabled={!enabled} className="pp-edtool"
           title={s.bgSampleFailed ? t("bgNoMatchHint") : t("fieldBgColor")}
-          onClick={() => bgColorRef.current?.click()}
+          onClick={() => { s.endColorBurst(); bgColorRef.current?.click(); }}
           style={{ height: 30, padding: "0 6px", borderRadius: 7, background: "var(--bg-2)", border: s.bgSampleFailed ? "1px solid #F59E0B" : "1px solid var(--line)", boxShadow: s.bgSampleFailed ? "0 0 0 1px rgba(245,158,11,0.4)" : undefined, display: "inline-flex", alignItems: "center", gap: 6, cursor: enabled ? "pointer" : "not-allowed", opacity: enabled ? 1 : 0.5 }}
         >
           <span style={{ width: 16, height: 16, borderRadius: 4, background: s.bgColor, border: "1px solid var(--line-2)" }} />
           <IconChevron size={11} style={{ transform: "rotate(90deg)", opacity: 0.6, color: "var(--text-2)" }} />
-          <input ref={bgColorRef} type="color" value={s.bgColor} onChange={(e) => s.setFormat({ bgColor: e.target.value })} style={{ position: "absolute", width: 0, height: 0, opacity: 0, pointerEvents: "none" }} />
+          <input ref={bgColorRef} type="color" value={s.bgColor} onChange={(e) => s.previewColor({ bgColor: e.target.value })} onBlur={() => s.endColorBurst()} style={{ position: "absolute", width: 0, height: 0, opacity: 0, pointerEvents: "none" }} />
         </button>
         <TBtn icon={IconPipette} label={t("eyedropper")} active={s.eyedropper} disabled={!enabled} onClick={() => s.setEyedropper(!s.eyedropper)} />
         <TBDiv />

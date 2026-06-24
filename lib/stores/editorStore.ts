@@ -113,6 +113,9 @@ interface EditorState {
    *  watermark under the text → server sent bgColor:null); prompts the user to pick a
    *  mask color manually (Wave 11D). Locally-added text omits bgColor → never "failed". */
   bgSampleFailed: boolean;
+  /** true while a desktop <input type=color> drag is in progress — coalesces its
+   *  per-tick onChange flood into ONE undo step (Wave 11D undo fix). Transient UI. */
+  colorBurstActive: boolean;
   /** true while click-to-sample (eyedropper) is armed — EditorCanvas samples a page pixel */
   eyedropper: boolean;
 
@@ -180,6 +183,11 @@ interface EditorState {
   setBlockSize: (blockId: string, w: number, h: number) => void;
 
   setFormat: (patch: Partial<Pick<EditorState, "fontFamily" | "fontSize" | "fontColor" | "bold" | "italic" | "underline" | "textAlign" | "bgColor">>) => void;
+  /** live color-picker drag: applies fontColor/bgColor with ONE undo step per drag
+   *  (the native <input type=color> fires onChange on every tick). Call endColorBurst
+   *  when the picker closes. Swatches/eyedropper use setFormat (one step each). */
+  previewColor: (patch: { fontColor?: string; bgColor?: string }) => void;
+  endColorBurst: () => void;
   setEyedropper: (on: boolean) => void;
   setStroke: (patch: Partial<Pick<EditorState, "strokeColor" | "strokeWidth">>) => void;
   setWhiteout: (patch: Partial<Pick<EditorState, "whiteoutColor">>) => void;
@@ -233,6 +241,7 @@ const INITIAL = {
   textAlign: "left" as TextAlign,
   bgColor: "#ffffff",
   bgSampleFailed: false,
+  colorBurstActive: false,
   eyedropper: false,
   strokeColor: "#F43F5E",
   strokeWidth: 3,
@@ -430,6 +439,34 @@ export const useEditorStore = create<EditorState>((set, get) => ({
       }
     }
   },
+  // Live color-picker drag. A native <input type=color> fires onChange on EVERY drag
+  // tick; routing each through editBlock flooded the undo stack so one pick couldn't be
+  // undone in a single step (and buried earlier history — the reported bug). Here the
+  // FIRST tick of a burst pushes one pre-edit snapshot; later ticks only repaint. The
+  // toolbar ends the burst when the picker opens/blurs, so each pick = exactly one undo
+  // step. Swatch grids + eyedropper still call setFormat (already one step each).
+  previewColor: (patch) =>
+    set((s) => {
+      const base: Partial<EditorState> = { ...patch };
+      if (patch.bgColor !== undefined) base.bgSampleFailed = false;
+      const id = s.selectedBlock;
+      if (!id) return base; // no selection → just update the toolbar swatch value
+      const map: Partial<BlockChange> = {};
+      if (patch.fontColor !== undefined) map.color = patch.fontColor;
+      if (patch.bgColor !== undefined) map.bgColor = patch.bgColor;
+      const changes = new Map(s.changes);
+      changes.set(id, { ...changes.get(id), blockId: id, ...map });
+      const startBurst = !s.colorBurstActive;
+      return {
+        ...base,
+        changes,
+        hasUnsavedChanges: true,
+        colorBurstActive: true,
+        // snapshot(s) captures the PRE-edit state (s is pre-update) — pushed once per burst.
+        ...(startBurst ? { undoStack: [...s.undoStack, snapshot(s)], redoStack: [] } : {}),
+      };
+    }),
+  endColorBurst: () => set((s) => (s.colorBurstActive ? { colorBurstActive: false } : s)),
   setEyedropper: (on) => set({ eyedropper: on }),
   setStroke: (patch) => set(patch),
   setWhiteout: (patch) => set(patch),
