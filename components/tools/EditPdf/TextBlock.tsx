@@ -181,9 +181,13 @@ export function TextBlock({
     mirror.insertBefore(marker, mirror.firstChild);
     const domAscent = marker.getBoundingClientRect().top - mirror.getBoundingClientRect().top;
     mirror.removeChild(marker);
-    const next = block.baselineOffset * scale - domAscent;
-    // ponytail: TEMP Issue-4 instrumentation — remove after baseline tuning.
-    console.log("[baseline]", { offsetPx: block.baselineOffset * scale, domAscent, next });
+    // Issue 4: align the overlay baseline to the PNG. The full delta
+    // (baselineOffset*scale − domAscent) overshot DOWN (the web font's ascent is
+    // smaller than the original's, so a measured value of 2.43px moved text past the
+    // PNG baseline). Empirically zero-shift sits between the un-nudged UP shift
+    // (delta 0) and the full-correction DOWN shift, so apply HALF. ponytail: tuned
+    // from one real block (offset 10.43, domAscent 8); user confirms visually.
+    const next = (block.baselineOffset * scale - domAscent) * 0.5;
     setBaselineAdjust((v) => (Math.abs(next - v) < 0.5 ? v : next));
   }, [editing, contentChanged, fontName, fontSizeRaw, bold, italic, scale, block.baselineOffset]);
 
@@ -521,6 +525,11 @@ export function TextBlock({
               // Chrome/Windows, lightens on WebKit/Firefox — harmless either way.
               WebkitFontSmoothing: "antialiased",
               MozOsxFontSmoothing: "grayscale",
+              // Issue 2: a MOVED block's overlay reads heavier than the original PNG
+              // text (DirectWrite renders the web font bolder). Drop its contrast a
+              // touch so it stops looking darker in the live UI. Moved-only so edit-in-
+              // place color fidelity (11C) is untouched; the saved PDF is unaffected.
+              opacity: moved ? 0.85 : undefined,
               textDecoration: blockStyle?.underline ? "underline" : "none",
               textAlign: blockStyle?.textAlign ?? "left",
               outline: "none",
