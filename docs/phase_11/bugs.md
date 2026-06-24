@@ -36,6 +36,11 @@ page background (`_sample_bg_color` returns None when `page.rotation`). Edits la
 correctly; only the auto bg-match is disabled. Parity with Sejda/pdfFiller, which
 also degrade on rotated scans. Manual bg color + eyedropper still work. Accepted.
 
+USER-FACING NOTE (reconciled, Issue-4 QA round): rotated pages (90/180/270°) —
+text edits are still *placed* correctly (B11-3), but the auto background-match
+degrades (falls back to white). Manual bg color + eyedropper remain available.
+Parity with Sejda/pdfFiller; rare use case; deferred to a future phase.
+
 ## B11-5 — "Text darkens on move" — font substitution, not color (FIXED)
 Reported: moving a block darkens its text. Investigated by sampling the rendered
 REKVIZIT header: original blue (14,164,247) vs moved (15,164,247) — IDENTICAL

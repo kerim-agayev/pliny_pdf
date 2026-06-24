@@ -182,6 +182,8 @@ export function TextBlock({
     const domAscent = marker.getBoundingClientRect().top - mirror.getBoundingClientRect().top;
     mirror.removeChild(marker);
     const next = block.baselineOffset * scale - domAscent;
+    // ponytail: TEMP Issue-4 instrumentation — remove after baseline tuning.
+    console.log("[baseline]", { offsetPx: block.baselineOffset * scale, domAscent, next });
     setBaselineAdjust((v) => (Math.abs(next - v) < 0.5 ? v : next));
   }, [editing, contentChanged, fontName, fontSizeRaw, bold, italic, scale, block.baselineOffset]);
 
@@ -389,7 +391,10 @@ export function TextBlock({
             left: blockLeft,
             top: blockTop,
             width: bgFillW,
-            height: origH,
+            // Issue 1: extend DOWN by descenderPad (top stays at blockTop) so the
+            // colored bg box contains descender/diacritic tails (g, y, ğ, ş, ç) that
+            // the root already renders past origH — matches the root's descender room.
+            height: origH + descenderPad,
             transform: moveOffset ? `translate(${moveOffset.dx}px, ${moveOffset.dy}px)` : undefined,
             background: showFill ? maskColor : "transparent",
             border,
@@ -511,6 +516,11 @@ export function TextBlock({
               color,
               fontWeight: bold ? 700 : 400,
               fontStyle: italic ? "italic" : "normal",
+              // Issue 2: thin the moved/edited DOM overlay closer to the PNG-baked
+              // original (web fonts render heavier than PyMuPDF's raster). No-op on
+              // Chrome/Windows, lightens on WebKit/Firefox — harmless either way.
+              WebkitFontSmoothing: "antialiased",
+              MozOsxFontSmoothing: "grayscale",
               textDecoration: blockStyle?.underline ? "underline" : "none",
               textAlign: blockStyle?.textAlign ?? "left",
               outline: "none",
