@@ -369,6 +369,7 @@ def _build_geometry_map(original_pdf):
                     "origin": origin,
                     "size": span.get("size", 11),
                     "font": span.get("font", ""),
+                    "color": span.get("color", 0),  # packed int — original text color (Wave 11C)
                     "flags": span.get("flags", 0),
                     "text": span.get("text", ""),
                     # distance from bbox top to text baseline (used for move y-coord conversion)
@@ -424,6 +425,10 @@ def _draw_edit(doc, geo, change, affected):
     text = change.get("text") or g.get("text", "")
     size = change.get("fontSize", g["size"])
     font_name = change.get("fontName", g["font"])
+    # Wave 11C: preserve the original text color by default. A plain retype sends no
+    # color (only the toolbar color picker does), so falling back to hard black turned
+    # gray/colored labels black on save. change.color (explicit override) still wins.
+    color = change.get("color") or _int_color_to_hex(g.get("color", 0))
     # Wave 11B round-4: a manual bgColor is a highlight behind the CURRENT text,
     # sized to it (NOT the old bbox) — so it tracks shorten/lengthen edits. Drawn
     # after the redaction (page bg) and before the text.
@@ -441,7 +446,7 @@ def _draw_edit(doc, geo, change, affected):
         text,
         size,
         font_name,
-        change.get("color", "#000000"),
+        color,
         bold,
         italic,
     )
@@ -454,7 +459,7 @@ def _draw_edit(doc, geo, change, affected):
                 uw = g["bbox"][2] - g["bbox"][0]
         else:
             uw = g["bbox"][2] - g["bbox"][0]
-        _draw_underline(page, insert_point, uw, size, change.get("color", "#000000"))
+        _draw_underline(page, insert_point, uw, size, color)
 
 
 def _apply_add_text(doc, change, affected):
@@ -883,6 +888,26 @@ def cmd_selftest():
     doc.close()
     assert red, "moved red-bg block was erased by another block's redaction (ordering regressed)"
     sys.stderr.write("[pdf-editor] selftest OK — edit redaction/draw ordering\n")
+
+    # Wave 11C: color-preservation guard. An edit with NO explicit color must keep the
+    # block's ORIGINAL color, not fall back to black. Original = gray (0x808080); after a
+    # plain-retype edit the drawn glyphs must read gray, never near-black.
+    doc = pymupdf.open()
+    page = doc.new_page(width=200, height=80)
+    geo = {
+        "C": {"page": 0, "bbox": (20, 30, 120, 50), "origin": (20, 46),
+              "size": 16, "font": "Helvetica", "color": 0x808080, "flags": 0,
+              "text": "Gray", "baseline_offset": 16},
+    }
+    _draw_edit(doc, geo, {"type": "edit", "blockId": "C", "text": "Gray"}, set())
+    pm = page.get_pixmap(clip=pymupdf.Rect(20, 30, 120, 50))
+    gray = any(
+        100 < pm.pixel(x, y)[0] < 180 and 100 < pm.pixel(x, y)[1] < 180 and 100 < pm.pixel(x, y)[2] < 180
+        for x in range(0, pm.width, 2) for y in range(0, pm.height, 2)
+    )
+    doc.close()
+    assert gray, "edit without explicit color did not preserve the original gray (regressed to black)"
+    sys.stderr.write("[pdf-editor] selftest OK — original text color preserved\n")
     print(json.dumps({"ok": True}))
 
 

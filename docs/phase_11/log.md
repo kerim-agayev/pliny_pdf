@@ -71,3 +71,21 @@
   `2e6adee` (r7 z-index), `d08c70f` (r8 ordering). Hetzner redeployed (health OK).
 - User confirmed: saved PDF matches the editor, no 11A regression.
 - Next: Wave 11C — color & alignment fidelity. Not started.
+
+## [2026-06-24] Wave 11C — text color preserved on save (implemented, gate pending)
+- Investigation: 3 of 4 issues already correct from 11A/11B (origin/baseline
+  captured). Alignment (`_draw_edit` uses `Point(g["origin"])`), baseline
+  (insert_text point = baseline), multi-line leading (blocks are per source
+  line → N/A) and width overflow (anchored, flows right — acceptable) need no
+  change. Only color was broken.
+- Bug: original text color is extracted (`block.color`) and shown in the live
+  editor, but dropped on save — a plain retype sends only `{newText}`, geo had
+  no color, and `_draw_edit` fell back to hard black → gray/colored labels
+  turned black in the saved PDF.
+- Fix (backend-only, `pdf-editor.py`): `_build_geometry_map` stores the packed
+  `color` int; `_draw_edit` resolves `change.get("color") or
+  _int_color_to_hex(g.get("color", 0))` for text + underline. Explicit toolbar
+  color still wins; new add-text stays black-default.
+- `cmd_selftest` gains a color-preservation guard (gray block, no explicit
+  color → drawn glyphs read gray). All selftests green; `bun run build` green.
+- Pending: Hetzner deploy + user visual confirm before GATE 11C pass.
