@@ -185,3 +185,21 @@
 - **Issue 5 (mobile):** all 11A-11D verified working at 375px incl. the hint. No change.
 - **Issue 6:** 11A/11B/11C gates logged passed; 11D code-done, GATE pending issue-7 QA.
 - Pending: `bun run build`, full issue-7 checklist with user, then commit + Hetzner deploy.
+
+## [2026-06-24] Wave 11D — follow-up QA round (4 issues, frontend-only)
+- **Issue 1 (colored bg box clips descenders):** the custom-color frame box sat at
+  `origH` while the root already had `descenderPad` → tails below the box. Fix:
+  frame height → `origH + descenderPad` (down only). User confirmed. (B11-6)
+- **Issue 2 (moved text heavier in live UI):** confirmed PNG-vs-DOM render gap (not
+  a color/weight bug; saved PDF correct). Font-smoothing hints weren't enough →
+  `opacity: 0.85` on the MOVED overlay span (moved-only). User: acceptable. (B11-5)
+- **Issue 4 (edit-mode baseline overshoot):** instrumented one real block
+  (offset 10.43px, domAscent 8px); full correction overshot DOWN → applied HALF
+  `(baselineOffset*scale − domAscent) * 0.5`. User confirmed zero shift. Temp log
+  removed. (B11-7 → FIXED)
+- **Issue 3 (rotated, docs only):** requested "edits may misalign" contradicts the
+  verified B11-3 finding (edits land correctly); added a reconciled user-facing note
+  (bg auto-match degrades, placement fine). No code.
+- `bun run build` green. Commits `e0b987c`, `a9c987d` (code) + this docs commit.
+  Frontend-only; no Hetzner deploy. Pending: user runs the full 26-item issue-7
+  checklist on prod (desktop + mobile) → GATE 11D.

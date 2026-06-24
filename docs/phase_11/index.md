@@ -4,8 +4,9 @@
 - Phase: 11
 - Active wave: **11D — Uneditable detection + perf + final QA** (code done,
   GATE 11D pending user confirm)
-- Next step: user verifies the text-over-image hint in the live editor
-  (desktop + mobile); then commit + push (frontend-only; no Hetzner deploy).
+- Next step: user runs the full 26-item issue-7 checklist on prod (desktop +
+  mobile). 4 follow-up QA fixes locked (descender bg box, moved-text opacity,
+  baseline halve, rotated docs); frontend-only, pushed. Then GATE 11D.
 
 ## Waves
 - 11A — Smart background sampling (mask matches page bg, not white). ✅ COMPLETE

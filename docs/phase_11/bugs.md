@@ -55,6 +55,11 @@ to Noto cleanly; all selftests pass.
 RESIDUAL: base-14 fonts (e.g. Helvetica-Bold) aren't embedded, so AZ text in them
 (the REKVIZIT header) still routes to Noto and stays slightly heavier — unavoidable
 without the original font. Documented.
+LIVE-UI follow-up (QA round): saved PDF is correct, but the editor still showed the
+moved overlay heavier (DirectWrite renders the web font bolder than the PNG raster).
+Mitigated frontend-only in `TextBlock.tsx`: `opacity: 0.85` on the MOVED overlay
+span (+ font-smoothing hints) to drop its contrast toward the PNG. Moved-only so
+edit-in-place color fidelity (11C) and the saved PDF are untouched. User: acceptable.
 
 ## B11-6 — Descenders clipped on move (Wave 11D) — FIXED
 Moving a block clipped g/y/ğ/ş/ç by ~2-3px: the transparent root div's
@@ -62,14 +67,23 @@ Moving a block clipped g/y/ğ/ş/ç by ~2-3px: the transparent root div's
 (`TextBlock.tsx`): add a font-proportional bottom allowance (`descenderPad =
 fontSize*0.18`) to the root height only; the visible frame + ghost stay at origH,
 so no visible box spills into the next row.
+QA-round follow-up: with a custom bg color the COLORED frame box (at origH) still
+clipped the same tails — they sat below the box. Fix: extend the frame box height
+to `origH + descenderPad` (DOWN only; top stays at blockTop) so the tails sit
+inside the colored box. Ghost (white/sampled, old spot) left at origH. User: confirmed.
 
-## B11-7 — Text shifts up ~1-2mm on double-click edit — OPEN (needs visual verify)
+## B11-7 — Text shifts on double-click edit — FIXED (QA round, user-confirmed)
 Entering edit on a PRISTINE block swaps the PNG-baked text for the DOM overlay,
 whose baseline (lineHeight:1.12, top-aligned) doesn't match the PDF baseline →
 small jump. (Already-edited blocks use the same overlay div in display + edit, so
-they don't shift — confirms it's PNG-vs-DOM, not an edit-mode style diff.) Proper
-fix = align the overlay to the PDF baseline using `baselineOffset` from parse;
-needs in-browser tuning. Deferred pending the user's visual confirmation.
+they don't shift — confirms it's PNG-vs-DOM, not an edit-mode style diff.)
+Fix (`TextBlock.tsx`): translate the overlay onto the PDF baseline using
+`baselineOffset` from parse. The full delta `baselineOffset*scale − domAscent`
+OVERSHOT down (web-font ascent < the original's; one real block measured offset
+10.43px, domAscent 8px → 2.43px translate looked too low). Zero-shift sits between
+the un-nudged UP shift (delta 0) and the full-correction DOWN shift, so apply HALF:
+`(baselineOffset*scale − domAscent) * 0.5`. User confirmed zero shift on double-click.
+Tunable single factor if a future font reveals a different sweet spot.
 
 ## B11-4 — /edit-pdf Lighthouse Performance < 90 (Wave 11D) — ACCEPTED
 Measured 66 (mobile, prod) this run; 84 at GATE 10D — high run-to-run variance.
