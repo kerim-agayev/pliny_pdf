@@ -215,3 +215,21 @@
 - Self-check `lib/stores/editorStore.test.ts` (one drag = one undo step; picks stay
   separate) green; `bun run build` green. Frontend-only. Commit `eeb1718` + docs.
   Pending user confirm: set bg 5×, undo 5× restores each prior color, then past it.
+
+## [2026-06-24] GATE 11D PASSED ✅ — Wave 11D COMPLETE — PHASE 11 COMPLETE 🎉
+- User confirmed all 26 issue-7 checklist items on desktop (1024px+) AND mobile
+  (375px): open/scanned/encrypted handling, add/edit/move/delete text, descenders,
+  background auto-match + manual picker + eyedropper, text-over-image hint, fonts,
+  bold/italic/underline, color preserve, AZ/TR/RU chars, links/highlight/shapes/
+  stamps/whiteout, undo/redo (incl. through bg-color changes), save + re-open.
+- Phase 11 delivered (no new tools — Edit PDF fidelity only):
+  - 11A — smart background sampling (mask matches the page bg, not white).
+  - 11B — manual bg color picker + eyedropper + font matching + AZ/TR/RU glyphs.
+  - 11C — original text color preserved on save.
+  - 11D — text-over-image hint, uneditable detection, perf measured/accepted, +
+    QA fixes: baseline halve (B11-7), descender bg box (B11-6), move opacity
+    (B11-5), undo color-picker flood (B11-8).
+- Commits this session: `e0b987c`, `a9c987d`, `5e72e14`, `eeb1718`, `b926e16`
+  + final `feat: Phase 11 complete`. Frontend-only (no Hetzner deploy for the QA
+  round); backend waves 11A–11C were deployed in their own gates.
+- Next: Phase 12 — await user direction.

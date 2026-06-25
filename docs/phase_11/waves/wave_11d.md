@@ -40,6 +40,8 @@ high variance). LCP 4.7s = client-rendered empty-state H1 gated by the
 refactor the plan excludes. Legacy-JS lever (browserslist) drops older-browser
 support → unsafe. Accepted as a non-blocker; LCP refactor deferred.
 
+# GATE 11D — PASSED ✅ (2026-06-24) — Wave 11D DONE, Phase 11 COMPLETE
+
 ## GATE 11D
 - [x] Scanned PDF → existing modal on open
 - [x] Text-over-image → manual-color hint (data path verified; visual = user QA)
@@ -48,7 +50,14 @@ support → unsafe. Accepted as a non-blocker; LCP refactor deferred.
 - [x] Multi-column → edits stay local (verified)
 - [~] Lighthouse ≥ 90 → not met; accepted non-blocker per pre-authorized decision
 - [x] `bun run build` green
-- [ ] User confirms GATE 11D (frontend hint visual on desktop + mobile)
+- [x] User confirmed GATE 11D — all 26 checklist items on desktop + mobile
+
+## Follow-up QA round (4 issues) — all locked
+- Issue 1 — colored bg box extended for descenders (B11-6). ✅
+- Issue 2 — moved-text opacity 0.85 toward PNG weight (B11-5). ✅ (user: acceptable)
+- Issue 4 — edit-mode baseline halved → zero shift (B11-7). ✅ (user-confirmed)
+- Issue 3 — rotated-page reconciled note in bugs.md (docs only). ✅
+- B11-8 — undo/redo color-picker flood → one undo step per pick. ✅ (+ self-check)
 
 ## Test PDFs used
 - REKVIZIT-rotated.pdf (rotation 270) — rotated verification
