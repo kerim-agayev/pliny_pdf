@@ -1,5 +1,6 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { ToolMount } from "@/components/tools/ToolMount";
+import { SsrEmpty } from "@/components/tools/EditPdf/SsrEmpty";
 import { toolMetadata } from "@/lib/seo";
 import { toolSchemas } from "@/lib/structured-data";
 import { JsonLd } from "@/components/seo/JsonLd";
@@ -15,9 +16,10 @@ export const generateMetadata = toolMetadata("edit-pdf");
  * Wave 9G LCP fix: the editor is `dynamic(ssr:false)`, so nothing painted
  * server-side and LCP waited ~7.6s for the JS chunk. The static, aria-hidden
  * placeholder below mirrors the editor's empty state and renders in the initial
- * HTML â€” it becomes the LCP element, then is fully covered by the editor's opaque
- * `position:fixed; inset:0; z-index:50` shell once it hydrates. No focusable
- * elements (styled span, not a button) so it adds nothing to the a11y tree.
+ * HTML â€” it becomes the LCP element. It lives in NORMAL document flow (so the
+ * global footer sits below it, not under a full-screen cover) and self-removes
+ * after hydration via <SsrEmpty> so it doesn't double-render with the client
+ * editor's empty state. No focusable elements (styled span, not a button).
  */
 export default async function EditPdfPage({
   params,
@@ -30,12 +32,11 @@ export default async function EditPdfPage({
   return (
     <>
       <JsonLd data={toolSchemas("edit-pdf", locale)} />
+      <SsrEmpty>
       <div
         aria-hidden
         style={{
-          position: "fixed",
-          inset: 0,
-          zIndex: 0,
+          minHeight: "70vh",
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
@@ -88,6 +89,7 @@ export default async function EditPdfPage({
           </div>
         </div>
       </div>
+      </SsrEmpty>
       <ToolMount component="EditPdf" />
     </>
   );

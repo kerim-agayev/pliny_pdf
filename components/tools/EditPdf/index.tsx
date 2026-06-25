@@ -271,11 +271,13 @@ export function EditPdf() {
   // ---------- EMPTY ----------
   if (s.phase === "empty") {
     return (
-      <div style={SHELL}>
-        {Header}
+      // ponytail: normal page flow (not the fixed editor takeover) so the global
+      // navbar/footer show around the dropzone like every other tool. minHeight
+      // 70vh = heuristic to keep it centered; tune if it looks off.
+      <>
         {hiddenInput}
         <div
-          style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 40, background: "radial-gradient(60% 50% at 50% 30%, rgba(107,92,231,0.07), rgba(107,92,231,0) 70%), var(--bg)" }}
+          style={{ minHeight: "70vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 40, background: "radial-gradient(60% 50% at 50% 30%, rgba(107,92,231,0.07), rgba(107,92,231,0) 70%), var(--bg)" }}
           onDragEnter={(e) => { e.preventDefault(); setGlow(true); }}
           onDragOver={(e) => e.preventDefault()}
           onDragLeave={(e) => { e.preventDefault(); setGlow(false); }}
@@ -324,7 +326,7 @@ export function EditPdf() {
           </div>
         </div>
         {pwModal}
-      </div>
+      </>
     );
   }
 
