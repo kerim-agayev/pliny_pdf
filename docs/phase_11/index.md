@@ -5,6 +5,8 @@
 - All waves 11A–11D gate-passed; GATE 11D confirmed (26-item checklist, desktop
   + mobile). Edit PDF now produces professional output across colored backgrounds,
   diverse fonts, AZ/TR/RU characters, and clearly handles uneditable PDFs.
+- Post-11D follow-up: Edit PDF empty-state footer overlap fixed (B11-9, 2026-06-25,
+  commit `33693b2`) — empty state moved to normal flow; footer no longer covered.
 - Next step: Phase 12 (await user direction).
 
 ## Waves
@@ -38,3 +40,4 @@
 - Wave 11D — Text-over-image hint + uneditable detection + QA fixes (baseline,
   descender, move opacity, undo color-picker) — 2026-06-24 (GATE 11D passed).
   **Phase 11 COMPLETE.**
+- Post-11D — Edit PDF empty-state footer overlap fixed (B11-9) — 2026-06-25.

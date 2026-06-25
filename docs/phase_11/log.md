@@ -233,3 +233,17 @@
   + final `feat: Phase 11 complete`. Frontend-only (no Hetzner deploy for the QA
   round); backend waves 11A–11C were deployed in their own gates.
 - Next: Phase 12 — await user direction.
+
+## [2026-06-25] Edit PDF empty-state footer overlap fixed (normal flow) — B11-9
+- Post-11D bug: `/edit-pdf` empty/upload screen covered the full viewport and
+  overlapped the global footer (worst on mobile — footer flashed in then vanished
+  when the editor mounted). Only this tool; all others sit in normal flow.
+- Root cause: empty state rendered inside the editor's fixed takeover `SHELL`
+  (and the SSR placeholder was `position:fixed; inset:0`), both out of normal flow
+  → `<main flex-1>` collapsed and the always-rendered `<Footer/>` rode up.
+- Fix: empty state + SSR placeholder → normal document flow (`minHeight:70vh`
+  flex-center); takeover kept only for loading/active/scanned/error. Editor Header
+  dropped from empty (global navbar shows). New `EditPdf/SsrEmpty.tsx` client
+  wrapper paints the placeholder server-side for LCP, then self-removes after
+  hydration (no double-render). `bun run build` green; user confirmed fixed on
+  desktop + mobile. Commit `33693b2`. Frontend-only (Vercel auto-deploy).

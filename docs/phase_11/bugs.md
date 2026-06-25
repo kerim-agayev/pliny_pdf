@@ -100,6 +100,24 @@ snapshot on the first tick of a burst and only repaints on later ticks; `endColo
 Swatches/eyedropper still use `setFormat`. Self-check `editorStore.test.ts` asserts
 one drag = one undo step and that picks stay separately undoable. User confirms pending.
 
+## B11-9 — Edit PDF empty state covered the footer (post-11D) — FIXED
+The `/edit-pdf` upload/empty screen covered the full viewport and overlapped the
+global footer (worst on mobile: on first load the footer flashed in covering ~half
+the page, then vanished when the editor mounted). Only this tool had it.
+Root cause: the empty state rendered inside the editor's full-screen takeover shell
+`SHELL = {position:fixed; inset:0; zIndex:50}` (and the SSR LCP placeholder was
+`position:fixed; inset:0`), both OUT of normal flow → `<main className="flex-1">`
+collapsed and the always-rendered `<Footer/>` rode up under the navbar until the
+fixed layer painted over it. Other tools keep their dropzone in normal flow.
+Fix: switch ONLY the empty state (and its SSR placeholder) to normal document flow;
+`loading`/`active`/`scanned`/`error` keep the takeover. `EditPdf/index.tsx` empty
+branch → `<>`-wrapped `minHeight:70vh` flex-center wrapper (no `SHELL`), editor
+`Header` dropped so the global navbar shows. `edit-pdf/page.tsx` placeholder → same
+normal-flow wrapper, wrapped in new `SsrEmpty.tsx` (`"use client"`) that paints
+server-side for LCP then self-removes after hydration (no double-render with the
+client editor). `bun run build` green. User confirmed footer no longer covered on
+desktop + mobile. Commit `33693b2`. Frontend-only (Vercel auto-deploy).
+
 ## B11-4 — /edit-pdf Lighthouse Performance < 90 (Wave 11D) — ACCEPTED
 Measured 66 (mobile, prod) this run; 84 at GATE 10D — high run-to-run variance.
 Root cause: LCP (4.7s) is the client-rendered empty-state H1, gated by the
