@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { GoogleAnalytics } from "@next/third-parties/google";
 import { Plus_Jakarta_Sans, Inter, JetBrains_Mono } from "next/font/google";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { setRequestLocale } from "next-intl/server";
@@ -99,6 +100,9 @@ export default async function LocaleLayout({
             </NextIntlClientProvider>
           </PostHogProvider>
         </ThemeProvider>
+        {process.env.NODE_ENV === "production" && (
+          <GoogleAnalytics gaId="G-59ZVW34FR2" />
+        )}
       </body>
     </html>
   );
