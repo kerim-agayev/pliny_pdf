@@ -47,6 +47,14 @@ to avoid re-discovering known issues.
 - **Fix:** Cap the pool (`max: 5`, `idle_timeout: 20`, `max_lifetime: 1800`) and cache one client on `globalThis` so HMR reuses it instead of leaking. Restart both processes once to drop the already-leaked connections.
 - **Commit:** fix: cap Postgres pool + reuse client across HMR
 
+## [2026-07-31] BUG: Google Login (and all DB-dependent routes) 500 — Supabase project auto-paused
+
+- **Where:** Infra (Supabase project `plinypdf`, ref `zllhtqzlzmrxeerpoyuk`) — not a code bug.
+- **Symptom:** `POST /api/auth/sign-in/social` (Google login) returned 500. Worked before, stopped without any deploy. Error: `ENOTFOUND tenant/user postgres.zllhtqzlzmrxeerpoyuk not found`.
+- **Root cause:** Supabase free tier auto-pauses a project after a period of inactivity. The whole database was offline, so the pooler couldn't resolve the tenant — not a credentials or code issue. Any DB-dependent route (auth, dashboard, saved file history) would have failed the same way.
+- **Fix:** Resumed the project from the Supabase dashboard. No code change.
+- **Risk / recommendation:** This can recur silently on the free tier and takes down auth + dashboard with no warning. Upgrade to Supabase Pro to disable auto-pause, or add a keepalive ping, if staying on free tier. `server/routes/health.ts`'s `/api/health` now also checks DB connectivity (`select 1`, returns 503 on failure) so this shows up on a health check instead of only when a user hits login.
+
 ## [2026-05-31] KNOWN LIMITATION: Lemonsqueezy webhook needs a tunnel in local dev
 
 - **Where:** `server/routes/billing.ts` (`POST /api/webhooks/lemonsqueezy`)

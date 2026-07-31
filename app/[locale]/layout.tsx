@@ -101,7 +101,7 @@ export default async function LocaleLayout({
           </PostHogProvider>
         </ThemeProvider>
         {process.env.NODE_ENV === "production" && (
-          <GoogleAnalytics gaId="G-59ZVW34FR2" />
+          <GoogleAnalytics gaId="G-WF4XRKM39X" />
         )}
       </body>
     </html>
