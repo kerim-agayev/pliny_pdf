@@ -177,6 +177,19 @@ Gotcha learned: a `throw` typed in the DevTools console does not reach `window.o
 so it is NOT a valid Sentry test — use `Sentry.captureException/captureMessage` or a real
 in-app error.
 
+## Lemonsqueezy + Gemini AI Summarize removed entirely (2026-08-04, pre-handoff)
+Both were UI-unreachable dead code (Phase 7 hid them, D7-1/D7-4 in `docs/phase_7/decisions.md`,
+without deleting — "potential re-launch in Phase 8"). Project is being handed off to a new
+owner; keeping the code would force them to sign up for/pay a Lemonsqueezy account and
+provision a Gemini API key for features with zero UI entry point. Deleted: `server/routes/{billing,ai}.ts`,
+`server/services/{lemonsqueezy,gemini}.ts`, `components/marketing/{PlanCard,PricingClient}.tsx`
+(already-orphaned), `components/tools/SummarizeTool.tsx`, `app/[locale]/summarize/`, the
+`checkAi`/`remainingAi` rate limiters, the `summarize` entry in `lib/tools.ts`, the NavAuth PRO
+badge, and the `LEMONSQUEEZY_*`/`GEMINI_*` env vars. Left untouched: `users.plan` +
+`effectivePlan()` (still power the anon/free two-tier limit system) and the `subscriptions`
+DB table (dropping it needs a migration; harmless to leave). If either feature is wanted again,
+it needs to be rebuilt from git history, not un-hidden.
+
 ### Multi-origin CORS + checkout redirect (apex + www)
 Serving both apex and www made `FRONTEND_ORIGIN` a comma-separated list, which broke two
 single-string assumptions: `@elysiajs/cors` matched no Origin (dropped the CORS header),

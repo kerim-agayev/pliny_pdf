@@ -47,7 +47,6 @@ const REGISTRY = {
   SignPdf: dynamic(() => import("./SignPdf").then((m) => m.SignPdf), { ssr: false, loading }),
   AddPageNumbers: dynamic(() => import("./AddPageNumbers").then((m) => m.AddPageNumbers), { ssr: false, loading }),
   HeaderFooter: dynamic(() => import("./HeaderFooter").then((m) => m.HeaderFooter), { ssr: false, loading }),
-  SummarizeTool: dynamic(() => import("./SummarizeTool").then((m) => m.SummarizeTool), { ssr: false, loading }),
   OcrPdf: dynamic(() => import("./OcrPdf").then((m) => m.OcrPdf), { ssr: false, loading }),
   CloudConvertTool: dynamic(() => import("./CloudConvertTool").then((m) => m.CloudConvertTool), { ssr: false, loading }),
 } satisfies Record<string, ComponentType<never>>;

@@ -13,7 +13,6 @@ import {
   IconLock,
   IconUnlock,
   IconWord,
-  IconSparkle,
   IconPen,
   IconTrash,
   IconExtract,
@@ -36,7 +35,7 @@ import {
 } from "@/components/shared/icons";
 
 export type ToolMode = "local" | "cloud";
-export type ToolCategory = "Organize" | "Convert" | "Edit" | "Secure" | "AI"; // AI kept for type compat — no visible AI tools in Phase 7
+export type ToolCategory = "Organize" | "Convert" | "Edit" | "Secure";
 
 export interface Tool {
   /** stable id, also the i18n key under the `Tools` namespace */
@@ -90,7 +89,6 @@ export const TOOLS: Tool[] = [
   { id: "pdf-to-word", slug: "pdf-to-word", name: "PDF to Word", desc: "High-fidelity DOCX conversion.", cat: "Convert", mode: "cloud", icon: IconWord, accent: "#60A5FA", available: true },
   { id: "word-to-pdf", slug: "word-to-pdf", name: "Word to PDF", desc: "DOCX in, perfectly formatted PDF out.", cat: "Convert", mode: "cloud", icon: IconWord, accent: "#60A5FA", available: true },
   { id: "ocr-pdf", slug: "ocr-pdf", name: "OCR PDF", desc: "Make scanned PDFs searchable and selectable.", cat: "Convert", mode: "cloud", icon: IconScan, accent: "#60A5FA", available: true },
-  { id: "summarize", slug: "summarize", name: "AI Summary", desc: "Outline or executive summary in seconds.", cat: "AI", mode: "cloud", icon: IconSparkle, accent: "#BFB5FF", tag: "AI-powered", available: false },
   { id: "repeatPages", slug: "repeat-pages", name: "Repeat Pages", desc: "Duplicate selected pages N times — sequential or interleaved.", cat: "Organize", mode: "local", icon: IconCopy, accent: "#A78BFA", available: true },
   { id: "pdfBooklet", slug: "pdf-booklet", name: "PDF Booklet", desc: "Reorder pages for saddle-stitch booklet printing.", cat: "Organize", mode: "local", icon: IconBook, accent: "#F59E0B", available: true },
 ];

@@ -6,8 +6,6 @@ import { convert } from "./routes/convert";
 import { ocr } from "./routes/ocr";
 import { editor } from "./routes/editor";
 import { tools } from "./routes/tools";
-import { ai } from "./routes/ai";
-import { billing } from "./routes/billing";
 
 // Error tracking. No-op when SENTRY_DSN is unset, so local dev is unaffected.
 const SENTRY_DSN = process.env.SENTRY_DSN;
@@ -15,7 +13,7 @@ Sentry.init({ dsn: SENTRY_DSN, enabled: !!SENTRY_DSN, tracesSampleRate: 0.1 });
 
 /**
  * PlinyPDF backend (Bun + Elysia). Separate process from Next.js — it owns the
- * heavy / secret work: Gotenberg proxy, Gemini proxy, rate limiting, billing.
+ * heavy / secret work: Gotenberg proxy, rate limiting.
  * Runs on :8080 (Gotenberg holds :3001). CORS allows the Next.js origin with
  * credentials so the Better Auth cookie reaches us for session validation.
  */
@@ -54,8 +52,6 @@ const app = new Elysia()
   .use(ocr)
   .use(editor)
   .use(tools)
-  .use(ai)
-  .use(billing)
   .listen(PORT);
 
 console.log(`🦅 PlinyPDF backend running at http://localhost:${PORT}`);

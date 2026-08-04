@@ -17,7 +17,6 @@ export const SERVER_DAILY = { anon: 3, free: 10 } as const;
 
 const ipServer = new Ratelimit({ redis, limiter: Ratelimit.fixedWindow(SERVER_DAILY.anon, "1 d"), prefix: "pp:ip:server" });
 const userServer = new Ratelimit({ redis, limiter: Ratelimit.fixedWindow(SERVER_DAILY.free, "1 d"), prefix: "pp:user:server" });
-const userAi = new Ratelimit({ redis, limiter: Ratelimit.fixedWindow(2, "30 d"), prefix: "pp:user:ai" });
 
 export type Plan = "free" | "pro";
 export type LimitOutcome = { ok: boolean; remaining: number; resetAt: number };
@@ -32,21 +31,9 @@ export async function checkServerTool(plan: Plan | null, key: string): Promise<L
   return { ok: r.success, remaining: r.remaining, resetAt: r.reset };
 }
 
-/** AI-summary limit (account required; pro bypasses). */
-export async function checkAi(plan: Plan, key: string): Promise<LimitOutcome> {
-  if (plan === "pro") return UNLIMITED;
-  const r = await userAi.limit(key);
-  return { ok: r.success, remaining: r.remaining, resetAt: r.reset };
-}
-
 /** Remaining counts without consuming — for the dashboard usage cards. */
 export async function remainingServerTool(plan: Plan | null, key: string): Promise<number> {
   if (plan === "pro") return Number.POSITIVE_INFINITY;
   const limiter = plan === "free" ? userServer : ipServer;
   return (await limiter.getRemaining(key)).remaining;
-}
-
-export async function remainingAi(plan: Plan, key: string): Promise<number> {
-  if (plan === "pro") return Number.POSITIVE_INFINITY;
-  return (await userAi.getRemaining(key)).remaining;
 }

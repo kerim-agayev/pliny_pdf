@@ -2,6 +2,13 @@
 
 Append-only chronological record. One line per meaningful task (CLAUDE.md §4.4).
 
+## [2026-08-04] Pre-handoff cleanup — removed dead Lemonsqueezy billing + Gemini AI Summarize code
+Both were UI-unreachable since the Phase 7 "hide, don't delete" decisions (D7-1/D7-4). Deleted backend
+routes/services, orphaned frontend components, the AI rate limiters, the tools.ts catalog entry, and the
+`LEMONSQUEEZY_*`/`GEMINI_*` env vars from `.env.local`/`.env.example`, so the incoming owner isn't stuck
+configuring paid accounts for features with no UI. `users.plan`/`subscriptions` schema kept (still used
+by the anon/free limit system). See `docs/decisions.md`.
+
 ## [2026-06-04] 🚀 Domain launch — plinypdf.com LIVE, Phase 1 COMPLETE
 plinypdf.com purchased on Cloudflare; all deferred Phase 1 items shipped. Phase B7-8: `api` A record (DNS-only) + Caddy installed on Hetzner, Let's Encrypt SSL auto-issued (https://api.plinypdf.com/api/health green). Phase C: Vercel frontend live with custom domains apex+www, prod env set (API URL, BETTER_AUTH_URL, COOKIE_DOMAIN, TRUSTED_ORIGINS, SITE_URL), Hetzner .env.local updated + restarted, Google OAuth redirect/origin added, Lemonsqueezy webhook → api.plinypdf.com (stays TEST mode). Analytics: PostHog activated (EU region, NEXT_PUBLIC_POSTHOG_HOST=eu.i.posthog.com). Sentry added (was deferred): frontend @sentry/nextjs (instrumentation + instrumentation-client + server/edge configs + withSentryConfig) and backend @sentry/bun (Sentry.init + Elysia .onError), all DSN-gated, EU project. Bugs fixed during launch: (1) CORS — `@elysiajs/cors` got the comma-joined FRONTEND_ORIGIN (apex+www) as one string → split to array; (2) Lemonsqueezy redirect_url was the comma-joined origin → use first canonical origin; (3) Sentry "no events" was a build-cache/inlining + console-throw test-method red herring, verified via on-load captureMessage then reverted. GATE C: full incognito e2e all 11 checks green (home, Merge local, email signup, Google OAuth, PDF→Word, AI Summarize, test-card Pro upgrade, /en /tr /ru, api health, PostHog events, Sentry capture). Commits a8d6e84 (Sentry) → a284356 (CORS) → 18425f6 (checkout) → diagnostics → eb592ff (revert) on origin/main. Next: ProductHunt/Show HN/Reddit launch (deploy/LAUNCH.md); switch Lemonsqueezy to live before real payments.
 
