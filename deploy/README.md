@@ -75,16 +75,12 @@ GOOGLE_CLIENT_SECRET=<...>
 
 # --- the rest: copy verbatim from local .env.local ---
 DATABASE_URL=<...>
-GEMINI_API_KEY=<...>   GEMINI_MODEL=gemini-2.5-flash
-LEMONSQUEEZY_API_KEY=<TEST mode>   LEMONSQUEEZY_WEBHOOK_SECRET=<...>
-LEMONSQUEEZY_STORE_ID=<...>   LEMONSQUEEZY_PRODUCT_MONTHLY_ID=<...>   LEMONSQUEEZY_PRODUCT_YEARLY_ID=<...>
 UPSTASH_REDIS_REST_URL=<...>   UPSTASH_REDIS_REST_TOKEN=<...>
 R2_ACCOUNT_ID=<...>   R2_ACCESS_KEY_ID=<...>   R2_SECRET_ACCESS_KEY=<...>   R2_BUCKET=<...>   R2_ENDPOINT=<...>
-RESEND_API_KEY=<...>
 SENTRY_DSN=<...>
 ```
-> The backend is the only place the heavy secrets (Gotenberg/Gemini/R2/Upstash/Lemonsqueezy)
-> need to live. Keep Lemonsqueezy in **test mode** for the soft launch.
+> The backend is the only place the heavy secrets (Gotenberg/R2/Upstash) need to live.
+> (Gemini AI Summarize and Lemonsqueezy billing were removed — see `docs/decisions.md`.)
 
 ### 4. Gotenberg container
 ```bash
@@ -157,7 +153,7 @@ GOOGLE_CLIENT_SECRET=<...>
 ```
 > The Next.js side runs the Better Auth handler (`/api/auth/*`) and the dashboard server
 > component, so it needs DB + auth + the cookie/origin vars. It does **not** need
-> GOTENBERG_*, GEMINI_*, R2_*, UPSTASH_*, or LEMONSQUEEZY_* — those are backend-only.
+> GOTENBERG_*, R2_*, or UPSTASH_* — those are backend-only.
 
 ### 3. Deploy + custom domain
 Deploy. Then Vercel → Settings → Domains → add `plinypdf.com` (and `www.plinypdf.com`).
@@ -169,19 +165,11 @@ Google Cloud Console → Credentials → OAuth client → Authorized redirect UR
 https://plinypdf.com/api/auth/callback/google
 ```
 
-### 5. Lemonsqueezy webhook (test mode)
-Lemonsqueezy → Settings → Webhooks → set URL to:
-```
-https://api.plinypdf.com/api/webhooks/lemonsqueezy
-```
-Use the existing `LEMONSQUEEZY_WEBHOOK_SECRET`. Subscribe to `subscription_*` events.
-
 ### ✅ GATE 2 — end-to-end on https://plinypdf.com (incognito)
-- [ ] Signup (email) works; confirmation email arrives (Resend)
+- [ ] Signup (email or Google) works
 - [ ] PDF→Word works (cloud, backend reachable, cookie sent)
 - [ ] Watermark live preview works (local)
-- [ ] Pricing → checkout opens
-- [ ] Pay with a test card → plan flips to **Pro** on the dashboard
+- [ ] Dashboard loads, shows usage
 
 ---
 
